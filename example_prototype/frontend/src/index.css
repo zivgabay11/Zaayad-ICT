@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: "Rubik", ui-sans-serif, system-ui, sans-serif;
+    /* --color-primary: #5D6532; */
+    --color-primary: #00A2C7;
+    /* --color-primary-dark: #00A2C7; */
+    --color-primary-dark: #00A2C7;
+}
+
+@layer base {
+    :root {
+        /* --color-primary: #5D6532; */
+        --color-primary: #00A2C7;
+    }
+
+    .dark {
+        /* --color-primary: #00A2C7; */
+        --color-primary: #00A2C7;
+    }
+}
+
+@layer base {
+
+    button:not(:disabled),
+    [role="button"]:not(:disabled),
+    a:not([aria-disabled="true"]) {
+        cursor: pointer;
+    }
+}
+
+@layer base {
+    select {
+        background-position: right 0.75rem center;
+    }
+
+    [dir="rtl"] select {
+        background-position: left 0.75rem center;
+    }
+}
+
+.leaflet-container {
+    background: #fff !important;
+}
+
+.dark .leaflet-container {
+    background: #000 !important;
+}
+
+.diagram-text-label-icon {
+    background: none !important;
+    border: none !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+.diagram-arrow-head {
+    background: none !important;
+    border: none !important;
+}
+
+.analysis-area-label {
+    background: rgba(30, 41, 59, 0.75) !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #fff !important;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.analysis-area-label::before {
+    display: none !important;
+}
+
+.analysis-priority-marker {
+    background: none !important;
+    border: none !important;
+}
+
+.react-pdf__Page__textContent {
+    cursor: inherit !important;
+}
+
+.react-pdf__Page__textContent span {
+    cursor: inherit !important;
+}
+
+/* Static Space Establishment (כינון מרחב נייח) map layer overlays */
+.commsite-popup .leaflet-popup-content-wrapper {
+    background: #18181b;
+    color: #f4f4f5;
+    border: 1px solid #3f3f46;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+}
+
+.commsite-popup .leaflet-popup-tip {
+    background: #18181b;
+    border: 1px solid #3f3f46;
+}
+
+.commsite-popup .leaflet-popup-content {
+    margin: 10px 12px;
+}
+
+.commsite-popup a.leaflet-popup-close-button {
+    color: #a1a1aa;
+}
+
+.commsite-label,
+.commsite-client-label {
+    background: rgba(9, 9, 11, .78) !important;
+    border: none !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .4) !important;
+    color: #fff !important;
+    font-weight: 600;
+    padding: 1px 7px !important;
+    border-radius: 6px !important;
+}
+
+.commsite-label {
+    font-size: 11px;
+}
+
+.commsite-client-label {
+    font-size: 9.5px;
+    color: #e4e4e7 !important;
+}
+
+.commsite-label::before,
+.commsite-client-label::before {
+    display: none !important;
+}
