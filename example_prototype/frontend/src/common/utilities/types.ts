@@ -191,4 +191,39 @@ export interface ClientDevice {
     lastSeenAt: string;
 }
 
+// --- Tikshov Common Operational Picture (תמ"כ תקשוב) ---
+// See PRD "Tikshov Common Operational Picture" for the full domain model this mirrors.
+// TrackedDevice is the root entity (PRD 7.1) — a force's carried comms device, rendered
+// on the COP map layer and listed in the unit force table.
+
+export type TrackedDeviceType = 'sheked' | 'dual' | 'setz' | 'maban' | 'setz_modem' | 'elad_green';
+
+export type ConnectionStatus = 'active' | 'inactive' | 'flapping';
+
+export type TikshovDataConfidence = 'live' | 'stale' | 'unknown';
+
+export interface TrackedDevice {
+    deviceId: string;
+    callsign: string;
+    deviceType: TrackedDeviceType;
+    deviceSubtype?: string; // reserved for finer-grained designations, e.g. Elad Green variants (PRD 3.4.6)
+    unitCode: number; // FK into mockUnits — the owning sub-unit
+    position: GeoCoordinate; // doubles as current_lat/long and, once inactive, last_known_lat/long (PRD 3.8)
+    connectionStatus: ConnectionStatus;
+    // This prototype stores the *result* of the PRD's LocationPing / DeviceStatusEvent
+    // history (7.2/7.3) as precomputed fields per device, rather than simulating the
+    // underlying event stream — the UI reads the same as it would off derived data.
+    lastReportSecondsAgo: number;
+    statusDurationMinutes: number; // time-in-current-status (PRD 5.2 table column)
+    statusTransitions24h?: number; // only set for 'flapping' devices — feeds the flapping tooltip (US-10)
+    dataConfidence: TikshovDataConfidence;
+}
+
+export interface WatchedUnitSelection {
+    selectionId: string;
+    watchedUnitCode: number;
+    addedByUserName: string;
+    addedAt: string; // ISO timestamp — audit trail per PRD 2.9 / 7.5
+}
+
 

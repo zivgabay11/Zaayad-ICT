@@ -15,6 +15,7 @@ import { DiagramElement, SystemUnit } from '../utilities/types';
 import { ElementAssignPopover } from '../../diagram/widgets/ElementAssignPopover';
 import { MapContextMenu } from '../../diagram/widgets/MapContextMenu';
 import { StaticSpaceMapLayer } from './StaticSpaceMapLayer';
+import { TikshovCopMapLayer } from './TikshovCopMapLayer';
 
 // Fix Leaflet's default icon path issue with Vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -332,6 +333,7 @@ export const MapPanel: React.FC = () => {
                                 <MapResizer />
                                 <MapCoordinates />
                                 <StaticSpaceMapLayer />
+                                <TikshovCopMapLayer />
                             </MapContainer>
                         </div>
 

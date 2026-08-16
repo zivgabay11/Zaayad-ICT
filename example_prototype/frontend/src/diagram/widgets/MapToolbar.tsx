@@ -12,6 +12,9 @@ import { useMapContext, MapType } from '../../common/context/MapContext';
 import { useAnalysisContext } from '../../common/context/AnalysisContext';
 import { usePlanContext } from '../../common/context/PlanContext';
 import { useStaticSpaceContext } from '../../common/context/StaticSpaceContext';
+import { useTikshovContext } from '../../common/context/TikshovContext';
+import { DEVICE_TYPE_COLORS } from '../../common/utilities/trackedDeviceIcon';
+import { TrackedDeviceType } from '../../common/utilities/types';
 import { formatUnitName } from '../../common/utilities/formatting';
 import { mockUnits } from '../../common/utilities/mockData';
 import { getUnitColor } from '../../common/utilities/colors';
@@ -71,6 +74,13 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
     const { t, i18n } = useTranslation();
     const { activeMapType, setActiveMapType, opacity, setOpacity, activePhaseId, setActivePhaseId, activeUnitCode, setActiveUnitCode, closeMap } = useMapContext();
     const { layerOn, eladFilterOn, mabanFilterOn, toggleLayer, toggleEladFilter, toggleMabanFilter } = useStaticSpaceContext();
+    const {
+        layerOn: tikshovLayerOn,
+        deviceTypeFilters: tikshovDeviceTypeFilters,
+        toggleLayer: toggleTikshovLayer,
+        toggleDeviceTypeFilter: toggleTikshovDeviceTypeFilter,
+    } = useTikshovContext();
+    const TIKSHOV_DEVICE_TYPE_LIST: TrackedDeviceType[] = ['sheked', 'dual', 'setz', 'maban', 'setz_modem', 'elad_green'];
     const { activePlan } = usePlanContext();
     const [showMapTypeDropdown, setShowMapTypeDropdown] = useState(false);
     const [showPhasesDropdown, setShowPhasesDropdown] = useState(false);
@@ -154,6 +164,26 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
                                     <span className="flex-1 text-xs text-slate-600 dark:text-zinc-300">{t('staticSpace.mabanTopology')}</span>
                                     <input type="checkbox" checked={mabanFilterOn} onChange={toggleMabanFilter} className="accent-emerald-500 w-3.5 h-3.5" />
                                 </label>
+
+                                <div className="my-1.5 border-t border-slate-200 dark:border-zinc-700" />
+
+                                <label className="flex items-center gap-2 px-3 py-1.5 cursor-pointer">
+                                    <RadioTower className="w-3.5 h-3.5 text-primary shrink-0" />
+                                    <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-zinc-100">{t('tikshovCop.layerName')}</span>
+                                    <input type="checkbox" checked={tikshovLayerOn} onChange={toggleTikshovLayer} className="accent-primary w-3.5 h-3.5" />
+                                </label>
+                                {TIKSHOV_DEVICE_TYPE_LIST.map(type => (
+                                    <label key={type} className={`flex items-center gap-2 ps-8 pe-3 py-1.5 ${tikshovLayerOn ? 'cursor-pointer' : 'opacity-40 pointer-events-none'}`}>
+                                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: DEVICE_TYPE_COLORS[type] }} />
+                                        <span className="flex-1 text-xs text-slate-600 dark:text-zinc-300">{t(`tikshovCop.deviceTypes.${type}`)}</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={tikshovDeviceTypeFilters[type]}
+                                            onChange={() => toggleTikshovDeviceTypeFilter(type)}
+                                            className="accent-primary w-3.5 h-3.5"
+                                        />
+                                    </label>
+                                ))}
                             </div>
                         )}
                     </div>
@@ -175,9 +205,10 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
                 </div>
             </div>
 
-            {/* Center Start: Filter and Drawing Tools */}
-            <div className="absolute top-1/2 -translate-y-1/2 start-3 z-[1000] pointer-events-auto flex flex-col">
-                <div className="flex flex-col items-center gap-1 bg-white dark:bg-zinc-800 rounded-xl shadow-md border border-slate-200 dark:border-zinc-600 px-1.5 py-2">
+            {/* Bottom Center: Filter and Drawing Tools — a horizontal bar pinned to the
+                bottom of the map, rather than a vertical column floating at its side. */}
+            <div className="absolute bottom-3 start-1/2 -translate-x-1/2 z-[1000] pointer-events-auto flex flex-row">
+                <div className="flex flex-row items-center gap-1 bg-white dark:bg-zinc-800 rounded-xl shadow-md border border-slate-200 dark:border-zinc-600 px-2 py-1.5">
                     {/* Phases */}
                     <div className="relative">
                         <button
@@ -187,7 +218,7 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
                             <ChevronDown className="w-4 h-4" />
                         </button>
                         {showPhasesDropdown && (
-                            <div className="absolute top-0 start-full ms-2 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-slate-200 dark:border-zinc-600 py-1 min-w-[160px]">
+                            <div className="absolute bottom-full start-0 mb-2 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-slate-200 dark:border-zinc-600 py-1 min-w-[160px]">
                                 <button
                                     onClick={() => { setActivePhaseId(null); setShowPhasesDropdown(false); }}
                                     className={`w-full text-start px-3 py-1.5 text-sm transition-colors ${!activePhaseId ? 'bg-primary/10 text-primary font-medium' : 'text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-700'}`}
@@ -216,7 +247,7 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
                             <Users className="w-4 h-4" />
                         </button>
                         {showUnitsDropdown && (
-                            <div className="absolute top-0 start-full ms-2 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-slate-200 dark:border-zinc-600 py-1 min-w-[180px]">
+                            <div className="absolute bottom-full start-0 mb-2 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-slate-200 dark:border-zinc-600 py-1 min-w-[180px]">
                                 <button
                                     onClick={() => { setActiveUnitCode(null); setShowUnitsDropdown(false); }}
                                     className={`w-full text-start px-3 py-1.5 text-sm transition-colors ${!activeUnitCode ? 'bg-primary/10 text-primary font-medium' : 'text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-700'}`}
@@ -241,7 +272,7 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
                         )}
                     </div>
 
-                    <div className="h-px w-7 bg-slate-300 dark:bg-zinc-600 my-0.5" />
+                    <div className="w-px h-7 bg-slate-300 dark:bg-zinc-600 mx-0.5" />
 
                     {/* Drawing Tools */}
                     <TooltipButton

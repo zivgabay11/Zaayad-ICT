@@ -23,6 +23,7 @@
         "diagram": "Diagram",
         "definitions": "Definitions",
         "static_space": "Static Space Establishment",
+        "tikshov_cop": "Tikshov Common Operational Picture",
         "switch_theme": "Theme",
         "sign_out": "Sign Out",
         "expand_sidebar": "Expand Sidebar",
@@ -157,7 +158,8 @@
             "division": "Division",
             "brigade": "Brigade",
             "battalion": "Battalion",
-            "company": "Company"
+            "company": "Company",
+            "platoon": "Platoon"
         },
         "legendItems": {
             "command": "Command",
@@ -547,5 +549,91 @@
         "alreadyInTable": "Already in table",
         "sitesSelected": "{{count}} sites selected",
         "cancel": "Cancel"
+    },
+    "tikshovCop": {
+        "layerName": "Tikshov Common Operational Picture",
+        "screenSubtitle": "Live picture of every tracked force in your unit's area of responsibility",
+        "unit": "Unit",
+        "confidenceLabel": "Data Confidence",
+        "lastReport": "Last Report",
+        "inactiveSince": "Inactive Since",
+        "deviceTypes": {
+            "sheked": "Sheked Kit",
+            "dual": "Dual Kit",
+            "setz": "Setz",
+            "maban": "Maban",
+            "setz_modem": "Setz Modem",
+            "elad_green": "Elad Green"
+        },
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive",
+            "flapping": "Flapping"
+        },
+        "time": {
+            "secondsAgo": "{{count}}s ago",
+            "minutesAgo": "{{count}}m ago",
+            "hoursAgo": "{{count}}h ago",
+            "daysAgo": "{{count}}d ago"
+        },
+        "tabs": {
+            "table": "Force Table",
+            "statistics": "Statistics",
+            "watched": "Watched Units"
+        },
+        "timeRange": {
+            "1h": "1h",
+            "2h": "2h",
+            "day": "Day",
+            "week": "Week",
+            "custom": "Custom"
+        },
+        "searchCallsign": "Search callsign...",
+        "allUnits": "All units",
+        "unitsSelectedCount": "{{count}} units selected",
+        "unitPickerTitle": "Select units",
+        "clearSelection": "Clear",
+        "includedViaAncestor": "Already included via a selected parent unit",
+        "allDeviceTypes": "All device types",
+        "allStatuses": "All statuses",
+        "forcesCount": "{{count}} forces",
+        "noForces": "No forces in scope",
+        "activeInRangeHint": "Was active at some point in the selected time range",
+        "columns": {
+            "callsign": "Callsign",
+            "deviceType": "Device Type",
+            "subtype": "Subtype",
+            "unit": "Unit",
+            "lastConnection": "Last Connection",
+            "status": "Status",
+            "lastKnownLocation": "Last Known Location",
+            "timeInStatus": "Time in Status"
+        },
+        "stats": {
+            "totalForces": "Total Forces",
+            "activeNow": "Active Now",
+            "activeInRange": "Active in Range",
+            "byDeviceType": "Active vs. Total by Device Type",
+            "total": "Total",
+            "statusDistribution": "Status Distribution",
+            "drilldownTitle": "Filtered forces",
+            "clearDrilldown": "Clear"
+        },
+        "explorer": {
+            "title": "Readiness by Hierarchy",
+            "direct": "Direct (HQ)",
+            "activeOfTotal": "{{active}}/{{total}} active"
+        },
+        "watchedUnitsTitle": "Watched Units",
+        "watchedUnitsSubtitle": "Extend your picture with any additional unit you care about",
+        "addWatchedUnit": "Add Unit",
+        "removeWatchedUnit": "Remove from watch list",
+        "homeUnitBadge": "Home unit",
+        "noWatchedUnits": "No watched units yet. Add a unit to see its Tikshov COP alongside your own.",
+        "addedBy": "Added by {{user}} on {{date}}",
+        "addWatchedUnitModalTitle": "Add Watched Unit",
+        "addWatchedUnitModalSubtitle": "Pick a unit to extend your Tikshov COP view",
+        "searchUnitPlaceholder": "Search unit by name or code...",
+        "noUnitsFound": "No matching units found"
     }
 }

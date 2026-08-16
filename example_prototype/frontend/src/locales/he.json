@@ -23,6 +23,7 @@
         "diagram": "תרשים סכמטי",
         "definitions": "הגדרות",
         "static_space": "כינון מרחב נייח",
+        "tikshov_cop": "תמ\"כ תקשוב",
         "switch_theme": "עיצוב",
         "sign_out": "התנתק",
         "expand_sidebar": "הרחב תפריט צד",
@@ -157,7 +158,8 @@
             "division": "אוגדה",
             "brigade": "חטיבה",
             "battalion": "גדוד",
-            "company": "פלוגה"
+            "company": "פלוגה",
+            "platoon": "מחלקה"
         },
         "legendItems": {
             "command": "פיקוד",
@@ -547,5 +549,91 @@
         "alreadyInTable": "כבר בטבלה",
         "sitesSelected": "{{count}} אתרים נבחרו",
         "cancel": "ביטול"
+    },
+    "tikshovCop": {
+        "layerName": "תמ\"כ תקשוב",
+        "screenSubtitle": "תמונת מצב חיה של כל כוח במעקב בתחום אחריות היחידה",
+        "unit": "יחידה",
+        "confidenceLabel": "עדכניות נתונים",
+        "lastReport": "דיווח אחרון",
+        "inactiveSince": "לא דולק מאז",
+        "deviceTypes": {
+            "sheked": "ערכת שקד",
+            "dual": "ערכה דואלית",
+            "setz": "ס\"צ",
+            "maban": "מב\"ן",
+            "setz_modem": "מודם ס\"צ",
+            "elad_green": "אלעד ירוק"
+        },
+        "status": {
+            "active": "דולק",
+            "inactive": "לא דולק",
+            "flapping": "רצידה"
+        },
+        "time": {
+            "secondsAgo": "לפני {{count}} שניות",
+            "minutesAgo": "לפני {{count}} דקות",
+            "hoursAgo": "לפני {{count}} שעות",
+            "daysAgo": "לפני {{count}} ימים"
+        },
+        "tabs": {
+            "table": "טבלת כוחות",
+            "statistics": "סטטיסטיקה",
+            "watched": "יחידות במעקב"
+        },
+        "timeRange": {
+            "1h": "שעה",
+            "2h": "שעתיים",
+            "day": "יום",
+            "week": "שבוע",
+            "custom": "טווח מותאם"
+        },
+        "searchCallsign": "חיפוש אות קשר...",
+        "allUnits": "כל היחידות",
+        "unitsSelectedCount": "{{count}} יחידות נבחרו",
+        "unitPickerTitle": "בחירת יחידות",
+        "clearSelection": "נקה",
+        "includedViaAncestor": "כלול כבר דרך יחידת-אב שנבחרה",
+        "allDeviceTypes": "כל סוגי המכשירים",
+        "allStatuses": "כל הסטטוסים",
+        "forcesCount": "{{count}} כוחות",
+        "noForces": "אין כוחות בטווח הצפייה",
+        "activeInRangeHint": "היה דולק בשלב כלשהו בטווח הזמן הנבחר",
+        "columns": {
+            "callsign": "אות קשר",
+            "deviceType": "סוג מכשיר",
+            "subtype": "תת-סוג",
+            "unit": "יחידה",
+            "lastConnection": "חיבור אחרון",
+            "status": "סטטוס",
+            "lastKnownLocation": "מיקום אחרון ידוע",
+            "timeInStatus": "זמן במצב הנוכחי"
+        },
+        "stats": {
+            "totalForces": "סה\"כ כוחות",
+            "activeNow": "דולקים כעת",
+            "activeInRange": "דלקו בטווח הנבחר",
+            "byDeviceType": "דולקים מול סה\"כ לפי סוג מכשיר",
+            "total": "סה\"כ",
+            "statusDistribution": "התפלגות סטטוסים",
+            "drilldownTitle": "כוחות מסוננים",
+            "clearDrilldown": "נקה"
+        },
+        "explorer": {
+            "title": "כשירות לפי היררכיה",
+            "direct": "ישיר (מפח\"ט)",
+            "activeOfTotal": "{{active}}/{{total}} דולקים"
+        },
+        "watchedUnitsTitle": "יחידות במעקב",
+        "watchedUnitsSubtitle": "הרחב את התמונה שלך עם כל יחידה נוספת שמעניינת אותך",
+        "addWatchedUnit": "הוסף יחידה",
+        "removeWatchedUnit": "הסר ממעקב",
+        "homeUnitBadge": "יחידת הבית",
+        "noWatchedUnits": "עדיין אין יחידות במעקב. הוסף יחידה כדי לראות את התמ\"כ שלה לצד שלך.",
+        "addedBy": "נוסף על ידי {{user}} בתאריך {{date}}",
+        "addWatchedUnitModalTitle": "הוספת יחידה למעקב",
+        "addWatchedUnitModalSubtitle": "בחר יחידה כדי להרחיב את תמונת התמ\"כ שלך",
+        "searchUnitPlaceholder": "חיפוש יחידה לפי שם או מספר...",
+        "noUnitsFound": "לא נמצאו יחידות תואמות"
     }
 }

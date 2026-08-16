@@ -1,4 +1,4 @@
-import { Plan, MockEnemyEntity, MockTarget, CommSite, ClientDevice } from './types';
+import { Plan, MockEnemyEntity, MockTarget, CommSite, ClientDevice, TrackedDevice, TrackedDeviceType, GeoCoordinate } from './types';
 
 export const mockUsers = [
     {
@@ -12,6 +12,34 @@ export const mockUsers = [
     }
 ];
 
+// Recursively builds a battalion→company→platoon sub-tree under a brigade, so Tikshov
+// COP (Section 2.1/3.5) has a real multi-echelon tree to roll up through instead of just
+// division→brigade. Each unit's code is derived from its parent's (parentCode * 10 + n),
+// so the tree is reproducible without hand-listing every node.
+function buildEchelonSubTree(brigadeCode: number, childrenPerLevel = 2) {
+    const levels: Array<'battalion' | 'company' | 'platoon'> = ['battalion', 'company', 'platoon'];
+    const units: { code: number; type: string; parentCode: string }[] = [];
+    let currentLevel = [brigadeCode];
+    levels.forEach(levelType => {
+        const nextLevel: number[] = [];
+        currentLevel.forEach(parentCode => {
+            for (let n = 1; n <= childrenPerLevel; n++) {
+                const code = parentCode * 10 + n;
+                units.push({ code, type: levelType, parentCode: String(parentCode) });
+                nextLevel.push(code);
+            }
+        });
+        currentLevel = nextLevel;
+    });
+    return units;
+}
+
+// Fire Brigade (400, under the home division 1000) and Brigade 2100 (under the sibling
+// division 2000) each get a full battalion/company/platoon tree, so both the home unit's
+// recursive roll-up and the watched-unit roll-up (PRD 5.4) have real depth to show.
+const fireBrigadeSubTree = buildEchelonSubTree(400);
+const division2BrigadeSubTree = buildEchelonSubTree(2100);
+
 export const mockUnits = [
     { code: 5000, type: "command" },
     { code: 1000, type: "division", parentCode: "5000" },
@@ -20,7 +48,30 @@ export const mockUnits = [
     { code: 300, type: "brigade", parentCode: "1000" },
     { code: 400, type: "brigade", parentCode: "1000", name: { en: "Fire Brigade", he: "חטיבת האש" } },
     { code: 500, type: "brigade", parentCode: "1000" },
+    ...fireBrigadeSubTree,
+    // A sibling division, entirely outside the home division's tree — this is what makes
+    // "watched units" (PRD 5.4) a real cross-unit scenario rather than a no-op.
+    { code: 2000, type: "division", parentCode: "5000", name: { en: "Southern Division", he: "אוגדה דרומית" } },
+    { code: 2100, type: "brigade", parentCode: "2000" },
+    { code: 2200, type: "brigade", parentCode: "2000" },
+    ...division2BrigadeSubTree,
 ];
+
+// Recursive union of a unit and everything beneath it in the echelon tree (PRD 2.1/3.5):
+// a unit's Tikshov COP is the union of its own devices plus every descendant unit's.
+export function getUnitAndDescendantCodes(rootCode: number): number[] {
+    const result: number[] = [rootCode];
+    let frontier = [rootCode];
+    while (frontier.length > 0) {
+        const nextFrontier = mockUnits
+            .filter(u => frontier.includes(Number(u.parentCode)))
+            .map(u => u.code)
+            .filter(code => !result.includes(code));
+        result.push(...nextFrontier);
+        frontier = nextFrontier;
+    }
+    return result;
+}
 
 // Static enemy entities for map AI analysis (anchored to the plan-1 area of operations).
 // The analysis agent re-anchors them relative to the map center when the map is viewing a different area.
@@ -640,4 +691,115 @@ export const mockClientDevices: ClientDevice[] = (() => {
             lastSeenAt: 'לפני כמה שניות',
         };
     });
+})();
+
+// --- Tikshov Common Operational Picture (תמ"כ תקשוב) ---
+// See types.ts for TrackedDevice. Positions/status/timings below stand in for what would
+// really be computed from Alma's LocationPing/DeviceStatusEvent history (PRD 7.2/7.3).
+
+const TIKSHOV_DEVICE_TYPES: TrackedDeviceType[] = ['sheked', 'dual', 'setz', 'maban', 'setz_modem', 'elad_green'];
+const TIKSHOV_CALLSIGN_ROOTS = ['צבי', 'ברק', 'נמר', 'דרור', 'שחר', 'עיט', 'ינשוף', 'זאב', 'נשר', 'יעל', 'רימון', 'אלון', 'תמר', 'דקל', 'שיזף', 'אורן', 'חוגלה', 'שלדג', 'קרנף', 'סופה'];
+
+// Deterministic pseudo-random in [0, 1) — used instead of Math.random() so the mock map
+// looks the same on every reload (stable for screenshots/demoing).
+function seededFrac(seed: number): number {
+    const x = Math.sin(seed * 12.9898) * 43758.5453;
+    return x - Math.floor(x);
+}
+
+// Each brigade-level unit anchors the area its own tree's devices scatter around; a
+// unit without its own anchor inherits its nearest brigade ancestor's (see below).
+const BRIGADE_AREA_ANCHORS: Record<number, GeoCoordinate> = {
+    100: { lat: 33.05, lng: 35.35 },
+    200: { lat: 32.75, lng: 35.05 },
+    300: { lat: 32.40, lng: 35.55 },
+    400: { lat: 31.95, lng: 35.25 },
+    500: { lat: 31.35, lng: 35.15 },
+    2100: { lat: 30.60, lng: 34.90 },
+    2200: { lat: 29.75, lng: 34.98 },
+};
+
+function areaAnchorForUnit(unitCode: number): GeoCoordinate {
+    let code: number | undefined = unitCode;
+    while (code !== undefined) {
+        if (BRIGADE_AREA_ANCHORS[code]) return BRIGADE_AREA_ANCHORS[code];
+        const unit = mockUnits.find(u => u.code === code);
+        code = unit?.parentCode ? Number(unit.parentCode) : undefined;
+    }
+    return { lat: 31.5, lng: 35.0 }; // fallback: roughly the country's center
+}
+
+const fireBrigadePlatoons = fireBrigadeSubTree.filter(u => u.type === 'platoon').map(u => u.code);
+const fireBrigadeBattalions = fireBrigadeSubTree.filter(u => u.type === 'battalion').map(u => u.code);
+const division2Platoons = division2BrigadeSubTree.filter(u => u.type === 'platoon').map(u => u.code);
+const division2Battalions = division2BrigadeSubTree.filter(u => u.type === 'battalion').map(u => u.code);
+
+// [unitCode, deviceCount] — brigade/division HQ posts get a couple of vehicle-mounted
+// devices each, battalions get one, and platoons (the dismounted forces) get two apiece.
+const TIKSHOV_DEVICE_ALLOCATIONS: Array<[number, number]> = [
+    [1000, 1], [2000, 1],
+    [100, 3], [200, 3], [300, 3], [500, 3], [2200, 3],
+    [400, 2], [2100, 2],
+    ...fireBrigadeBattalions.map((c): [number, number] => [c, 1]),
+    ...division2Battalions.map((c): [number, number] => [c, 1]),
+    ...fireBrigadePlatoons.map((c): [number, number] => [c, 2]),
+    ...division2Platoons.map((c): [number, number] => [c, 2]),
+];
+
+export const mockTrackedDevices: TrackedDevice[] = (() => {
+    const devices: TrackedDevice[] = [];
+    let runningIndex = 0;
+    for (const [unitCode, count] of TIKSHOV_DEVICE_ALLOCATIONS) {
+        const anchor = areaAnchorForUnit(unitCode);
+        for (let n = 0; n < count; n++) {
+            const idx = runningIndex++;
+            const deviceType = TIKSHOV_DEVICE_TYPES[idx % TIKSHOV_DEVICE_TYPES.length];
+            const bucket = idx % 10;
+            const connectionStatus = bucket < 7 ? 'active' : bucket < 9 ? 'inactive' : 'flapping';
+
+            let lastReportSecondsAgo: number;
+            let statusDurationMinutes: number;
+            let statusTransitions24h: number | undefined;
+
+            if (connectionStatus === 'active') {
+                lastReportSecondsAgo = 3 + (idx % 12) * 4; // 3s–47s: comfortably inside the 15/30s SLA
+                statusDurationMinutes = 20 + (idx * 37) % 540; // 20 min – 9h holding active
+            } else if (connectionStatus === 'inactive') {
+                // Spread from just past the inactivity threshold to several days dark, so
+                // both "just went quiet" and "dark for 24h+" (US-11) show up in the table.
+                const spreadMinutes = [7, 12, 25, 48, 90, 180, 340, 620, 1000, 1500, 2200, 3000];
+                statusDurationMinutes = spreadMinutes[idx % spreadMinutes.length];
+                lastReportSecondsAgo = statusDurationMinutes * 60;
+            } else {
+                lastReportSecondsAgo = 15 + (idx % 5) * 20; // recently heard from, but unstable
+                statusDurationMinutes = 4 + (idx % 6) * 3; // last flip was a few minutes ago
+                statusTransitions24h = 4 + (idx % 5); // flapped 4–8 times in the last day
+            }
+
+            const dataConfidence =
+                connectionStatus === 'active' ? 'live'
+                    : connectionStatus === 'flapping' ? 'stale'
+                        : statusDurationMinutes < 30 ? 'stale' : 'unknown';
+
+            const root = TIKSHOV_CALLSIGN_ROOTS[idx % TIKSHOV_CALLSIGN_ROOTS.length];
+            const callsign = `${root} ${10 + (idx % 90)}`;
+            const dLat = (seededFrac(idx * 3.1 + 1) - 0.5) * 0.05;
+            const dLng = (seededFrac(idx * 7.7 + 1) - 0.5) * 0.05;
+
+            devices.push({
+                deviceId: `td-${unitCode}-${n}`,
+                callsign,
+                deviceType,
+                deviceSubtype: deviceType === 'elad_green' && idx % 3 === 0 ? 'ELAD-GRN-V2' : undefined,
+                unitCode,
+                position: { lat: anchor.lat + dLat, lng: anchor.lng + dLng },
+                connectionStatus,
+                lastReportSecondsAgo,
+                statusDurationMinutes,
+                statusTransitions24h,
+                dataConfidence,
+            });
+        }
+    }
+    return devices;
 })();

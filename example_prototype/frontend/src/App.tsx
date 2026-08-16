@@ -3,7 +3,7 @@ import {
     ClipboardList, RefreshCw, Eraser, HelpCircle, Settings, Palette, LogOut,
     Map, Calendar as CalendarIcon, Target, CheckSquare, Crosshair, Flag, Globe, Lightbulb,
     SlidersHorizontal, TriangleAlert, X, PenTool, Sparkles, ScrollText,
-    Swords, ChevronDown, ChevronUp, LayoutGrid, Grid3x3, Home, Library
+    Swords, ChevronDown, ChevronUp, LayoutGrid, Grid3x3, Home, Library, Radar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavItem } from './common/widgets/NavItem';
@@ -25,6 +25,8 @@ import { MapProvider, useMapContext } from './common/context/MapContext';
 import { DocProvider } from './common/context/DocContext';
 import { AnalysisProvider } from './common/context/AnalysisContext';
 import { StaticSpaceProvider } from './common/context/StaticSpaceContext';
+import { TikshovProvider } from './common/context/TikshovContext';
+import { TikshovCopScreen } from './tikshov_cop/screens/TikshovCopScreen';
 import { MapPanel } from './common/widgets/MapPanel';
 import { MapEdgeHandle } from './common/widgets/MapEdgeHandle';
 import { DocPanel } from './common/widgets/DocPanel';
@@ -77,6 +79,8 @@ const ContentArea: React.FC<ContentAreaProps> = ({ currentSection, chatKey, acti
                         <TasksScreen />
                     ) : currentSection === 'combat_script' ? (
                         <CombatScriptScreen sessionUnitCode={session?.unit?.code} />
+                    ) : currentSection === 'tikshov_cop' ? (
+                        <TikshovCopScreen />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-400 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-slate-200 dark:border-zinc-800">
                             {(currentSection as string).charAt(0).toUpperCase() + (currentSection as string).slice(1).replace('-', ' ')}
@@ -211,7 +215,7 @@ export default function App() {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
     const [isSidebarVisible, setIsSidebarVisible] = useState(true);
     const [isOrderSidebarOpen, setIsOrderSidebarOpen] = useState(false);
-    const [currentSection, setCurrentSection] = useState<'main' | 'plans' | 'definitions' | 'calendar' | 'general' | 'intelligence' | 'objective' | 'mission' | 'tasks' | 'method' | 'diagram' | 'combat_script' | 'telecom_journal' | 'telecom_deployment'>('main');
+    const [currentSection, setCurrentSection] = useState<'main' | 'plans' | 'definitions' | 'calendar' | 'general' | 'intelligence' | 'objective' | 'mission' | 'tasks' | 'method' | 'diagram' | 'combat_script' | 'telecom_journal' | 'telecom_deployment' | 'tikshov_cop'>('main');
 
     // Group of sections that belong to the "Order"
     const orderSections = ['general', 'intelligence', 'objective', 'mission', 'method', 'tasks', 'diagram', 'calendar'];
@@ -273,6 +277,7 @@ export default function App() {
             )}
             {!showSplash && (
                 <StaticSpaceProvider>
+                <TikshovProvider>
                     {/* Top Header */}
                     <header className="flex items-center justify-between px-2 py-2 bg-white dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-800 z-20 transition-colors duration-200 relative">
                         {/* End section (right in RTL): Toggle sidebar + Operations dropdown + placeholder icons */}
@@ -435,6 +440,17 @@ export default function App() {
                                             />
                                             <StaticSpaceNavButton isDarkMode={isDarkMode} isCollapsed={isSidebarCollapsed} />
                                             <NavItem
+                                                icon={<Radar className="w-5 h-5" />}
+                                                label={t('nav.tikshov_cop')}
+                                                active={currentSection === 'tikshov_cop'}
+                                                onClick={() => {
+                                                    setCurrentSection('tikshov_cop');
+                                                    setIsOrderSidebarOpen(false);
+                                                }}
+                                                isDarkMode={isDarkMode}
+                                                isCollapsed={isSidebarCollapsed}
+                                            />
+                                            <NavItem
                                                 icon={<Grid3x3 className="w-5 h-5" />}
                                                 label={t('nav.sync_efforts')}
                                                 onClick={() => { }}
@@ -471,57 +487,6 @@ export default function App() {
                             )}
                         </AnimatePresence>
 
-                        <AnimatePresence initial={false}>
-                            {isSidebarVisible && isOrderSidebarOpen && (
-                                <motion.aside
-                                    initial={{ width: 0, opacity: 0 }}
-                                    animate={{ width: 'auto', opacity: 1 }}
-                                    exit={{ width: 0, opacity: 0 }}
-                                    transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                                    className="flex flex-col bg-white dark:bg-zinc-900 border-e border-slate-200 dark:border-zinc-800 overflow-x-hidden overflow-y-auto py-2 shrink-0 shadow-sm z-10"
-                                >
-                                    <div className="w-max px-3 pb-2 pt-1 shrink-0">
-                                        <h3 className="text-xs font-semibold text-slate-500 dark:text-zinc-500 uppercase tracking-wider mb-2">
-                                            {t('nav.order')}
-                                        </h3>
-                                        <div className="space-y-1">
-                                            {(() => {
-                                                const orderItems = session?.role === 'telecomOfficer' ? [
-                                                    { id: 'telecom_journal', icon: <ScrollText className="w-4 h-4" />, label: t('nav.telecom_journal') },
-                                                    { id: 'telecom_deployment', icon: <Map className="w-4 h-4" />, label: t('nav.telecom_deployment') },
-                                                ] : [
-                                                    { id: 'general', icon: <ClipboardList className="w-4 h-4" />, label: t('nav.general') },
-                                                    { id: 'objective', icon: <Crosshair className="w-4 h-4" />, label: t('nav.objective') },
-                                                    { id: 'mission', icon: <Flag className="w-4 h-4" />, label: t('nav.mission') },
-                                                    { id: 'intelligence', icon: <Target className="w-4 h-4" />, label: t('nav.intelligence') },
-                                                    { id: 'method', icon: <Lightbulb className="w-4 h-4" />, label: t('nav.method') },
-                                                    { id: 'tasks', icon: <CheckSquare className="w-4 h-4" />, label: t('nav.tasks') },
-                                                    { id: 'diagram', icon: <PenTool className="w-4 h-4" />, label: t('nav.diagram') },
-                                                    { id: 'calendar', icon: <CalendarIcon className="w-4 h-4" />, label: t('nav.calendar') },
-                                                ];
-
-                                                return orderItems.map((item) => (
-                                                    <button
-                                                        key={item.id}
-                                                        onClick={() => { setCurrentSection(item.id as any); }}
-                                                        className={`w-full flex flex-row items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200 text-sm font-medium ${currentSection === item.id
-                                                            ? 'bg-primary/10 text-primary'
-                                                            : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
-                                                            }`}
-                                                    >
-                                                        <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>
-                                                            {item.icon}
-                                                        </div>
-                                                        <span className="whitespace-nowrap leading-none">{item.label}</span>
-                                                    </button>
-                                                ));
-                                            })()}
-                                        </div>
-                                    </div>
-                                </motion.aside>
-                            )}
-                        </AnimatePresence>
-
                         {/* Main Content Area */}
                         <MapProvider currentSection={currentSection}>
                             <AnalysisProvider>
@@ -546,6 +511,57 @@ export default function App() {
                             </AnalysisProvider>
                         </MapProvider>
                     </div>
+                        {/* Order helper nav: a horizontal bar pinned to the bottom of the
+                            screen, rather than a vertical column beside the main sidebar. */}
+                        <AnimatePresence initial={false}>
+                            {isSidebarVisible && isOrderSidebarOpen && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+                                    className="flex items-center gap-1 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 overflow-x-auto overflow-y-hidden shrink-0 shadow-sm z-10 px-3 py-2"
+                                >
+                                    <h3 className="shrink-0 text-xs font-semibold text-slate-500 dark:text-zinc-500 uppercase tracking-wider pe-3 me-1 border-e border-slate-200 dark:border-zinc-800">
+                                        {t('nav.order')}
+                                    </h3>
+                                    <div className="flex items-center gap-1">
+                                        {(() => {
+                                            const orderItems = session?.role === 'telecomOfficer' ? [
+                                                { id: 'telecom_journal', icon: <ScrollText className="w-4 h-4" />, label: t('nav.telecom_journal') },
+                                                { id: 'telecom_deployment', icon: <Map className="w-4 h-4" />, label: t('nav.telecom_deployment') },
+                                            ] : [
+                                                { id: 'general', icon: <ClipboardList className="w-4 h-4" />, label: t('nav.general') },
+                                                { id: 'objective', icon: <Crosshair className="w-4 h-4" />, label: t('nav.objective') },
+                                                { id: 'mission', icon: <Flag className="w-4 h-4" />, label: t('nav.mission') },
+                                                { id: 'intelligence', icon: <Target className="w-4 h-4" />, label: t('nav.intelligence') },
+                                                { id: 'method', icon: <Lightbulb className="w-4 h-4" />, label: t('nav.method') },
+                                                { id: 'tasks', icon: <CheckSquare className="w-4 h-4" />, label: t('nav.tasks') },
+                                                { id: 'diagram', icon: <PenTool className="w-4 h-4" />, label: t('nav.diagram') },
+                                                { id: 'calendar', icon: <CalendarIcon className="w-4 h-4" />, label: t('nav.calendar') },
+                                            ];
+
+                                            return orderItems.map((item) => (
+                                                <button
+                                                    key={item.id}
+                                                    onClick={() => { setCurrentSection(item.id as any); }}
+                                                    className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
+                                                        ? 'bg-primary/10 text-primary'
+                                                        : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
+                                                        }`}
+                                                >
+                                                    <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>
+                                                        {item.icon}
+                                                    </div>
+                                                    <span className="leading-none">{item.label}</span>
+                                                </button>
+                                            ));
+                                        })()}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                </TikshovProvider>
                 </StaticSpaceProvider>
             )}
 

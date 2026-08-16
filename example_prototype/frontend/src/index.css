@@ -137,3 +137,27 @@
 .commsite-client-label::before {
     display: none !important;
 }
+
+/* Tikshov Common Operational Picture (תמ"כ תקשוב) force callsign label — smaller than the
+   Static Space site label since forces render in far greater density on the map. */
+.tikshov-label {
+    background: rgba(9, 9, 11, .78) !important;
+    border: none !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .4) !important;
+    color: #fff !important;
+    font-weight: 600;
+    padding: 0 4px !important;
+    border-radius: 4px !important;
+    font-size: 8px;
+}
+
+.tikshov-label::before {
+    display: none !important;
+}
+
+/* Tikshov Common Operational Picture (תמ"כ תקשוב) map layer — flapping devices get a
+   pulsing ring so they read differently from a cleanly active/inactive marker (PRD 10.2). */
+@keyframes tikshov-flap-pulse {
+    0%, 100% { box-shadow: 0 3px 10px rgba(0, 0, 0, .5), 0 0 0 0 rgba(240, 180, 41, .55); }
+    50% { box-shadow: 0 3px 10px rgba(0, 0, 0, .5), 0 0 0 5px rgba(240, 180, 41, 0); }
+}
