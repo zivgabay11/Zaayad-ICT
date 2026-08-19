@@ -1,4 +1,4 @@
-import { Plan, MockEnemyEntity, MockTarget, CommSite, ClientDevice, TrackedDevice, TrackedDeviceType, GeoCoordinate, CombatLogEvent, CommSiteService, ServiceSubItem } from './types';
+import { Plan, MockEnemyEntity, MockTarget, CommSite, ClientDevice, TrackedDevice, TrackedDeviceType, GeoCoordinate, CombatLogEvent, CommSiteService, ServiceSubItem, SpectrumZone } from './types';
 
 export const mockUsers = [
     {
@@ -1074,4 +1074,125 @@ export const mockServiceSubItems: ServiceSubItem[] = [
     ...mockCommSites.flatMap(deriveEladSubItems),
     ...mockCommSites.flatMap(deriveMabanSubItems),
     ...mockCommSites.flatMap(deriveComponentsSubItems),
+];
+
+// A deterministic pseudo-random generator seeded by a string — keeps the irregular shapes
+// below stable across reloads instead of re-randomizing on every render (Math.random() would).
+function seededRandom(seed: string): () => number {
+    let state = 0;
+    for (let i = 0; i < seed.length; i++) state = (state * 31 + seed.charCodeAt(i)) >>> 0;
+    return () => {
+        state = (state * 1664525 + 1013904223) >>> 0;
+        return state / 4294967296;
+    };
+}
+
+// An irregular, non-uniform blob around a center point — reads as a naturally mapped area
+// rather than a perfect geometric square. `seed` (the zone's own id) keeps each shape's
+// jitter stable across reloads.
+function irregularZone(center: { lat: number; lng: number }, avgRadiusDeg: number, seed: string): GeoCoordinate[] {
+    const rand = seededRandom(seed);
+    const pointCount = 6 + Math.floor(rand() * 3); // 6-8 vertices
+    const points: GeoCoordinate[] = [];
+    for (let i = 0; i < pointCount; i++) {
+        const angle = (i / pointCount) * 2 * Math.PI + (rand() - 0.5) * (Math.PI / pointCount);
+        const radius = avgRadiusDeg * (0.6 + rand() * 0.8); // 60%-140% of the average radius
+        points.push({
+            lat: center.lat + radius * Math.sin(angle),
+            lng: center.lng + radius * Math.cos(angle),
+        });
+    }
+    return points;
+}
+
+// "Spectrum" map layer (ספקטרום) mock data — Jamming zones (השתקות) spread across the
+// three timing sub-filters, and Blocking zones (חסימות), which always carry a height band.
+export const mockSpectrumZones: SpectrumZone[] = [
+    {
+        id: 'spec-jam-1',
+        zoneType: 'jamming',
+        name: { en: 'Tabor Approach Jam', he: 'השתקה - גישת תבור' },
+        coordinates: irregularZone({ lat: 32.65, lng: 35.35 }, 0.072, 'spec-jam-1'),
+        freqRangeMhz: { from: 30, to: 88 },
+        startAt: hoursAgo(6),
+        endAt: hoursAgo(1),
+        notes: '',
+    },
+    {
+        id: 'spec-jam-2',
+        zoneType: 'jamming',
+        name: { en: 'Gilboa Ridge Jam', he: 'השתקה - רכס גלבוע' },
+        coordinates: irregularZone({ lat: 32.44, lng: 35.46 }, 0.06, 'spec-jam-2'),
+        freqRangeMhz: { from: 118, to: 137 },
+        startAt: daysAgo(1),
+        endAt: hoursAgo(10),
+        notes: '',
+    },
+    {
+        id: 'spec-jam-3',
+        zoneType: 'jamming',
+        name: { en: 'Turret Hill Jam', he: 'השתקה - גבעת התור' },
+        coordinates: irregularZone({ lat: 32.02, lng: 35.26 }, 0.084, 'spec-jam-3'),
+        freqRangeMhz: { from: 380, to: 400 },
+        startAt: hoursAgo(2),
+        endAt: minutesFromNow(180), // still 3h from ending
+        notes: '',
+    },
+    {
+        id: 'spec-jam-4',
+        zoneType: 'jamming',
+        name: { en: 'Rotem Post Jam', he: 'השתקה - עמדת רותם' },
+        coordinates: irregularZone({ lat: 31.13, lng: 34.99 }, 0.06, 'spec-jam-4'),
+        freqRangeMhz: { from: 850, to: 960 },
+        startAt: hoursAgo(0.25),
+        endAt: minutesFromNow(240),
+        notes: '',
+    },
+    {
+        id: 'spec-jam-5',
+        zoneType: 'jamming',
+        name: { en: 'Jordan Valley Jam (Planned)', he: 'השתקה מתוכננת - בקעת הירדן' },
+        coordinates: irregularZone({ lat: 32.36, lng: 35.60 }, 0.072, 'spec-jam-5'),
+        freqRangeMhz: { from: 400, to: 470 },
+        startAt: minutesFromNow(90),
+        endAt: minutesFromNow(360),
+        notes: '',
+    },
+    {
+        id: 'spec-jam-6',
+        zoneType: 'jamming',
+        name: { en: 'Hatzeva Jam (Planned)', he: 'השתקה מתוכננת - חצבה' },
+        coordinates: irregularZone({ lat: 30.60, lng: 35.24 }, 0.06, 'spec-jam-6'),
+        freqRangeMhz: { from: 20, to: 30 },
+        startAt: minutesFromNow(240),
+        endAt: minutesFromNow(600),
+        notes: '',
+    },
+    {
+        id: 'spec-block-1',
+        zoneType: 'blocking',
+        name: { en: 'Carmel No-Fly Freq Block', he: 'חסימה - כרמל מערבי' },
+        coordinates: irregularZone({ lat: 32.70, lng: 35.06 }, 0.096, 'spec-block-1'),
+        freqRangeMhz: { from: 960, to: 1215 },
+        heightRangeM: { from: 0, to: 3000 },
+        notes: '',
+    },
+    {
+        id: 'spec-block-2',
+        zoneType: 'blocking',
+        name: { en: 'Elah Ridge Freq Block', he: 'חסימה - רכס האלה' },
+        coordinates: irregularZone({ lat: 31.72, lng: 35.04 }, 0.072, 'spec-block-2'),
+        freqRangeMhz: { from: 225, to: 400 },
+        heightRangeM: { from: 500, to: 8000 },
+        notes: '',
+    },
+    {
+        id: 'spec-block-3',
+        zoneType: 'blocking',
+        name: { en: 'Dead Sea Corridor Block', he: 'חסימה - מסדרון ים המלח' },
+        coordinates: irregularZone({ lat: 31.32, lng: 35.42 }, 0.084, 'spec-block-3'),
+        freqRangeMhz: { from: 5150, to: 5850 },
+        heightRangeM: { from: 0, to: 500 },
+        notes: '',
+    },
 ];

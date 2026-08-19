@@ -298,3 +298,24 @@ export interface ServiceSubItem {
     payload: Record<string, string | number>;
 }
 
+// "Spectrum" map layer (ספקטרום): two filters — Jamming zones (השתקות, a frequency band
+// muted with no spectral interference over a mapped polygon) and Blocking zones (חסימות,
+// a frequency + altitude band denied over a mapped polygon). Jamming further splits by
+// timing into ended/active/future; Blocking has no sub-split and is always rendered red.
+export type SpectrumZoneType = 'jamming' | 'blocking';
+export type JammingStatus = 'ended' | 'active' | 'future';
+
+export interface SpectrumZone {
+    id: string;
+    zoneType: SpectrumZoneType;
+    name: Record<string, string>;
+    coordinates: GeoCoordinate[]; // the mapped polygon
+    freqRangeMhz: { from: number; to: number };
+    heightRangeM?: { from: number; to: number }; // Blocking only — the altitude band it covers
+    // Jamming only — its status (ended/active/future) is derived from this window via
+    // computeJammingStatus() rather than stored, so it can never drift out of sync.
+    startAt?: string; // ISO — jamming window start
+    endAt?: string; // ISO — jamming window end
+    notes?: string;
+}
+

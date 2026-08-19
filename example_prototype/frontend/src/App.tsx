@@ -26,6 +26,7 @@ import { DocProvider } from './common/context/DocContext';
 import { AnalysisProvider } from './common/context/AnalysisContext';
 import { StaticSpaceProvider } from './common/context/StaticSpaceContext';
 import { TikshovProvider } from './common/context/TikshovContext';
+import { SpectrumProvider } from './common/context/SpectrumContext';
 import { TikshovCopScreen } from './tikshov_cop/screens/TikshovCopScreen';
 import { CombatLogProvider } from './common/context/CombatLogContext';
 import { CombatLogScreen } from './combat_log/screens/CombatLogScreen';
@@ -283,6 +284,7 @@ export default function App() {
             {!showSplash && (
                 <StaticSpaceProvider>
                 <TikshovProvider>
+                <SpectrumProvider>
                 <CombatLogProvider>
                     {/* Top Header */}
                     <header className="flex items-center justify-between px-2 py-2 bg-white dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-800 z-20 transition-colors duration-200 relative">
@@ -580,6 +582,7 @@ export default function App() {
                             )}
                         </AnimatePresence>
                 </CombatLogProvider>
+                </SpectrumProvider>
                 </TikshovProvider>
                 </StaticSpaceProvider>
             )}

@@ -343,6 +343,7 @@
         "change_second_ring": "שינוי טבעת שנייה (ק\"מ)",
         "remove_second_ring": "הסרת טבעת שנייה",
         "fit_bounds": "מיקוד על אלמנטים",
+        "toggleSubFilters": "הצג/הסתר תתי-מסננים",
         "delete": "מחיקה",
         "confirm": "אישור",
         "terrain_analysis": "ניתוח שטח",
@@ -799,6 +800,27 @@
             "frequency": "תדר",
             "antenna_height": "גובה אנטנה",
             "status": "סטטוס"
+        }
+    },
+    "spectrum": {
+        "layerName": "ספקטרום",
+        "zoneTypes": {
+            "jamming": "השתקות",
+            "blocking": "חסימות"
+        },
+        "jammingStatus": {
+            "ended": "נגמרה",
+            "active": "פעילה",
+            "future": "עתידית"
+        },
+        "freqRange": "טווח תדרים",
+        "heightRange": "טווח גובה",
+        "metersAbbrev": "מ׳",
+        "endsIn": "מסתיימת בעוד",
+        "startsIn": "מתחילה בעוד",
+        "time": {
+            "minutes": "{{count}} דק'",
+            "hours": "{{count}} שע'"
         }
     }
 }

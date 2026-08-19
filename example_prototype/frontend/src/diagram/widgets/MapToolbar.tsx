@@ -5,7 +5,8 @@ import {
     MoveUpLeft,
     PenLine,
     Wand2,
-    RadioTower
+    RadioTower,
+    Radio
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useMapContext, MapType } from '../../common/context/MapContext';
@@ -13,8 +14,10 @@ import { useAnalysisContext } from '../../common/context/AnalysisContext';
 import { usePlanContext } from '../../common/context/PlanContext';
 import { useStaticSpaceContext } from '../../common/context/StaticSpaceContext';
 import { useTikshovContext } from '../../common/context/TikshovContext';
+import { useSpectrumContext } from '../../common/context/SpectrumContext';
 import { DEVICE_TYPE_COLORS } from '../../common/utilities/trackedDeviceIcon';
-import { TrackedDeviceType } from '../../common/utilities/types';
+import { JAMMING_STATUS_COLORS, BLOCKING_COLOR } from '../../common/utilities/spectrum';
+import { TrackedDeviceType, JammingStatus } from '../../common/utilities/types';
 import { formatUnitName } from '../../common/utilities/formatting';
 import { mockUnits } from '../../common/utilities/mockData';
 import { getUnitColor } from '../../common/utilities/colors';
@@ -81,11 +84,29 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
         toggleDeviceTypeFilter: toggleTikshovDeviceTypeFilter,
     } = useTikshovContext();
     const TIKSHOV_DEVICE_TYPE_LIST: TrackedDeviceType[] = ['sheked', 'dual', 'setz', 'maban', 'setz_modem', 'elad_green'];
+    const {
+        layerOn: spectrumLayerOn,
+        jammingFilterOn,
+        blockingFilterOn,
+        jammingStatusFilters,
+        toggleLayer: toggleSpectrumLayer,
+        toggleJammingFilter,
+        toggleBlockingFilter,
+        toggleJammingStatusFilter,
+    } = useSpectrumContext();
+    const JAMMING_STATUS_LIST: JammingStatus[] = ['ended', 'active', 'future'];
     const { activePlan } = usePlanContext();
     const [showMapTypeDropdown, setShowMapTypeDropdown] = useState(false);
     const [showPhasesDropdown, setShowPhasesDropdown] = useState(false);
     const [showUnitsDropdown, setShowUnitsDropdown] = useState(false);
     const [showOpacity, setShowOpacity] = useState(false);
+    // Each operational layer's own sub-filters are collapsed by default — the layers panel
+    // was getting crowded with every layer's full filter list shown at once. A per-layer
+    // chevron reveals them on demand instead; collapsing/expanding never touches whether
+    // the layer itself (or its filters) is actually on.
+    const [expandedStaticSpace, setExpandedStaticSpace] = useState(false);
+    const [expandedTikshov, setExpandedTikshov] = useState(false);
+    const [expandedSpectrum, setExpandedSpectrum] = useState(false);
     const { isPanelOpen, setPanelOpen, anyResults } = useAnalysisContext();
 
     const mapTypes: { key: MapType; label: string }[] = [
@@ -148,31 +169,55 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
                                 <div className="my-1.5 border-t border-slate-200 dark:border-zinc-700" />
                                 <h4 className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">{t('staticSpace.operationalLayers')}</h4>
 
-                                <label className="flex items-center gap-2 px-3 py-1.5 cursor-pointer">
-                                    <RadioTower className="w-3.5 h-3.5 text-primary shrink-0" />
-                                    <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-zinc-100">{t('staticSpace.layerName')}</span>
-                                    <input type="checkbox" checked={layerOn} onChange={toggleLayer} className="accent-primary w-3.5 h-3.5" />
-                                </label>
+                                <div className="flex items-center gap-1 px-3 py-1.5">
+                                    <label className="flex-1 flex items-center gap-2 cursor-pointer min-w-0">
+                                        <RadioTower className="w-3.5 h-3.5 text-primary shrink-0" />
+                                        <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-zinc-100">{t('staticSpace.layerName')}</span>
+                                        <input type="checkbox" checked={layerOn} onChange={toggleLayer} className="accent-primary w-3.5 h-3.5" />
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExpandedStaticSpace(prev => !prev)}
+                                        title={t('diagram.toggleSubFilters')}
+                                        className="p-1 rounded shrink-0 text-slate-400 dark:text-zinc-500 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors"
+                                    >
+                                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedStaticSpace ? 'rotate-180' : ''}`} />
+                                    </button>
+                                </div>
 
-                                <label className={`flex items-center gap-2 ps-8 pe-3 py-1.5 ${layerOn ? 'cursor-pointer' : 'opacity-40 pointer-events-none'}`}>
-                                    <span className="w-2 h-2 rounded-full bg-violet-500 shrink-0" />
-                                    <span className="flex-1 text-xs text-slate-600 dark:text-zinc-300">{t('staticSpace.eladTopology')}</span>
-                                    <input type="checkbox" checked={eladFilterOn} onChange={toggleEladFilter} className="accent-violet-500 w-3.5 h-3.5" />
-                                </label>
-                                <label className={`flex items-center gap-2 ps-8 pe-3 py-1.5 ${layerOn ? 'cursor-pointer' : 'opacity-40 pointer-events-none'}`}>
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                                    <span className="flex-1 text-xs text-slate-600 dark:text-zinc-300">{t('staticSpace.mabanTopology')}</span>
-                                    <input type="checkbox" checked={mabanFilterOn} onChange={toggleMabanFilter} className="accent-emerald-500 w-3.5 h-3.5" />
-                                </label>
+                                {expandedStaticSpace && (
+                                    <>
+                                        <label className={`flex items-center gap-2 ps-8 pe-3 py-1.5 ${layerOn ? 'cursor-pointer' : 'opacity-40 pointer-events-none'}`}>
+                                            <span className="w-2 h-2 rounded-full bg-violet-500 shrink-0" />
+                                            <span className="flex-1 text-xs text-slate-600 dark:text-zinc-300">{t('staticSpace.eladTopology')}</span>
+                                            <input type="checkbox" checked={eladFilterOn} onChange={toggleEladFilter} className="accent-violet-500 w-3.5 h-3.5" />
+                                        </label>
+                                        <label className={`flex items-center gap-2 ps-8 pe-3 py-1.5 ${layerOn ? 'cursor-pointer' : 'opacity-40 pointer-events-none'}`}>
+                                            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                                            <span className="flex-1 text-xs text-slate-600 dark:text-zinc-300">{t('staticSpace.mabanTopology')}</span>
+                                            <input type="checkbox" checked={mabanFilterOn} onChange={toggleMabanFilter} className="accent-emerald-500 w-3.5 h-3.5" />
+                                        </label>
+                                    </>
+                                )}
 
                                 <div className="my-1.5 border-t border-slate-200 dark:border-zinc-700" />
 
-                                <label className="flex items-center gap-2 px-3 py-1.5 cursor-pointer">
-                                    <RadioTower className="w-3.5 h-3.5 text-primary shrink-0" />
-                                    <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-zinc-100">{t('tikshovCop.layerName')}</span>
-                                    <input type="checkbox" checked={tikshovLayerOn} onChange={toggleTikshovLayer} className="accent-primary w-3.5 h-3.5" />
-                                </label>
-                                {TIKSHOV_DEVICE_TYPE_LIST.map(type => (
+                                <div className="flex items-center gap-1 px-3 py-1.5">
+                                    <label className="flex-1 flex items-center gap-2 cursor-pointer min-w-0">
+                                        <RadioTower className="w-3.5 h-3.5 text-primary shrink-0" />
+                                        <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-zinc-100">{t('tikshovCop.layerName')}</span>
+                                        <input type="checkbox" checked={tikshovLayerOn} onChange={toggleTikshovLayer} className="accent-primary w-3.5 h-3.5" />
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExpandedTikshov(prev => !prev)}
+                                        title={t('diagram.toggleSubFilters')}
+                                        className="p-1 rounded shrink-0 text-slate-400 dark:text-zinc-500 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors"
+                                    >
+                                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedTikshov ? 'rotate-180' : ''}`} />
+                                    </button>
+                                </div>
+                                {expandedTikshov && TIKSHOV_DEVICE_TYPE_LIST.map(type => (
                                     <label key={type} className={`flex items-center gap-2 ps-8 pe-3 py-1.5 ${tikshovLayerOn ? 'cursor-pointer' : 'opacity-40 pointer-events-none'}`}>
                                         <span className="w-2 h-2 rounded-full shrink-0" style={{ background: DEVICE_TYPE_COLORS[type] }} />
                                         <span className="flex-1 text-xs text-slate-600 dark:text-zinc-300">{t(`tikshovCop.deviceTypes.${type}`)}</span>
@@ -184,6 +229,52 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
                                         />
                                     </label>
                                 ))}
+
+                                <div className="my-1.5 border-t border-slate-200 dark:border-zinc-700" />
+
+                                <div className="flex items-center gap-1 px-3 py-1.5">
+                                    <label className="flex-1 flex items-center gap-2 cursor-pointer min-w-0">
+                                        <Radio className="w-3.5 h-3.5 text-primary shrink-0" />
+                                        <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-zinc-100">{t('spectrum.layerName')}</span>
+                                        <input type="checkbox" checked={spectrumLayerOn} onChange={toggleSpectrumLayer} className="accent-primary w-3.5 h-3.5" />
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExpandedSpectrum(prev => !prev)}
+                                        title={t('diagram.toggleSubFilters')}
+                                        className="p-1 rounded shrink-0 text-slate-400 dark:text-zinc-500 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors"
+                                    >
+                                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedSpectrum ? 'rotate-180' : ''}`} />
+                                    </button>
+                                </div>
+
+                                {expandedSpectrum && (
+                                    <>
+                                        <label className={`flex items-center gap-2 ps-8 pe-3 py-1.5 ${spectrumLayerOn ? 'cursor-pointer' : 'opacity-40 pointer-events-none'}`}>
+                                            <span className="w-2 h-2 rounded-full bg-slate-400 shrink-0" />
+                                            <span className="flex-1 text-xs font-semibold text-slate-700 dark:text-zinc-200">{t('spectrum.zoneTypes.jamming')}</span>
+                                            <input type="checkbox" checked={jammingFilterOn} onChange={toggleJammingFilter} className="accent-primary w-3.5 h-3.5" />
+                                        </label>
+                                        {JAMMING_STATUS_LIST.map(status => (
+                                            <label key={status} className={`flex items-center gap-2 ps-12 pe-3 py-1.5 ${spectrumLayerOn && jammingFilterOn ? 'cursor-pointer' : 'opacity-40 pointer-events-none'}`}>
+                                                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: JAMMING_STATUS_COLORS[status] }} />
+                                                <span className="flex-1 text-xs text-slate-600 dark:text-zinc-300">{t(`spectrum.jammingStatus.${status}`)}</span>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={jammingStatusFilters[status]}
+                                                    onChange={() => toggleJammingStatusFilter(status)}
+                                                    className="accent-primary w-3.5 h-3.5"
+                                                />
+                                            </label>
+                                        ))}
+
+                                        <label className={`flex items-center gap-2 ps-8 pe-3 py-1.5 ${spectrumLayerOn ? 'cursor-pointer' : 'opacity-40 pointer-events-none'}`}>
+                                            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: BLOCKING_COLOR }} />
+                                            <span className="flex-1 text-xs font-semibold text-slate-700 dark:text-zinc-200">{t('spectrum.zoneTypes.blocking')}</span>
+                                            <input type="checkbox" checked={blockingFilterOn} onChange={toggleBlockingFilter} className="accent-primary w-3.5 h-3.5" />
+                                        </label>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>

@@ -343,6 +343,7 @@
         "change_second_ring": "Change Second Ring (km)",
         "remove_second_ring": "Remove Second Ring",
         "fit_bounds": "Fit to Elements",
+        "toggleSubFilters": "Show/hide sub-filters",
         "delete": "Delete",
         "confirm": "Confirm",
         "terrain_analysis": "Terrain Analysis",
@@ -799,6 +800,27 @@
             "frequency": "Frequency",
             "antenna_height": "Antenna Height",
             "status": "Status"
+        }
+    },
+    "spectrum": {
+        "layerName": "Spectrum",
+        "zoneTypes": {
+            "jamming": "Jamming",
+            "blocking": "Blocking"
+        },
+        "jammingStatus": {
+            "ended": "Ended",
+            "active": "Active",
+            "future": "Future"
+        },
+        "freqRange": "Frequency range",
+        "heightRange": "Height range",
+        "metersAbbrev": "m",
+        "endsIn": "Ends in",
+        "startsIn": "Starts in",
+        "time": {
+            "minutes": "{{count}}m",
+            "hours": "{{count}}h"
         }
     }
 }
