@@ -1,4 +1,4 @@
-import { Plan, MockEnemyEntity, MockTarget, CommSite, ClientDevice, TrackedDevice, TrackedDeviceType, GeoCoordinate } from './types';
+import { Plan, MockEnemyEntity, MockTarget, CommSite, ClientDevice, TrackedDevice, TrackedDeviceType, GeoCoordinate, CombatLogEvent, CommSiteService, ServiceSubItem } from './types';
 
 export const mockUsers = [
     {
@@ -803,3 +803,275 @@ export const mockTrackedDevices: TrackedDevice[] = (() => {
     }
     return devices;
 })();
+
+// --- Integrated Combat Log (יומן לחימה מתכלל) ---
+// Timestamps are computed relative to "now" at load time (not frozen constants) so the
+// Situation Picture dashboard's "today" / "closed today" / "no update 2h+" cards always
+// have something real to show, however far in the future this file is actually run.
+
+function hoursAgo(h: number): string { return new Date(Date.now() - h * 60 * 60 * 1000).toISOString(); }
+function daysAgo(d: number): string { return hoursAgo(d * 24); }
+function minutesFromNow(m: number): string { return new Date(Date.now() + m * 60 * 1000).toISOString(); }
+
+export const mockCombatLogEvents: CombatLogEvent[] = [
+    // Reports (דיווחים) — status is always fixed to "דווח", no user-editable status flow.
+    {
+        id: 'log-rep-1', type: 'reports', title: 'דיווח מצב שגרתי - חטיבה 100', description: 'סבב ביקורת שגרתי, הכל תקין.',
+        start: hoursAgo(1), end: hoursAgo(0.5), status: 'דווח', reporterUserName: 'רס"ן דני כהן', reporterUnitCode: 100,
+        updateNotes: [], attachments: [], createdAt: hoursAgo(1), updatedAt: hoursAgo(1), sharedWithUnitCodes: [],
+    },
+    {
+        id: 'log-rep-2', type: 'reports', title: 'דיווח תחילת משמרת - חטיבת האש', description: 'החלפת משמרת הושלמה, מסירה תקינה.',
+        start: hoursAgo(5), end: hoursAgo(4.5), status: 'דווח', reporterUserName: 'סמל תום לוי', reporterUnitCode: 400,
+        updateNotes: [], attachments: [], createdAt: hoursAgo(5), updatedAt: hoursAgo(5), sharedWithUnitCodes: [1000],
+    },
+
+    // ICT Faults (תקלות תקשוב) — two share the same affected system within 7 days, to
+    // demonstrate the recurring-fault detection (Automation C).
+    {
+        id: 'log-fault-1', type: 'ict_faults', title: 'ניתוק קשר עם עוגן אלעד - אתר תבור', description: 'אובדן קישוריות מלא לעוגן האלעד באתר תבור, נדרש בדיקת שטח.',
+        start: hoursAgo(3), status: 'פתוח', reporterUserName: 'רב"ט עידן שגיא', reporterUnitCode: 400,
+        severity: 'critical', affectedSystem: 'אלעד - אתר תבור', relatedCommSiteId: 'cs-1',
+        updateNotes: [], attachments: [], createdAt: hoursAgo(3), updatedAt: hoursAgo(3), sharedWithUnitCodes: [],
+    },
+    {
+        id: 'log-fault-2', type: 'ict_faults', title: 'ירידת קישור מב"ן - חטיבה 200', description: 'קישור מב"ן יורד לסירוגין, חשד לתקלת ציוד.',
+        start: hoursAgo(0.5), status: 'פתוח', reporterUserName: 'סמ"ר אורי פרץ', reporterUnitCode: 200,
+        severity: 'high', affectedSystem: 'מב"ן - חטיבה 200',
+        updateNotes: [], attachments: [], createdAt: hoursAgo(0.5), updatedAt: hoursAgo(0.5), sharedWithUnitCodes: [],
+    },
+    {
+        id: 'log-fault-3', type: 'ict_faults', title: 'תקלת הזנת מתח בעמדת ס"צ - חטיבת האש', description: 'עמדת ס"צ מאבדת מתח לסירוגין, נדרש טיפול מוקדי.',
+        start: hoursAgo(2), status: 'פתוח', reporterUserName: 'רב"ט עידן שגיא', reporterUnitCode: 400,
+        severity: 'medium', affectedSystem: 'ס"צ - חטיבת האש',
+        updateNotes: [], attachments: [], createdAt: hoursAgo(2), updatedAt: hoursAgo(2), sharedWithUnitCodes: [],
+    },
+    {
+        id: 'log-fault-4', type: 'ict_faults', title: 'עוד ניתוק קשר עוגן אלעד - אתר תבור', description: 'תקלה חוזרת באותו עוגן אלעד מהשבוע האחרון.',
+        start: daysAgo(2), end: daysAgo(1.5), status: 'נסגר', reporterUserName: 'סמל תום לוי', reporterUnitCode: 400,
+        severity: 'high', affectedSystem: 'אלעד - אתר תבור', relatedCommSiteId: 'cs-1',
+        updateNotes: [{ id: 'note-1', text: 'הוחלף מודם, הקישור יציב.', authorUserName: 'סמל תום לוי', timestamp: daysAgo(1.5) }],
+        attachments: [], createdAt: daysAgo(2), updatedAt: daysAgo(1.5), sharedWithUnitCodes: [],
+    },
+    {
+        id: 'log-fault-5', type: 'ict_faults', title: 'תקלת שקד בפלוגה - חטיבה 300', description: 'ערכת שקד לא מדווחת, יתכן תקלת סוללה.',
+        start: hoursAgo(6), status: 'בטיפול', reporterUserName: 'טכנאי רון אבידן', reporterUnitCode: 300,
+        severity: 'low', affectedSystem: 'שקד - חטיבה 300',
+        updateNotes: [{ id: 'note-2', text: 'בדרך לשטח לבדיקה.', authorUserName: 'טכנאי רון אבידן', timestamp: hoursAgo(4) }],
+        attachments: [], createdAt: hoursAgo(6), updatedAt: hoursAgo(4), sharedWithUnitCodes: [],
+    },
+
+    // Losses (אובדנים) — read-only once shared; the receiving unit can only attach a file.
+    {
+        id: 'log-loss-1', type: 'losses', title: 'אובדן ערכת שקד בשטח - חטיבה 500', description: 'ערכת שקד לא אותרה בסיום הפעילות.',
+        start: daysAgo(1), status: 'לא הוגש תחקיר', reporterUserName: 'סרן מאיה זיו', reporterUnitCode: 500,
+        updateNotes: [], attachments: [], createdAt: daysAgo(1), updatedAt: daysAgo(1), sharedWithUnitCodes: [1000],
+    },
+    {
+        id: 'log-loss-2', type: 'losses', title: 'אובדן מודם ס"צ בהעברה - חטיבה 100', description: 'מודם ס"צ ניזוק/אבד בהעברה בין עמדות.',
+        start: daysAgo(4), end: daysAgo(3), status: 'הוגש תחקיר', reporterUserName: 'רס"ן דני כהן', reporterUnitCode: 100,
+        updateNotes: [{ id: 'note-3', text: 'תחקיר הוגש ואושר.', authorUserName: 'רס"ן דני כהן', timestamp: daysAgo(3) }],
+        attachments: [{ id: 'att-1', fileName: 'תחקיר_אובדן_מודם.pdf', fileType: 'pdf' }], createdAt: daysAgo(4), updatedAt: daysAgo(3), sharedWithUnitCodes: [],
+    },
+
+    // Work & Future Events (עבודות ואירועים עתידיים) — this is the pair pre-wired to
+    // demonstrate the Work→Faults auto-close cascade: mark log-work-1 as "בוצע" in the UI
+    // and log-fault-1 + log-fault-3 close themselves automatically with real completion time.
+    {
+        id: 'log-work-1', type: 'work_future_events', title: 'יציאה לטיפול בתקלות אתר תבור וחטיבת האש', description: 'שיירת תחזוקה יוצאת לטפל בתקלות הפתוחות באתר תבור ובעמדת הס"צ.',
+        start: hoursAgo(1), end: minutesFromNow(90), status: 'בביצוע', reporterUserName: 'רב"ט עידן שגיא', reporterUnitCode: 400,
+        linkedFaultIds: ['log-fault-1', 'log-fault-3'],
+        // Pre-shared with division 1000 (the default session's home unit) so the
+        // Work→Faults auto-close automation can be demoed immediately without first
+        // having to share the event — see CombatLogContext.tsx.
+        updateNotes: [{ id: 'note-6', text: 'שותף עם אוגדה 1000 על ידי רב"ט עידן שגיא', authorUserName: 'רב"ט עידן שגיא', timestamp: hoursAgo(1), system: true }],
+        attachments: [], createdAt: hoursAgo(1), updatedAt: hoursAgo(1), sharedWithUnitCodes: [1000],
+    },
+    {
+        id: 'log-work-2', type: 'work_future_events', title: 'עבודת תחזוקה מתוכננת - עוגן מב"ן חטיבה 200', description: 'החלפת ציוד מתוכננת מראש, מחייבת תיאום זמן חלון.',
+        start: minutesFromNow(60 * 20), end: minutesFromNow(60 * 24), status: 'ממתין', reporterUserName: 'סמ"ר אורי פרץ', reporterUnitCode: 200,
+        updateNotes: [], attachments: [], createdAt: hoursAgo(2), updatedAt: hoursAgo(2), sharedWithUnitCodes: [],
+    },
+    {
+        id: 'log-work-3', type: 'work_future_events', title: 'החלפת סוללות שקד - חטיבה 300', description: 'הוחלף בהצלחה, כל הערכות פעילות.',
+        start: daysAgo(1), end: hoursAgo(20), status: 'בוצע', reporterUserName: 'טכנאי רון אבידן', reporterUnitCode: 300,
+        updateNotes: [{ id: 'note-4', text: 'הושלם, כלל הערכות נבדקו.', authorUserName: 'טכנאי רון אבידן', timestamp: hoursAgo(20) }],
+        attachments: [], createdAt: daysAgo(1), updatedAt: hoursAgo(20), sharedWithUnitCodes: [],
+    },
+    {
+        id: 'log-work-4', type: 'work_future_events', title: 'סבב תחזוקה יזום - חטיבה 500 (בוטל)', description: 'בוטל עקב מזג אוויר.',
+        start: daysAgo(0.5), end: hoursAgo(10), status: 'בוטל', reporterUserName: 'סרן מאיה זיו', reporterUnitCode: 500,
+        updateNotes: [{ id: 'note-5', text: 'בוטל, ידחה לשבוע הבא.', authorUserName: 'סרן מאיה זיו', timestamp: hoursAgo(10) }],
+        attachments: [], createdAt: daysAgo(0.5), updatedAt: hoursAgo(10), sharedWithUnitCodes: [],
+    },
+
+    // Spectrum (ספקטרום)
+    {
+        id: 'log-spec-1', type: 'spectrum', title: 'הפרעת ספקטרום חשודה - גזרה צפונית', description: 'זוהתה הפרעה בתדר עבודה, נבדקת מקוריות.',
+        start: hoursAgo(0.75), status: 'פעיל', reporterUserName: 'קצין ספקטרום ליאור נוי', reporterUnitCode: 100,
+        updateNotes: [], attachments: [], createdAt: hoursAgo(0.75), updatedAt: hoursAgo(0.75), sharedWithUnitCodes: [],
+    },
+    {
+        id: 'log-spec-2', type: 'spectrum', title: 'הפרעת ספקטרום - גזרה דרומית', description: 'הפרעה זמנית, חלפה מעצמה.',
+        start: daysAgo(1.2), end: daysAgo(1.1), status: 'לא פעיל', reporterUserName: 'קצין ספקטרום ליאור נוי', reporterUnitCode: 500,
+        updateNotes: [], attachments: [], createdAt: daysAgo(1.2), updatedAt: daysAgo(1.1), sharedWithUnitCodes: [],
+    },
+
+    // Other (אחר)
+    {
+        id: 'log-other-1', type: 'other', title: 'בקשת אישור מיוחד לתרגיל', description: 'בקשה לתיאום שימוש בתדר לצורך תרגיל מתוכנן.',
+        start: hoursAgo(4), status: 'בטיפול', reporterUserName: 'רס"ן דני כהן', reporterUnitCode: 1000,
+        updateNotes: [], attachments: [], createdAt: hoursAgo(4), updatedAt: hoursAgo(4), sharedWithUnitCodes: [],
+    },
+];
+
+// --- Comm Site Service Monitoring (ניטור שירותים) ---
+// Elad/Maban/Components services are derived from the same anchor flags, tagam devices,
+// and client list Static Space Establishment already tracks (single source of truth);
+// Cellular/LCN-network/ROIP are new service types this PRD introduces, hand-seeded onto a
+// handful of sites so the page shows both a fully-populated site and a partial one.
+
+function svcId(siteId: string, type: string): string { return `svc-${siteId}-${type}`; }
+
+function deriveEladService(site: CommSite): CommSiteService | null {
+    if (!site.isEladAnchor) return null;
+    const clientCount = mockClientDevices.filter(c => c.parentSiteId === site.id && c.clientType === 'elad').length;
+    return {
+        serviceId: svcId(site.id, 'elad'), siteId: site.id, serviceType: 'elad',
+        status: clientCount > 0 ? 'healthy' : 'degraded',
+        lastUpdatedAt: hoursAgo(0.02),
+        metrics: { client_count: clientCount, anchor_ip: site.eladAnchorIp || '—' },
+    };
+}
+
+function deriveMabanService(site: CommSite): CommSiteService | null {
+    if (!site.isMabanAnchor) return null;
+    const clientCount = mockClientDevices.filter(c => c.parentSiteId === site.id && c.clientType === 'maban').length;
+    return {
+        serviceId: svcId(site.id, 'maban'), siteId: site.id, serviceType: 'maban',
+        status: clientCount > 0 ? 'healthy' : 'degraded',
+        lastUpdatedAt: hoursAgo(0.03),
+        metrics: { client_count: clientCount, anchor_ip: site.mabanAnchorIp || '—' },
+    };
+}
+
+function deriveComponentsService(site: CommSite): CommSiteService | null {
+    if (site.tagamDevices.length === 0) return null;
+    return {
+        serviceId: svcId(site.id, 'components'), siteId: site.id, serviceType: 'components',
+        status: 'healthy',
+        lastUpdatedAt: hoursAgo(0.05),
+        metrics: { component_count: site.tagamDevices.length },
+    };
+}
+
+function deriveEladSubItems(site: CommSite): ServiceSubItem[] {
+    return mockClientDevices.filter(c => c.parentSiteId === site.id && c.clientType === 'elad').map(c => ({
+        subItemId: `${svcId(site.id, 'elad')}-${c.clientId}`, serviceId: svcId(site.id, 'elad'),
+        status: c.connectionStatus === 'attached' ? 'מחובר' : 'מנותק',
+        payload: { client_id: c.clientName, ip: c.ipAddress },
+    }));
+}
+
+function deriveMabanSubItems(site: CommSite): ServiceSubItem[] {
+    return mockClientDevices.filter(c => c.parentSiteId === site.id && c.clientType === 'maban').map(c => ({
+        subItemId: `${svcId(site.id, 'maban')}-${c.clientId}`, serviceId: svcId(site.id, 'maban'),
+        status: c.connectionStatus === 'attached' ? 'מחובר' : 'מנותק',
+        payload: { client_id: c.clientName, ip: c.ipAddress },
+    }));
+}
+
+function deriveComponentsSubItems(site: CommSite): ServiceSubItem[] {
+    // Components (רכיבים) ARE the site's תג"מ radio positions — surface the same fields
+    // already modeled on TagamDevice (Static Space Establishment): device name, type, the
+    // frequency it's calibrated to, and its antenna's mount height.
+    return site.tagamDevices.map((d, idx) => ({
+        subItemId: `${svcId(site.id, 'components')}-${d.tagamId}`, serviceId: svcId(site.id, 'components'),
+        status: 'תקין',
+        payload: {
+            device_name: `תג"מ ${idx + 1}`,
+            device_type: d.deviceType,
+            frequency: d.frequency,
+            antenna_height: `${d.antennaHeightM} מ׳`,
+        },
+    }));
+}
+
+// Hand-seeded new service types (cellular / lcn_network / roip), a handful of sites only —
+// per PRD 5.3, an uninstalled service has no card at all, so most sites simply won't have these.
+const cellularServices: CommSiteService[] = [
+    { serviceId: svcId('cs-1', 'cellular'), siteId: 'cs-1', serviceType: 'cellular', status: 'degraded', lastUpdatedAt: hoursAgo(0.01), metrics: { active_sectors_of_total: '5/6', equipment_count: 3 } },
+    { serviceId: svcId('cs-7', 'cellular'), siteId: 'cs-7', serviceType: 'cellular', status: 'healthy', lastUpdatedAt: hoursAgo(0.02), metrics: { active_sectors_of_total: '4/4', equipment_count: 2 } },
+];
+
+const lcnServices: CommSiteService[] = [
+    { serviceId: svcId('cs-1', 'lcn_network'), siteId: 'cs-1', serviceType: 'lcn_network', status: 'healthy', lastUpdatedAt: hoursAgo(0.01), metrics: { tx_rx_count: '2/2', bandwidth_used_of_total: '340/500 Mbps' } },
+];
+
+const roipServices: CommSiteService[] = [
+    { serviceId: svcId('cs-1', 'roip'), siteId: 'cs-1', serviceType: 'roip', status: 'degraded', lastUpdatedAt: hoursAgo(0.01), metrics: { active_extensions_of_total: '9/10', total_records: 10 } },
+    { serviceId: svcId('cs-4', 'roip'), siteId: 'cs-4', serviceType: 'roip', status: 'degraded', lastUpdatedAt: daysAgo(2), metrics: { active_extensions_of_total: '6/8', total_records: 8 }, noLongerReporting: true },
+    { serviceId: svcId('cs-11', 'roip'), siteId: 'cs-11', serviceType: 'roip', status: 'degraded', lastUpdatedAt: hoursAgo(0.03), metrics: { active_extensions_of_total: '40/42', total_records: 42 } },
+];
+
+const REMOTE_UNIT_NAMES = ['גדוד 1', 'גדוד 2', 'פלוגה א', 'פלוגה ב', 'מפקדת חטיבה', 'יחידת סיור', 'מוצב צפון', 'מוצב דרום'];
+
+function buildRoipSubItems(siteId: string, count: number, downIndexes: number[]): ServiceSubItem[] {
+    const serviceId = svcId(siteId, 'roip');
+    return Array.from({ length: count }, (_, i) => {
+        const n = i + 1;
+        const down = downIndexes.includes(n);
+        return {
+            subItemId: `${serviceId}-ext-${n}`, serviceId,
+            status: down ? 'מנותק' : 'מחובר',
+            payload: {
+                extension_id: `EXT-${String(n).padStart(2, '0')}`,
+                level_height: `${10 + (n % 5) * 4} מ׳`,
+                band_designation: n % 2 === 0 ? 'UHF' : 'VHF',
+                remote_unit: REMOTE_UNIT_NAMES[n % REMOTE_UNIT_NAMES.length],
+            },
+        };
+    });
+}
+
+const cellularSubItems: ServiceSubItem[] = [
+    ...['1', '2', '3', '4', '5', '6'].map((n, i) => ({
+        subItemId: `${svcId('cs-1', 'cellular')}-sector-${n}`, serviceId: svcId('cs-1', 'cellular'),
+        status: i === 4 ? 'לא פעיל' : 'פעיל',
+        payload: { sector_id: `סקטור ${n}`, azimuth: `${i * 60}°` },
+    })),
+    ...['1', '2', '3', '4'].map(n => ({
+        subItemId: `${svcId('cs-7', 'cellular')}-sector-${n}`, serviceId: svcId('cs-7', 'cellular'),
+        status: 'פעיל',
+        payload: { sector_id: `סקטור ${n}`, azimuth: `${(Number(n) - 1) * 90}°` },
+    })),
+];
+
+const lcnSubItems: ServiceSubItem[] = [
+    { subItemId: `${svcId('cs-1', 'lcn_network')}-tx`, serviceId: svcId('cs-1', 'lcn_network'), status: 'פעיל', payload: { unit: 'משדר ראשי', direction: 'TX' } },
+    { subItemId: `${svcId('cs-1', 'lcn_network')}-rx`, serviceId: svcId('cs-1', 'lcn_network'), status: 'פעיל', payload: { unit: 'מקלט ראשי', direction: 'RX' } },
+];
+
+const roipSubItems: ServiceSubItem[] = [
+    ...buildRoipSubItems('cs-1', 10, [7]),
+    ...buildRoipSubItems('cs-4', 8, [3, 6]),
+    ...buildRoipSubItems('cs-11', 42, [5, 14, 22]),
+];
+
+export const mockCommSiteServices: CommSiteService[] = [
+    ...cellularServices,
+    ...lcnServices,
+    ...roipServices,
+    ...mockCommSites.map(deriveEladService).filter((s): s is CommSiteService => !!s),
+    ...mockCommSites.map(deriveMabanService).filter((s): s is CommSiteService => !!s),
+    ...mockCommSites.map(deriveComponentsService).filter((s): s is CommSiteService => !!s),
+];
+
+export const mockServiceSubItems: ServiceSubItem[] = [
+    ...cellularSubItems,
+    ...lcnSubItems,
+    ...roipSubItems,
+    ...mockCommSites.flatMap(deriveEladSubItems),
+    ...mockCommSites.flatMap(deriveMabanSubItems),
+    ...mockCommSites.flatMap(deriveComponentsSubItems),
+];

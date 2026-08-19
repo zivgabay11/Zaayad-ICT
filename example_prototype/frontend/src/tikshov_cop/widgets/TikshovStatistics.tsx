@@ -7,7 +7,7 @@ import { TrackedDevice, TrackedDeviceType, ConnectionStatus } from '../../common
 import { getUnitAndDescendantCodes } from '../../common/utilities/mockData';
 import { wasActiveDuringWindow } from '../../common/context/TikshovContext';
 import { TikshovForceTable } from './TikshovForceTable';
-import { UnitTreeSelect } from './UnitTreeSelect';
+import { UnitTreeSelect } from '../../common/widgets/UnitTreeSelect';
 import { UnitReadinessExplorer } from './UnitReadinessExplorer';
 
 // Statistics page (PRD 5.3/10.4): active-vs-total by device type, overall status

@@ -2,9 +2,13 @@ import React, { useMemo } from 'react';
 import { Marker, Popup, Polyline, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import { useTranslation } from 'react-i18next';
+import { Maximize2 } from 'lucide-react';
 import { useStaticSpaceContext } from '../context/StaticSpaceContext';
+import { useCombatLogContext } from '../context/CombatLogContext';
 import { mockCommSites, mockClientDevices } from '../utilities/mockData';
 import { commSiteIconSvg } from '../utilities/commSiteIcon';
+import { getFaultsForCommSite, isTerminalStatus } from '../utilities/combatLog';
+import { CommSiteFaultHistory } from './CommSiteFaultHistory';
 
 // Renders the "Static Space Establishment" map layer (PRD 6.1/6.2/6.4/6.5) as a child of
 // react-leaflet's <MapContainer>: a marker per curated Comm Site, the Elad/Maban topology
@@ -14,7 +18,7 @@ const CONFIDENCE_DOT: Record<string, string> = { live: '#34d399', stale: '#f0b42
 const ELAD_COLOR = '#8b5cf6';
 const MABAN_COLOR = '#10b981';
 
-function siteDivIcon(stale: boolean) {
+function siteDivIcon(stale: boolean, hasOpenFault: boolean) {
     const html = `
         <div style="position:relative; width:34px; height:34px; border-radius:10px;
             background:linear-gradient(160deg,#0f4550,#082e36); border:1.5px solid #00a2c7;
@@ -22,6 +26,7 @@ function siteDivIcon(stale: boolean) {
             box-shadow:0 3px 10px rgba(0,0,0,.5);">
             ${commSiteIconSvg('#00a2c7', 18)}
             ${stale ? `<div style="position:absolute; top:-5px; inset-inline-start:-5px; width:13px; height:13px; border-radius:50%; background:#f0b429; border:2px solid #09090b;"></div>` : ''}
+            ${hasOpenFault ? `<div style="position:absolute; top:-5px; inset-inline-end:-5px; width:13px; height:13px; border-radius:50%; background:#dc2626; border:2px solid #09090b;"></div>` : ''}
         </div>
     `;
     return L.divIcon({ html, className: '', iconSize: [34, 34], iconAnchor: [17, 34] });
@@ -34,7 +39,8 @@ function clientDivIcon(color: string) {
 
 export const StaticSpaceMapLayer: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const { unitSiteIds, layerOn, eladFilterOn, mabanFilterOn } = useStaticSpaceContext();
+    const { unitSiteIds, layerOn, eladFilterOn, mabanFilterOn, openSiteDetail } = useStaticSpaceContext();
+    const { events: combatLogEvents } = useCombatLogContext();
 
     const activeSites = useMemo(
         () => mockCommSites.filter(s => unitSiteIds.includes(s.id)),
@@ -46,7 +52,9 @@ export const StaticSpaceMapLayer: React.FC = () => {
     return (
         <>
             {activeSites.map(site => {
-                const icon = siteDivIcon(site.dataConfidence === 'stale');
+                const siteFaults = getFaultsForCommSite(site.id, combatLogEvents);
+                const hasOpenFault = siteFaults.some(f => !isTerminalStatus('ict_faults', f.status));
+                const icon = siteDivIcon(site.dataConfidence === 'stale', hasOpenFault);
                 const eladClients = eladFilterOn && site.isEladAnchor
                     ? mockClientDevices.filter(c => c.parentSiteId === site.id && c.clientType === 'elad')
                     : [];
@@ -78,6 +86,13 @@ export const StaticSpaceMapLayer: React.FC = () => {
                                     <div className="text-[10.5px] text-slate-400 pt-1.5 border-t border-slate-200 dark:border-zinc-700">
                                         {t('staticSpace.lastSync')}: {site.lastSyncAt}
                                     </div>
+                                    <CommSiteFaultHistory siteId={site.id} compact />
+                                    <button
+                                        onClick={() => openSiteDetail(site.id)}
+                                        className="mt-2.5 w-full inline-flex items-center justify-center gap-1.5 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                                    >
+                                        <Maximize2 className="w-3 h-3" /> {t('commSiteDetail.expand')}
+                                    </button>
                                 </div>
                             </Popup>
                         </Marker>

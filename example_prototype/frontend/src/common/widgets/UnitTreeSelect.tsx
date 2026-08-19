@@ -1,13 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronRight, X, Layers } from 'lucide-react';
-import { mockUnits, getUnitAndDescendantCodes } from '../../common/utilities/mockData';
-import { formatUnitName } from '../../common/utilities/formatting';
+import { mockUnits, getUnitAndDescendantCodes } from '../utilities/mockData';
+import { formatUnitName } from '../utilities/formatting';
 
-// Hierarchical multi-select unit filter: instead of one flat list of every unit, roots
-// (the home unit + any watched units) expand one echelon at a time via a chevron, and
-// picking a unit implicitly includes everything beneath it (consistent with how the rest
-// of Tikshov COP treats a unit's picture as the recursive union of its sub-tree).
+// Hierarchical multi-select unit filter, shared across features (Tikshov COP, Combat
+// Log, ...): instead of one flat list of every unit, roots expand one echelon at a time
+// via a chevron, and picking a unit implicitly includes everything beneath it.
 
 interface UnitTreeSelectProps {
     rootCodes: number[];
@@ -61,12 +60,12 @@ export const UnitTreeSelect: React.FC<UnitTreeSelectProps> = ({ rootCodes, selec
     };
 
     const label = useMemo(() => {
-        if (selected.length === 0) return t('tikshovCop.allUnits');
+        if (selected.length === 0) return t('unitPicker.allUnits');
         if (selected.length === 1) {
             const unit = mockUnits.find(u => u.code === selected[0]);
-            return unit ? formatUnitName(unit as any, t, i18n.language) : t('tikshovCop.allUnits');
+            return unit ? formatUnitName(unit as any, t, i18n.language) : t('unitPicker.allUnits');
         }
-        return t('tikshovCop.unitsSelectedCount', { count: selected.length });
+        return t('unitPicker.unitsSelectedCount', { count: selected.length });
     }, [selected, t, i18n.language]);
 
     const renderNode = (code: number, depth: number): React.ReactNode => {
@@ -91,7 +90,7 @@ export const UnitTreeSelect: React.FC<UnitTreeSelectProps> = ({ rootCodes, selec
                         checked={included}
                         disabled={viaAncestor}
                         onChange={() => toggleUnit(code)}
-                        title={viaAncestor ? t('tikshovCop.includedViaAncestor') : undefined}
+                        title={viaAncestor ? t('unitPicker.includedViaAncestor') : undefined}
                         className="accent-primary w-3.5 h-3.5 shrink-0"
                     />
                     <span
@@ -122,10 +121,10 @@ export const UnitTreeSelect: React.FC<UnitTreeSelectProps> = ({ rootCodes, selec
                     <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
                     <div className="absolute top-full start-0 mt-1.5 z-50 w-72 max-h-80 overflow-y-auto bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-xl p-1.5">
                         <div className="flex items-center justify-between px-1.5 pb-1.5 mb-1 border-b border-slate-100 dark:border-zinc-800">
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">{t('tikshovCop.unitPickerTitle')}</span>
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">{t('unitPicker.pickerTitle')}</span>
                             {selected.length > 0 && (
                                 <button onClick={() => onChange([])} className="inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-red-500 transition-colors">
-                                    <X className="w-3 h-3" /> {t('tikshovCop.clearSelection')}
+                                    <X className="w-3 h-3" /> {t('unitPicker.clearSelection')}
                                 </button>
                             )}
                         </div>

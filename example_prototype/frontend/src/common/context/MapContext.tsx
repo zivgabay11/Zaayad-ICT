@@ -52,7 +52,7 @@ export const MapProvider: React.FC<MapProviderProps> = ({ children, currentSecti
             setIsMapOpen(true);
             setMapWidth(targetWidth);
             setUserClosed(false);
-        } else if (currentSection === 'plans' || currentSection === 'definitions' || currentSection === 'tikshov_cop') {
+        } else if (currentSection === 'plans' || currentSection === 'definitions' || currentSection === 'tikshov_cop' || currentSection === 'telecom_journal') {
             setIsMapOpen(false);
             setMapWidth(0);
         } else if (currentSection === 'diagram') {

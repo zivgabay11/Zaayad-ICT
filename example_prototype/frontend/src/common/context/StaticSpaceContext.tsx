@@ -13,6 +13,7 @@ interface StaticSpaceContextType {
     mabanFilterOn: boolean;
     isDrawerOpen: boolean;
     isAddSitesModalOpen: boolean;
+    openSiteDetailId: string | null; // Comm Site Service Monitoring page (PRD 5.1) — set to open it for a site
     toggleLayer: () => void;
     toggleEladFilter: () => void;
     toggleMabanFilter: () => void;
@@ -22,6 +23,8 @@ interface StaticSpaceContextType {
     closeDrawer: () => void;
     openAddSitesModal: () => void;
     closeAddSitesModal: () => void;
+    openSiteDetail: (siteId: string) => void;
+    closeSiteDetail: () => void;
 }
 
 const STORAGE_KEY = 'horus_static_space_unit_sites';
@@ -45,6 +48,7 @@ export const StaticSpaceProvider: React.FC<{ children: ReactNode }> = ({ childre
     const [mabanFilterOn, setMabanFilterOn] = useState(true);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isAddSitesModalOpen, setIsAddSitesModalOpen] = useState(false);
+    const [openSiteDetailId, setOpenSiteDetailId] = useState<string | null>(null);
 
     const persist = (ids: string[]) => {
         setUnitSiteIds(ids);
@@ -86,6 +90,7 @@ export const StaticSpaceProvider: React.FC<{ children: ReactNode }> = ({ childre
             mabanFilterOn,
             isDrawerOpen,
             isAddSitesModalOpen,
+            openSiteDetailId,
             toggleLayer,
             toggleEladFilter,
             toggleMabanFilter,
@@ -95,6 +100,8 @@ export const StaticSpaceProvider: React.FC<{ children: ReactNode }> = ({ childre
             closeDrawer: () => setIsDrawerOpen(false),
             openAddSitesModal: () => setIsAddSitesModalOpen(true),
             closeAddSitesModal: () => setIsAddSitesModalOpen(false),
+            openSiteDetail: (siteId: string) => setOpenSiteDetailId(siteId),
+            closeSiteDetail: () => setOpenSiteDetailId(null),
         }}>
             {children}
         </StaticSpaceContext.Provider>

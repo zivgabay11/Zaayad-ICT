@@ -548,7 +548,12 @@
         "noResults": "No matching sites found",
         "alreadyInTable": "Already in table",
         "sitesSelected": "{{count}} sites selected",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "faults": {
+            "sectionTitle": "ICT Faults",
+            "openCount": "{{count}} open",
+            "historyToggle": "History ({{count}})"
+        }
     },
     "tikshovCop": {
         "layerName": "Tikshov Common Operational Picture",
@@ -589,11 +594,6 @@
             "custom": "Custom"
         },
         "searchCallsign": "Search callsign...",
-        "allUnits": "All units",
-        "unitsSelectedCount": "{{count}} units selected",
-        "unitPickerTitle": "Select units",
-        "clearSelection": "Clear",
-        "includedViaAncestor": "Already included via a selected parent unit",
         "allDeviceTypes": "All device types",
         "allStatuses": "All statuses",
         "forcesCount": "{{count}} forces",
@@ -635,5 +635,170 @@
         "addWatchedUnitModalSubtitle": "Pick a unit to extend your Tikshov COP view",
         "searchUnitPlaceholder": "Search unit by name or code...",
         "noUnitsFound": "No matching units found"
+    },
+    "unitPicker": {
+        "allUnits": "All units",
+        "unitsSelectedCount": "{{count}} units selected",
+        "pickerTitle": "Select units",
+        "clearSelection": "Clear",
+        "includedViaAncestor": "Already included via a selected parent unit"
+    },
+    "combatLog": {
+        "screenTitle": "Integrated Combat Log",
+        "screenSubtitle": "A unified operational picture across all log types",
+        "newEvent": "New Event",
+        "exportExcel": "Export to Excel",
+        "tabs": { "table": "Table", "gantt": "Timeline" },
+        "logTypes": {
+            "reports": "Reports",
+            "ict_faults": "ICT Faults",
+            "losses": "Losses",
+            "work_future_events": "Work & Future Events",
+            "spectrum": "Spectrum",
+            "other": "Other"
+        },
+        "columns": { "startTime": "Start Time", "logType": "Log Type", "title": "Title", "status": "Status" },
+        "actions": { "view": "View", "edit": "Edit", "share": "Share", "close": "Close", "save": "Save", "cancel": "Cancel" },
+        "fields": {
+            "type": "Log Type",
+            "title": "Title",
+            "description": "Description",
+            "start": "Start Time",
+            "end": "End Time",
+            "status": "Status",
+            "reporter": "Reporter",
+            "severity": "Severity",
+            "affectedSystem": "Affected System",
+            "linkedFaults": "Linked Faults",
+            "relatedCommSite": "Related Comm Site",
+            "updateNotes": "Update Notes",
+            "attachments": "Attachments",
+            "createdAt": "Created At",
+            "updatedAt": "Updated At"
+        },
+        "severity": { "critical": "Critical", "high": "High", "medium": "Medium", "low": "Low" },
+        "empty": "No matching events",
+        "filters": {
+            "allTypes": "All log types",
+            "allStatuses": "All statuses",
+            "searchPlaceholder": "Search title and description...",
+            "dateFrom": "From date",
+            "dateTo": "To date",
+            "clear": "Clear filters"
+        },
+        "dashboard": {
+            "totalEvents": "Total Events",
+            "totalEventsBreakdown": "{{open}} open · {{closed}} closed today · {{pending}} pending",
+            "criticalFaults": "Critical Faults",
+            "criticalFaultsBreakdown": "{{critical}} critical · {{high}} high",
+            "workEvents": "Work & Future Events",
+            "workEventsBreakdown": "{{active}} active now · {{upcoming}} upcoming",
+            "activeSpectrum": "Active Spectrum",
+            "activeSpectrumBreakdown": "{{active}} active · {{cancelled}} cancelled",
+            "closedToday": "Closed Today",
+            "closedTodayBreakdown": "Avg. handling time: {{minutes}}m",
+            "noUpdate": "No Update 2h+",
+            "noUpdateBreakdown": "{{percent}}% of open events"
+        },
+        "newEventModal": {
+            "title": "New Event",
+            "subtitle": "Pick a log type to continue",
+            "selectType": "Select log type",
+            "linkedFaultsHint": "Pick the open faults this work is going out to resolve — they'll auto-close when the work is marked done",
+            "relatedCommSiteHint": "Tag this fault to a Comm Site to show it in that site's own fault history (current + past)",
+            "noOpenFaults": "No open faults to link",
+            "requiredError": "Required field"
+        },
+        "editModal": {
+            "title": "Update Event",
+            "readonlySection": "Original event details (locked)",
+            "editableSection": "Update",
+            "updateNotesPlaceholder": "What changed?",
+            "autoEndTimeHint": "Choosing a closing status auto-sets the end time to now — you can override it"
+        },
+        "viewPanel": {
+            "history": "Update History",
+            "noHistory": "No updates yet",
+            "attachments": "Attachments",
+            "noAttachments": "No attachments",
+            "systemNote": "Automatic"
+        },
+        "shareModal": {
+            "title": "Share Event",
+            "subtitle": "Pick a unit to extend visibility to",
+            "alreadyShared": "Already shared",
+            "searchPlaceholder": "Search unit..."
+        },
+        "badges": {
+            "recurring": "Recurring ({{count}})",
+            "handledBy": "Handled under: {{title}}",
+            "stale": "No update"
+        },
+        "permissions": {
+            "readonly": "Read only",
+            "attachmentsOnly": "Attachments only"
+        }
+    },
+    "commSiteDetail": {
+        "expand": "Expand",
+        "closeDetail": "Close",
+        "pageSubtitle": "Service Monitoring",
+        "lastUpdated": "Last updated",
+        "unitContext": "Viewed from",
+        "serviceTypes": {
+            "cellular": "Military Cellular",
+            "lcn_network": "LCN Network",
+            "roip": "ROIP",
+            "elad": "Elad",
+            "maban": "Maban",
+            "components": "Components"
+        },
+        "status": {
+            "healthy": "Healthy",
+            "degraded": "Degraded",
+            "down": "Down"
+        },
+        "noLongerReporting": "No longer reporting",
+        "metrics": {
+            "active_sectors_of_total": "Active sectors",
+            "equipment_count": "Equipment count",
+            "tx_rx_count": "TX/RX units",
+            "bandwidth_used_of_total": "Bandwidth used",
+            "active_extensions_of_total": "Active extensions",
+            "total_records": "Total records",
+            "client_count": "Clients",
+            "anchor_ip": "Anchor IP",
+            "component_count": "Component count"
+        },
+        "allTypesFilter": "All services",
+        "noServices": "No services installed at this site",
+        "drillDown": {
+            "searchPlaceholder": "Search...",
+            "allStatuses": "All statuses",
+            "downloadReport": "Download Report",
+            "empty": "No matching sub-items",
+            "pageOf": "Page {{page}} of {{total}}",
+            "prev": "Previous",
+            "next": "Next"
+        },
+        "columns": {
+            "sector_id": "Sector ID",
+            "azimuth": "Azimuth",
+            "unit": "Unit",
+            "direction": "Direction",
+            "extension_id": "Extension ID",
+            "level_height": "Level/Height",
+            "band_designation": "Band",
+            "remote_unit": "Remote Unit",
+            "client_id": "Client ID",
+            "ip": "IP",
+            "ip_address": "IP Address",
+            "mount_location": "Mount Location",
+            "device_name": "Device Name",
+            "device_type": "Type",
+            "frequency": "Frequency",
+            "antenna_height": "Antenna Height",
+            "status": "Status"
+        }
     }
 }

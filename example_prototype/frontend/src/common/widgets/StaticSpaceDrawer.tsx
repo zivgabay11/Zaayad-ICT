@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { RadioTower, Plus, Trash2, X } from 'lucide-react';
 import { useStaticSpaceContext } from '../context/StaticSpaceContext';
 import { mockCommSites, mockClientDevices } from '../utilities/mockData';
+import { CommSiteFaultHistory } from './CommSiteFaultHistory';
 
 // The "Comm Site" table (PRD 6.3 / 11.4): starts empty per unit, lists every site the
 // unit has curated from the Nitor catalog, and lets a user remove one (US-11).
@@ -25,7 +26,7 @@ function ConfidenceChip({ confidence }: { confidence: string }) {
 
 export const StaticSpaceDrawer: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const { unitSiteIds, isDrawerOpen, closeDrawer, removeSite, openAddSitesModal } = useStaticSpaceContext();
+    const { unitSiteIds, isDrawerOpen, closeDrawer, removeSite, openAddSitesModal, openSiteDetail } = useStaticSpaceContext();
     const isRtl = i18n.dir() === 'rtl';
 
     const sites = mockCommSites.filter(s => unitSiteIds.includes(s.id));
@@ -98,7 +99,12 @@ export const StaticSpaceDrawer: React.FC = () => {
                                     : '—';
 
                                 return (
-                                    <div key={site.id} className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/60 p-3.5">
+                                    <div
+                                        key={site.id}
+                                        onDoubleClick={() => openSiteDetail(site.id)}
+                                        title={t('commSiteDetail.expand')}
+                                        className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/60 p-3.5 cursor-pointer hover:border-primary/40 transition-colors"
+                                    >
                                         <div className="flex items-center justify-between mb-2.5">
                                             <div className="flex items-center gap-2.5 min-w-0">
                                                 <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 text-primary shrink-0">
@@ -139,6 +145,7 @@ export const StaticSpaceDrawer: React.FC = () => {
                                         <div className="mt-2.5">
                                             <ConfidenceChip confidence={site.dataConfidence} />
                                         </div>
+                                        <CommSiteFaultHistory siteId={site.id} />
                                     </div>
                                 );
                             })}

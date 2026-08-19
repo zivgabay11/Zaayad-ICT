@@ -27,12 +27,15 @@ import { AnalysisProvider } from './common/context/AnalysisContext';
 import { StaticSpaceProvider } from './common/context/StaticSpaceContext';
 import { TikshovProvider } from './common/context/TikshovContext';
 import { TikshovCopScreen } from './tikshov_cop/screens/TikshovCopScreen';
+import { CombatLogProvider } from './common/context/CombatLogContext';
+import { CombatLogScreen } from './combat_log/screens/CombatLogScreen';
 import { MapPanel } from './common/widgets/MapPanel';
 import { MapEdgeHandle } from './common/widgets/MapEdgeHandle';
 import { DocPanel } from './common/widgets/DocPanel';
 import { DocEdgeHandle } from './common/widgets/DocEdgeHandle';
 import { StaticSpaceDrawer } from './common/widgets/StaticSpaceDrawer';
 import { AddCommSitesModal } from './common/widgets/AddCommSitesModal';
+import { CommSiteDetailPage } from './common/widgets/CommSiteDetailPage';
 import { StaticSpaceNavButton } from './common/widgets/StaticSpaceNavButton';
 import { formatUnitName } from './common/utilities/formatting';
 
@@ -81,6 +84,8 @@ const ContentArea: React.FC<ContentAreaProps> = ({ currentSection, chatKey, acti
                         <CombatScriptScreen sessionUnitCode={session?.unit?.code} />
                     ) : currentSection === 'tikshov_cop' ? (
                         <TikshovCopScreen />
+                    ) : currentSection === 'telecom_journal' ? (
+                        <CombatLogScreen />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-400 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-slate-200 dark:border-zinc-800">
                             {(currentSection as string).charAt(0).toUpperCase() + (currentSection as string).slice(1).replace('-', ' ')}
@@ -278,6 +283,7 @@ export default function App() {
             {!showSplash && (
                 <StaticSpaceProvider>
                 <TikshovProvider>
+                <CombatLogProvider>
                     {/* Top Header */}
                     <header className="flex items-center justify-between px-2 py-2 bg-white dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-800 z-20 transition-colors duration-200 relative">
                         {/* End section (right in RTL): Toggle sidebar + Operations dropdown + placeholder icons */}
@@ -451,6 +457,17 @@ export default function App() {
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem
+                                                icon={<ScrollText className="w-5 h-5" />}
+                                                label={t('nav.telecom_journal')}
+                                                active={currentSection === 'telecom_journal'}
+                                                onClick={() => {
+                                                    setCurrentSection('telecom_journal');
+                                                    setIsOrderSidebarOpen(false);
+                                                }}
+                                                isDarkMode={isDarkMode}
+                                                isCollapsed={isSidebarCollapsed}
+                                            />
+                                            <NavItem
                                                 icon={<Grid3x3 className="w-5 h-5" />}
                                                 label={t('nav.sync_efforts')}
                                                 onClick={() => { }}
@@ -507,6 +524,7 @@ export default function App() {
                                     </main>
                                     <StaticSpaceDrawer />
                                     <AddCommSitesModal />
+                                    <CommSiteDetailPage />
                                 </DocProvider>
                             </AnalysisProvider>
                         </MapProvider>
@@ -561,6 +579,7 @@ export default function App() {
                                 </motion.div>
                             )}
                         </AnimatePresence>
+                </CombatLogProvider>
                 </TikshovProvider>
                 </StaticSpaceProvider>
             )}

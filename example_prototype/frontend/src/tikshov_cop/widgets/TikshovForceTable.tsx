@@ -6,7 +6,7 @@ import { mockUnits, getUnitAndDescendantCodes } from '../../common/utilities/moc
 import { formatUnitName, formatRelativeSeconds, formatRelativeMinutes } from '../../common/utilities/formatting';
 import { DEVICE_TYPE_COLORS } from '../../common/utilities/trackedDeviceIcon';
 import { wasActiveDuringWindow } from '../../common/context/TikshovContext';
-import { UnitTreeSelect } from './UnitTreeSelect';
+import { UnitTreeSelect } from '../../common/widgets/UnitTreeSelect';
 
 // Unit force table (PRD 5.2/10.3): every tracked device in scope, sortable/filterable by
 // every column, defaulting to inactive/flapping forces first so at-risk forces surface

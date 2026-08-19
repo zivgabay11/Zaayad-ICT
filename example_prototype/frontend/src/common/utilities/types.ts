@@ -226,4 +226,75 @@ export interface WatchedUnitSelection {
     addedAt: string; // ISO timestamp — audit trail per PRD 2.9 / 7.5
 }
 
+// --- Integrated Combat Log (יומן לחימה מתכלל) ---
+// See PRD "Integrated Combat Log" v2.0 for the full domain model this mirrors.
+
+export type CombatLogType = 'reports' | 'ict_faults' | 'losses' | 'work_future_events' | 'spectrum' | 'other';
+
+export type CombatLogSeverity = 'critical' | 'high' | 'medium' | 'low'; // ict_faults only (PRD 5.1 "Severity")
+
+export interface CombatLogUpdateNote {
+    id: string;
+    text: string;
+    authorUserName: string;
+    timestamp: string; // ISO
+    system?: boolean; // true for automation-generated notes (share audit, auto-close cascade, etc.)
+}
+
+export interface CombatLogAttachment {
+    id: string;
+    fileName: string;
+    fileType: 'word' | 'pdf' | 'excel';
+}
+
+export interface CombatLogEvent {
+    id: string;
+    type: CombatLogType;
+    title: string;
+    description: string;
+    start: string; // ISO datetime (PRD 5.1 "start")
+    end?: string; // ISO datetime (PRD 5.1 "end_to" / end_time)
+    status: string; // enum depends on type — see COMBAT_LOG_STATUS_OPTIONS
+    reporterUserName: string;
+    reporterUnitCode: number; // the originating/owning unit
+    severity?: CombatLogSeverity; // ict_faults only
+    affectedSystem?: string; // ict_faults only — drives recurring-fault detection (PRD Section 10 KPI)
+    updateNotes: CombatLogUpdateNote[];
+    attachments: CombatLogAttachment[];
+    createdAt: string; // ISO
+    updatedAt: string; // ISO
+    sharedWithUnitCodes: number[]; // units this event has been pushed to, up or down the force tree (PRD 4.2)
+    // Cross-log automation (see CombatLogContext.tsx): work_future_events only — the ICT
+    // Faults this work item is going out to resolve. Completing the work auto-closes them.
+    linkedFaultIds?: string[];
+    // Cross-module integration with Static Space Establishment (כינון מרחב נייח): ict_faults
+    // only — the Comm Site (CommSite.id) this fault is tagged against, so the site's own
+    // table row / map marker can surface its live + historical fault picture.
+    relatedCommSiteId?: string;
+}
+
+// --- Comm Site Service Monitoring (ניטור שירותים) ---
+// See PRD "Comm Site Service Monitoring" for the full domain model this mirrors. Extends
+// the Static Space Establishment CommSite entity — read-only, Nitor-sourced.
+
+export type CommSiteServiceType = 'cellular' | 'lcn_network' | 'roip' | 'elad' | 'maban' | 'components';
+
+export type CommSiteServiceStatus = 'healthy' | 'degraded' | 'down';
+
+export interface CommSiteService {
+    serviceId: string;
+    siteId: string; // FK into CommSite
+    serviceType: CommSiteServiceType;
+    status: CommSiteServiceStatus;
+    lastUpdatedAt: string; // ISO — this service's OWN freshness, independent of the site-level timestamp (PRD 2.7)
+    metrics: Record<string, number | string>; // per-service-type key/value payload (PRD 7.1)
+    noLongerReporting?: boolean; // was installed, Nitor stopped reporting it (PRD 2.3/US-8) — flagged, not hidden
+}
+
+export interface ServiceSubItem {
+    subItemId: string;
+    serviceId: string; // FK into CommSiteService
+    status: string; // service-type-specific status label (PRD 7.2)
+    payload: Record<string, string | number>;
+}
 

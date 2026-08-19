@@ -548,7 +548,12 @@
         "noResults": "לא נמצאו אתרים תואמים",
         "alreadyInTable": "כבר בטבלה",
         "sitesSelected": "{{count}} אתרים נבחרו",
-        "cancel": "ביטול"
+        "cancel": "ביטול",
+        "faults": {
+            "sectionTitle": "תקלות תקשוב",
+            "openCount": "{{count}} פתוחות",
+            "historyToggle": "היסטוריה ({{count}})"
+        }
     },
     "tikshovCop": {
         "layerName": "תמ\"כ תקשוב",
@@ -589,11 +594,6 @@
             "custom": "טווח מותאם"
         },
         "searchCallsign": "חיפוש אות קשר...",
-        "allUnits": "כל היחידות",
-        "unitsSelectedCount": "{{count}} יחידות נבחרו",
-        "unitPickerTitle": "בחירת יחידות",
-        "clearSelection": "נקה",
-        "includedViaAncestor": "כלול כבר דרך יחידת-אב שנבחרה",
         "allDeviceTypes": "כל סוגי המכשירים",
         "allStatuses": "כל הסטטוסים",
         "forcesCount": "{{count}} כוחות",
@@ -635,5 +635,170 @@
         "addWatchedUnitModalSubtitle": "בחר יחידה כדי להרחיב את תמונת התמ\"כ שלך",
         "searchUnitPlaceholder": "חיפוש יחידה לפי שם או מספר...",
         "noUnitsFound": "לא נמצאו יחידות תואמות"
+    },
+    "unitPicker": {
+        "allUnits": "כל היחידות",
+        "unitsSelectedCount": "{{count}} יחידות נבחרו",
+        "pickerTitle": "בחירת יחידות",
+        "clearSelection": "נקה",
+        "includedViaAncestor": "כלול כבר דרך יחידת-אב שנבחרה"
+    },
+    "combatLog": {
+        "screenTitle": "יומן לחימה מתכלל",
+        "screenSubtitle": "תמונת מצב מבצעית מאוחדת על פני כל סוגי היומן",
+        "newEvent": "אירוע חדש",
+        "exportExcel": "ייצוא ל-Excel",
+        "tabs": { "table": "טבלה", "gantt": "ציר זמן" },
+        "logTypes": {
+            "reports": "דיווחים",
+            "ict_faults": "תקלות תקשוב",
+            "losses": "אובדנים",
+            "work_future_events": "עבודות ואירועים עתידיים",
+            "spectrum": "ספקטרום",
+            "other": "אחר"
+        },
+        "columns": { "startTime": "זמן התחלה", "logType": "סוג יומן", "title": "כותרת", "status": "סטטוס" },
+        "actions": { "view": "צפייה", "edit": "עריכה", "share": "שיתוף", "close": "סגירה", "save": "שמירה", "cancel": "ביטול" },
+        "fields": {
+            "type": "סוג יומן",
+            "title": "כותרת",
+            "description": "תיאור מפורט",
+            "start": "זמן התחלה",
+            "end": "זמן סיום",
+            "status": "סטטוס",
+            "reporter": "גורם מדווח",
+            "severity": "חומרה",
+            "affectedSystem": "מערכת מושפעת",
+            "linkedFaults": "תקלות מקושרות",
+            "relatedCommSite": "אתר קשר קשור",
+            "updateNotes": "עדכון",
+            "attachments": "קבצים מצורפים",
+            "createdAt": "נוצר ב",
+            "updatedAt": "עודכן ב"
+        },
+        "severity": { "critical": "קריטי", "high": "גבוה", "medium": "בינוני", "low": "נמוך" },
+        "empty": "אין אירועים תואמים",
+        "filters": {
+            "allTypes": "כל סוגי היומן",
+            "allStatuses": "כל הסטטוסים",
+            "searchPlaceholder": "חיפוש בכותרת ובתיאור...",
+            "dateFrom": "מתאריך",
+            "dateTo": "עד תאריך",
+            "clear": "נקה סינון"
+        },
+        "dashboard": {
+            "totalEvents": "סה\"כ אירועים",
+            "totalEventsBreakdown": "{{open}} פתוחים · {{closed}} נסגרו היום · {{pending}} ממתינים",
+            "criticalFaults": "תקלות קריטיות",
+            "criticalFaultsBreakdown": "{{critical}} קריטי · {{high}} גבוה",
+            "workEvents": "עבודות ואירועים עתידיים",
+            "workEventsBreakdown": "{{active}} בביצוע · {{upcoming}} ממתינים",
+            "activeSpectrum": "ספקטרום פעיל",
+            "activeSpectrumBreakdown": "{{active}} פעיל · {{cancelled}} בוטל",
+            "closedToday": "נסגרו היום",
+            "closedTodayBreakdown": "זמן טיפול ממוצע: {{minutes}} דק'",
+            "noUpdate": "ללא עדכון 2h+",
+            "noUpdateBreakdown": "{{percent}}% מהפתוחים"
+        },
+        "newEventModal": {
+            "title": "אירוע חדש",
+            "subtitle": "בחר סוג יומן כדי להמשיך",
+            "selectType": "בחר סוג יומן",
+            "linkedFaultsHint": "בחר את התקלות הפתוחות שהעבודה הזו יוצאת לטפל בהן — הן ייסגרו אוטומטית עם סיום העבודה",
+            "relatedCommSiteHint": "תיוג התקלה לאתר קשר יציג אותה בהיסטוריית התקלות של אותו אתר (נוכחיות + עבר)",
+            "noOpenFaults": "אין תקלות פתוחות לקישור",
+            "requiredError": "שדה חובה"
+        },
+        "editModal": {
+            "title": "עדכון אירוע",
+            "readonlySection": "פרטי האירוע המקוריים (נעול)",
+            "editableSection": "עדכון",
+            "updateNotesPlaceholder": "מה התעדכן?",
+            "autoEndTimeHint": "בבחירת סטטוס סוגר, זמן הסיום יוגדר אוטומטית לרגע זה — ניתן לשנות ידנית"
+        },
+        "viewPanel": {
+            "history": "היסטוריית עדכונים",
+            "noHistory": "אין עדכונים עדיין",
+            "attachments": "קבצים מצורפים",
+            "noAttachments": "אין קבצים מצורפים",
+            "systemNote": "אוטומטי"
+        },
+        "shareModal": {
+            "title": "שיתוף אירוע",
+            "subtitle": "בחר יחידה להעברת נראות על האירוע",
+            "alreadyShared": "כבר שותף",
+            "searchPlaceholder": "חיפוש יחידה..."
+        },
+        "badges": {
+            "recurring": "חוזרת ({{count}})",
+            "handledBy": "מטופל במסגרת: {{title}}",
+            "stale": "ללא עדכון"
+        },
+        "permissions": {
+            "readonly": "צפייה בלבד",
+            "attachmentsOnly": "ניתן לצרף קובץ בלבד"
+        }
+    },
+    "commSiteDetail": {
+        "expand": "הרחב",
+        "closeDetail": "סגירה",
+        "pageSubtitle": "ניטור שירותים",
+        "lastUpdated": "עדכון אחרון",
+        "unitContext": "נצפה מתוך",
+        "serviceTypes": {
+            "cellular": "סלולר צבאי",
+            "lcn_network": "רשת לכ\"ן",
+            "roip": "ROIP",
+            "elad": "אלעד",
+            "maban": "מב\"ן",
+            "components": "רכיבים"
+        },
+        "status": {
+            "healthy": "תקין",
+            "degraded": "חלקי",
+            "down": "לא תקין"
+        },
+        "noLongerReporting": "אינו מדווח יותר",
+        "metrics": {
+            "active_sectors_of_total": "סקטורים פעילים",
+            "equipment_count": "כמות ציוד",
+            "tx_rx_count": "משדר/מקלט",
+            "bandwidth_used_of_total": "רוחב פס בשימוש",
+            "active_extensions_of_total": "שלוחות פעילות",
+            "total_records": "סה\"כ רשומות",
+            "client_count": "לקוחות",
+            "anchor_ip": "IP עוגן",
+            "component_count": "כמות רכיבים"
+        },
+        "allTypesFilter": "כל השירותים",
+        "noServices": "לא הותקנו שירותים באתר זה",
+        "drillDown": {
+            "searchPlaceholder": "חיפוש...",
+            "allStatuses": "כל הסטטוסים",
+            "downloadReport": "הורדת דוח",
+            "empty": "אין פריטים תואמים",
+            "pageOf": "עמוד {{page}} מתוך {{total}}",
+            "prev": "הקודם",
+            "next": "הבא"
+        },
+        "columns": {
+            "sector_id": "מזהה סקטור",
+            "azimuth": "אזימוט",
+            "unit": "יחידה",
+            "direction": "כיוון",
+            "extension_id": "מזהה שלוחה",
+            "level_height": "גובה",
+            "band_designation": "סימון פס",
+            "remote_unit": "יחידה מרוחקת",
+            "client_id": "מזהה לקוח",
+            "ip": "IP",
+            "ip_address": "כתובת IP",
+            "mount_location": "מיקום התקנה",
+            "device_name": "שם מכשיר",
+            "device_type": "סוג",
+            "frequency": "תדר",
+            "antenna_height": "גובה אנטנה",
+            "status": "סטטוס"
+        }
     }
 }
