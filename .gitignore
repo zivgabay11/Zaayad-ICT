@@ -58,3 +58,7 @@ Thumbs.db
 
 # Claude Code (keep shared settings.json + CLAUDE.md tracked)
 .claude/settings.local.json
+
+# Cloud sync conflict copies (OneDrive, etc.)
+* (2).*
+* (2)
