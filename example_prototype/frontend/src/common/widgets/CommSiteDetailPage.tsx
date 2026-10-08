@@ -66,9 +66,9 @@ export const CommSiteDetailPage: React.FC = () => {
     const unitLabel = readSessionUnitLabel();
 
     return (
-        // Positioned like StaticSpaceDrawer (below the header, after the icon sidebar) so
-        // this stays part of the app's own chrome instead of a disconnected full-screen
-        // takeover — the header and sidebar remain visible exactly as on every other screen.
+        // Positioned below the header, after the icon sidebar, so this stays part of the
+        // app's own chrome instead of a disconnected full-screen takeover — the header and
+        // sidebar remain visible exactly as on every other screen.
         <div
             className="fixed inset-y-0 start-16 end-0 z-50 bg-slate-50 dark:bg-zinc-950 overflow-y-auto animate-in fade-in duration-200"
             style={{ top: '52px' }}

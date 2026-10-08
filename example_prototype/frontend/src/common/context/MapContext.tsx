@@ -52,9 +52,6 @@ export const MapProvider: React.FC<MapProviderProps> = ({ children, currentSecti
             setIsMapOpen(true);
             setMapWidth(targetWidth);
             setUserClosed(false);
-        } else if (currentSection === 'plans' || currentSection === 'definitions' || currentSection === 'tikshov_cop' || currentSection === 'telecom_journal') {
-            setIsMapOpen(false);
-            setMapWidth(0);
         } else if (currentSection === 'diagram') {
             setIsMapOpen(true);
             setMapWidth(targetWidth);
@@ -74,6 +71,15 @@ export const MapProvider: React.FC<MapProviderProps> = ({ children, currentSecti
                 setIsMapOpen(false);
                 setMapWidth(0);
             }
+        } else {
+            // Every other content-panel screen (plans, definitions, tikshov_cop,
+            // telecom_journal, static_space, spectrum_*, radio, sync_efforts, order, ...) —
+            // closing the map here, rather than only for an explicit allowlist, is what
+            // guarantees the full-bleed map from 'main'/'diagram' never carries over and
+            // leaves the content panel collapsed to zero width on a section this effect
+            // doesn't otherwise recognize.
+            setIsMapOpen(false);
+            setMapWidth(0);
         }
     }, [currentSection]);
 

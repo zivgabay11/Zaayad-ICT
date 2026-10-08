@@ -11,7 +11,6 @@ interface StaticSpaceContextType {
     layerOn: boolean;
     eladFilterOn: boolean;
     mabanFilterOn: boolean;
-    isDrawerOpen: boolean;
     isAddSitesModalOpen: boolean;
     openSiteDetailId: string | null; // Comm Site Service Monitoring page (PRD 5.1) — set to open it for a site
     toggleLayer: () => void;
@@ -19,8 +18,6 @@ interface StaticSpaceContextType {
     toggleMabanFilter: () => void;
     addSites: (ids: string[]) => void;
     removeSite: (id: string) => void;
-    openDrawer: () => void;
-    closeDrawer: () => void;
     openAddSitesModal: () => void;
     closeAddSitesModal: () => void;
     openSiteDetail: (siteId: string) => void;
@@ -46,7 +43,6 @@ export const StaticSpaceProvider: React.FC<{ children: ReactNode }> = ({ childre
     const [layerOn, setLayerOn] = useState(true);
     const [eladFilterOn, setEladFilterOn] = useState(true);
     const [mabanFilterOn, setMabanFilterOn] = useState(true);
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isAddSitesModalOpen, setIsAddSitesModalOpen] = useState(false);
     const [openSiteDetailId, setOpenSiteDetailId] = useState<string | null>(null);
 
@@ -88,7 +84,6 @@ export const StaticSpaceProvider: React.FC<{ children: ReactNode }> = ({ childre
             layerOn,
             eladFilterOn,
             mabanFilterOn,
-            isDrawerOpen,
             isAddSitesModalOpen,
             openSiteDetailId,
             toggleLayer,
@@ -96,8 +91,6 @@ export const StaticSpaceProvider: React.FC<{ children: ReactNode }> = ({ childre
             toggleMabanFilter,
             addSites,
             removeSite,
-            openDrawer: () => setIsDrawerOpen(true),
-            closeDrawer: () => setIsDrawerOpen(false),
             openAddSitesModal: () => setIsAddSitesModalOpen(true),
             closeAddSitesModal: () => setIsAddSitesModalOpen(false),
             openSiteDetail: (siteId: string) => setOpenSiteDetailId(siteId),

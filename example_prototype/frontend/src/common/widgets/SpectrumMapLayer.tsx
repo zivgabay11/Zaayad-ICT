@@ -3,21 +3,21 @@ import { Polygon, Tooltip, Popup } from 'react-leaflet';
 import { useTranslation } from 'react-i18next';
 import { useSpectrumContext } from '../context/SpectrumContext';
 import { mockSpectrumZones } from '../utilities/mockData';
-import { getVisibleZones, getZoneColor, computeJammingStatus, formatDurationMinutes } from '../utilities/spectrum';
+import { getVisibleZones, getZoneColor, computeJammingStatus, computeBlockingStatus, formatDurationMinutes } from '../utilities/spectrum';
 
 // Renders the "Spectrum" (ספקטרום) map layer as a child of react-leaflet's <MapContainer>:
 // one polygon per zone, colored by meaning rather than by a fixed per-layer palette —
 // Jamming (השתקות) zones are colored by where they sit in their time window (gray once
-// ended, green while active, sky-blue while still ahead), while Blocking (חסימות) zones
-// are always red, since they carry no timing dimension of their own.
+// ended, green while active, sky-blue while still ahead), while Blocking (חסימות) zones are
+// colored by frequency band (L1 vs שו"ב), each band in its own distinct color.
 
 export const SpectrumMapLayer: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const { layerOn, jammingFilterOn, blockingFilterOn, jammingStatusFilters } = useSpectrumContext();
+    const { layerOn, jammingFilterOn, blockingFilterOn, jammingStatusFilters, blockingBandFilters } = useSpectrumContext();
 
     const visibleZones = useMemo(
-        () => getVisibleZones(mockSpectrumZones, layerOn, jammingFilterOn, blockingFilterOn, jammingStatusFilters),
-        [layerOn, jammingFilterOn, blockingFilterOn, jammingStatusFilters],
+        () => getVisibleZones(mockSpectrumZones, layerOn, jammingFilterOn, blockingFilterOn, jammingStatusFilters, blockingBandFilters),
+        [layerOn, jammingFilterOn, blockingFilterOn, jammingStatusFilters, blockingBandFilters],
     );
 
     if (!layerOn) return null;
@@ -28,6 +28,7 @@ export const SpectrumMapLayer: React.FC = () => {
                 const color = getZoneColor(zone);
                 const positions = zone.coordinates.map(c => [c.lat, c.lng] as [number, number]);
                 const jammingStatus = zone.zoneType === 'jamming' ? computeJammingStatus(zone.startAt, zone.endAt) : null;
+                const blockingStatus = zone.zoneType === 'blocking' ? computeBlockingStatus(zone.endAt) : null;
                 const now = Date.now();
 
                 return (
@@ -53,6 +54,21 @@ export const SpectrumMapLayer: React.FC = () => {
                                             style={{ background: `${color}26`, color }}
                                         >
                                             {t(`spectrum.jammingStatus.${jammingStatus}`)}
+                                        </span>
+                                    )}
+                                    {zone.band && (
+                                        <span
+                                            className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                            style={{ background: `${color}26`, color }}
+                                        >
+                                            {t(`spectrum.blockingBands.${zone.band}`)}
+                                        </span>
+                                    )}
+                                    {blockingStatus && (
+                                        <span
+                                            className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-zinc-700/50 dark:text-zinc-300"
+                                        >
+                                            {t(`spectrum.jammingStatus.${blockingStatus}`)}
                                         </span>
                                     )}
                                 </div>

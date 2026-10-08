@@ -79,7 +79,12 @@ export const CombatLogTable: React.FC<CombatLogTableProps> = ({ events, allEvent
                         const handlingWork = event.type === 'ict_faults' ? getHandlingWorkEvent(event.id, allEvents) : undefined;
                         const stale = isStaleEvent(event, now);
                         return (
-                            <tr key={event.id} className="border-t border-slate-100 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors">
+                            <tr
+                                key={event.id}
+                                onDoubleClick={() => onView(event.id)}
+                                className="border-t border-slate-100 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors cursor-pointer"
+                            >
+
                                 <td className="px-3 py-2 text-xs text-slate-600 dark:text-zinc-300 whitespace-nowrap">
                                     {new Date(event.start).toLocaleString()}
                                 </td>

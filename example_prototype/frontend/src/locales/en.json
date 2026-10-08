@@ -24,6 +24,10 @@
         "definitions": "Definitions",
         "static_space": "Static Space Establishment",
         "tikshov_cop": "Tikshov Common Operational Picture",
+        "control": "Command & Control",
+        "management": "Management",
+        "radio": "Radio",
+        "monitoring": "Monitoring",
         "switch_theme": "Theme",
         "sign_out": "Sign Out",
         "expand_sidebar": "Expand Sidebar",
@@ -84,7 +88,8 @@
     "roles": {
         "intelligenceOfficer": "Intelligence Officer",
         "operationsOfficer": "Operations Officer",
-        "telecomOfficer": "Telecom/Comms Officer"
+        "telecomOfficer": "Telecom/Comms Officer",
+        "malka": "MALKA Officer"
     },
     "common": {
         "welcome": "Welcome",
@@ -804,9 +809,14 @@
     },
     "spectrum": {
         "layerName": "Spectrum",
+        "screenSubtitle": "Track jamming and frequency blocking",
         "zoneTypes": {
             "jamming": "Jamming",
             "blocking": "Blocking"
+        },
+        "blockingBands": {
+            "l1": "L1",
+            "comms": "C2 Frequencies"
         },
         "jammingStatus": {
             "ended": "Ended",
@@ -818,6 +828,22 @@
         "metersAbbrev": "m",
         "endsIn": "Ends in",
         "startsIn": "Starts in",
+        "tabs": {
+            "jamming": "Jamming Tracking",
+            "blocking": "Blocking Tracking"
+        },
+        "columns": {
+            "name": "Name",
+            "status": "Status",
+            "band": "Band",
+            "startTime": "Start Time",
+            "endTime": "End Time"
+        },
+        "filters": {
+            "allStatuses": "All",
+            "allBands": "All"
+        },
+        "empty": "No matching zones",
         "time": {
             "minutes": "{{count}}m",
             "hours": "{{count}}h"

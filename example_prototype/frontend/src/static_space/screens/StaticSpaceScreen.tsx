@@ -1,12 +1,13 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { RadioTower, Plus, Trash2, X } from 'lucide-react';
-import { useStaticSpaceContext } from '../context/StaticSpaceContext';
-import { mockCommSites, mockClientDevices } from '../utilities/mockData';
-import { CommSiteFaultHistory } from './CommSiteFaultHistory';
+import { RadioTower, Plus, Trash2 } from 'lucide-react';
+import { useStaticSpaceContext } from '../../common/context/StaticSpaceContext';
+import { mockCommSites, mockClientDevices } from '../../common/utilities/mockData';
+import { CommSiteFaultHistory } from '../../common/widgets/CommSiteFaultHistory';
 
-// The "Comm Site" table (PRD 6.3 / 11.4): starts empty per unit, lists every site the
-// unit has curated from the Nitor catalog, and lets a user remove one (US-11).
+// Full-screen "Static Space Establishment" (כינון מרחב נייח) view — the unit's curated
+// Comm Site table (PRD 6.3 / 11.4), laid out like the app's other full-page sections
+// (e.g. TikshovCopScreen / CombatLogScreen) rather than as a side drawer.
 
 const CONFIDENCE_STYLES: Record<string, string> = {
     live: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400',
@@ -24,40 +25,33 @@ function ConfidenceChip({ confidence }: { confidence: string }) {
     );
 }
 
-export const StaticSpaceDrawer: React.FC = () => {
+export const StaticSpaceScreen: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const { unitSiteIds, isDrawerOpen, closeDrawer, removeSite, openAddSitesModal, openSiteDetail } = useStaticSpaceContext();
-    const isRtl = i18n.dir() === 'rtl';
+    const { unitSiteIds, removeSite, openAddSitesModal, openSiteDetail } = useStaticSpaceContext();
 
     const sites = mockCommSites.filter(s => unitSiteIds.includes(s.id));
 
     return (
-        <div
-            className="fixed inset-y-0 start-16 z-40 w-[420px] max-w-[92vw] bg-white dark:bg-zinc-900 border-e border-slate-200 dark:border-zinc-800 shadow-2xl flex flex-col transition-transform duration-300 ease-out"
-            style={{
-                top: '52px',
-                transform: isDrawerOpen ? 'translateX(0)' : `translateX(${isRtl ? '' : '-'}calc(100% + 4rem))`,
-            }}
-        >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-zinc-800 shrink-0">
+        <div className="p-6 h-full flex flex-col w-full min-w-0 max-w-full overflow-hidden">
+            <div className="flex flex-row flex-wrap justify-between items-center gap-3 mb-4 flex-shrink-0">
                 <div className="flex items-center gap-3">
                     <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10 text-primary shrink-0">
                         <RadioTower className="w-[18px] h-[18px]" />
                     </span>
                     <div>
-                        <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{t('staticSpace.tableTitle')}</h3>
+                        <h1 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">{t('staticSpace.tableTitle')}</h1>
                         <p className="text-xs text-slate-500 dark:text-zinc-500 mt-0.5">{t('staticSpace.tableSubtitle')}</p>
                     </div>
                 </div>
                 <button
-                    onClick={closeDrawer}
-                    className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
+                    onClick={openAddSitesModal}
+                    className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-primary text-white dark:text-zinc-900 hover:bg-primary/90 transition-colors font-semibold shadow-sm"
                 >
-                    <X className="w-[18px] h-[18px]" />
+                    <Plus className="w-4 h-4" /> {t('staticSpace.addSites')}
                 </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div className="flex-1 min-h-0 overflow-y-auto">
                 {sites.length === 0 ? (
                     <div className="flex flex-col items-center text-center py-14 px-2">
                         <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 flex items-center justify-center mb-4 text-slate-400 dark:text-zinc-500">
@@ -78,15 +72,9 @@ export const StaticSpaceDrawer: React.FC = () => {
                             <span className="text-xs text-slate-500 dark:text-zinc-400">
                                 <b className="text-slate-800 dark:text-white">{sites.length}</b> {t('staticSpace.sitesInTable')}
                             </span>
-                            <button
-                                onClick={openAddSitesModal}
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-white dark:text-zinc-900 hover:bg-primary/90 transition-colors"
-                            >
-                                <Plus className="w-3.5 h-3.5" /> {t('staticSpace.addSites')}
-                            </button>
                         </div>
 
-                        <div className="space-y-2.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                             {sites.map(site => {
                                 const eladCount = mockClientDevices.filter(c => c.parentSiteId === site.id && c.clientType === 'elad').length;
                                 const mabanCount = mockClientDevices.filter(c => c.parentSiteId === site.id && c.clientType === 'maban').length;

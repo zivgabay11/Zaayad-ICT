@@ -1175,6 +1175,7 @@ export const mockSpectrumZones: SpectrumZone[] = [
         coordinates: irregularZone({ lat: 32.70, lng: 35.06 }, 0.096, 'spec-block-1'),
         freqRangeMhz: { from: 960, to: 1215 },
         heightRangeM: { from: 0, to: 3000 },
+        band: 'l1',
         notes: '',
     },
     {
@@ -1184,6 +1185,7 @@ export const mockSpectrumZones: SpectrumZone[] = [
         coordinates: irregularZone({ lat: 31.72, lng: 35.04 }, 0.072, 'spec-block-2'),
         freqRangeMhz: { from: 225, to: 400 },
         heightRangeM: { from: 500, to: 8000 },
+        band: 'comms',
         notes: '',
     },
     {
@@ -1193,6 +1195,19 @@ export const mockSpectrumZones: SpectrumZone[] = [
         coordinates: irregularZone({ lat: 31.32, lng: 35.42 }, 0.084, 'spec-block-3'),
         freqRangeMhz: { from: 5150, to: 5850 },
         heightRangeM: { from: 0, to: 500 },
+        band: 'comms',
+        endAt: hoursAgo(4), // ended
+        notes: '',
+    },
+    {
+        id: 'spec-block-4',
+        zoneType: 'blocking',
+        name: { en: 'Golan Plateau Freq Block (Ended)', he: 'חסימה - רמת הגולן' },
+        coordinates: irregularZone({ lat: 32.95, lng: 35.75 }, 0.078, 'spec-block-4'),
+        freqRangeMhz: { from: 1215, to: 1300 },
+        heightRangeM: { from: 0, to: 2500 },
+        band: 'l1',
+        endAt: daysAgo(1),
         notes: '',
     },
 ];

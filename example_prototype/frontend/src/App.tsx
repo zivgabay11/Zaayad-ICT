@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {
     ClipboardList, RefreshCw, Eraser, HelpCircle, Settings, Palette, LogOut,
     Map, Calendar as CalendarIcon, Target, CheckSquare, Crosshair, Flag, Globe, Lightbulb,
-    SlidersHorizontal, TriangleAlert, X, PenTool, Sparkles, ScrollText,
-    Swords, ChevronDown, ChevronUp, LayoutGrid, Grid3x3, Home, Library, Radar
+    SlidersHorizontal, TriangleAlert, X, PenTool, Sparkles, ScrollText, Swords,
+    ChevronDown, ChevronUp, LayoutGrid, Grid3x3, Home, Library, Shield, Radio, Waves, Eye,
+    RadioTower, Radar, Ban
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavItem } from './common/widgets/NavItem';
@@ -12,7 +13,7 @@ import { DefinitionsScreen } from './definitions/screens/DefinitionsScreen';
 import { ChatPanel } from './common/chat/widgets/ChatPanel';
 import { usePlanContext } from './common/context/PlanContext';
 import { useTranslation } from 'react-i18next';
-import { Session } from './common/utilities/types';
+import { Session, UserRole } from './common/utilities/types';
 import { mockUsers, mockUnits } from './common/utilities/mockData';
 
 import { PlansScreen } from './plans/screens/PlansScreen';
@@ -34,10 +35,10 @@ import { MapPanel } from './common/widgets/MapPanel';
 import { MapEdgeHandle } from './common/widgets/MapEdgeHandle';
 import { DocPanel } from './common/widgets/DocPanel';
 import { DocEdgeHandle } from './common/widgets/DocEdgeHandle';
-import { StaticSpaceDrawer } from './common/widgets/StaticSpaceDrawer';
 import { AddCommSitesModal } from './common/widgets/AddCommSitesModal';
 import { CommSiteDetailPage } from './common/widgets/CommSiteDetailPage';
-import { StaticSpaceNavButton } from './common/widgets/StaticSpaceNavButton';
+import { StaticSpaceScreen } from './static_space/screens/StaticSpaceScreen';
+import { SpectrumScreen } from './spectrum/screens/SpectrumScreen';
 import { formatUnitName } from './common/utilities/formatting';
 
 const CHAT_HIDE_THRESHOLD = 30; // Hide chat when map width >= 30%
@@ -85,6 +86,12 @@ const ContentArea: React.FC<ContentAreaProps> = ({ currentSection, chatKey, acti
                         <CombatScriptScreen sessionUnitCode={session?.unit?.code} />
                     ) : currentSection === 'tikshov_cop' ? (
                         <TikshovCopScreen />
+                    ) : currentSection === 'static_space' ? (
+                        <StaticSpaceScreen />
+                    ) : currentSection === 'spectrum_jamming' ? (
+                        <SpectrumScreen tab="jamming" />
+                    ) : currentSection === 'spectrum_blocking' ? (
+                        <SpectrumScreen tab="blocking" />
                     ) : currentSection === 'telecom_journal' ? (
                         <CombatLogScreen />
                     ) : (
@@ -179,6 +186,15 @@ const ChatSection: React.FC<ChatSectionProps> = ({ chatKey, activePlan, currentS
 export default function App() {
     const { activePlan, resetData } = usePlanContext();
     const { t, i18n } = useTranslation();
+    // Short labels for the header's role switcher — "קצין אג\"ם" is used for the role's full
+    // name elsewhere (e.g. the plan-info box), but this corner only ever showed the short
+    // "אג\"ם" form, so the switcher keeps that instead of roles.operationsOfficer's long form.
+    const roleShortLabels: Record<UserRole, string> = {
+        telecomOfficer: t('roles.telecomOfficer'),
+        operationsOfficer: t('header.operations'),
+        malka: t('roles.malka'),
+        intelligenceOfficer: t('roles.intelligenceOfficer'),
+    };
     // Splash + login are disabled for this build: it opens straight to the main map
     // screen with the Static Space Establishment feature, no auth step in the way.
     const [showSplash, setShowSplash] = useState(false);
@@ -193,6 +209,7 @@ export default function App() {
     });
     const isAuthenticated = !!session;
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+    const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
 
     useEffect(() => {
         const fadeTimer = setTimeout(() => {
@@ -220,12 +237,32 @@ export default function App() {
     });
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
     const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-    const [isOrderSidebarOpen, setIsOrderSidebarOpen] = useState(false);
-    const [currentSection, setCurrentSection] = useState<'main' | 'plans' | 'definitions' | 'calendar' | 'general' | 'intelligence' | 'objective' | 'mission' | 'tasks' | 'method' | 'diagram' | 'combat_script' | 'telecom_journal' | 'telecom_deployment' | 'tikshov_cop'>('main');
+    // Which of the five expandable categories (Planning / Control / Monitoring /
+    // Spectrum / Management) has its side panel open — null when none does. Exactly one at
+    // a time: opening one closes any other, same as switching between them directly.
+    const [openPanel, setOpenPanel] = useState<'planning' | 'control' | 'monitoring' | 'spectrum' | 'management' | null>(null);
+    const closePanel = () => setOpenPanel(null);
+    const [currentSection, setCurrentSection] = useState<'main' | 'plans' | 'definitions' | 'calendar' | 'general' | 'intelligence' | 'objective' | 'mission' | 'tasks' | 'method' | 'diagram' | 'combat_script' | 'telecom_journal' | 'telecom_deployment' | 'tikshov_cop' | 'static_space' | 'radio' | 'spectrum_jamming' | 'spectrum_blocking' | 'sync_efforts' | 'order'>('main');
 
-    // Group of sections that belong to the "Order"
+    // Group of sections that belong to "תכנון" (Planning)
     const orderSections = ['general', 'intelligence', 'objective', 'mission', 'method', 'tasks', 'diagram', 'calendar'];
     const isOrderSectionActive = orderSections.includes(currentSection);
+
+    // Group of sections that belong to "שליטה וניהול" (Command & Control)
+    const controlSections = ['telecom_journal', 'combat_script'];
+    const isControlSectionActive = controlSections.includes(currentSection);
+
+    // Group of sections that belong to "ניטור" (Monitoring)
+    const monitoringSections = ['tikshov_cop', 'static_space'];
+    const isMonitoringSectionActive = monitoringSections.includes(currentSection);
+
+    // Group of sections that belong to "ספקטרום" (Spectrum)
+    const spectrumSections = ['spectrum_jamming', 'spectrum_blocking'];
+    const isSpectrumSectionActive = spectrumSections.includes(currentSection);
+
+    // Group of sections that belong to "ניהול" (Management)
+    const managementSections = ['sync_efforts', 'order', 'definitions', 'plans'];
+    const isManagementSectionActive = managementSections.includes(currentSection);
 
     const toggleTheme = () => {
         setIsDarkMode((prev) => {
@@ -256,6 +293,16 @@ export default function App() {
     const handleSignOut = () => {
         localStorage.removeItem('session');
         setSession(null);
+    };
+
+    const handleRoleChange = (role: UserRole) => {
+        setSession(prev => {
+            if (!prev) return prev;
+            const updated = { ...prev, role };
+            localStorage.setItem('session', JSON.stringify(updated));
+            return updated;
+        });
+        setIsRoleDropdownOpen(false);
     };
 
     if (!isAuthenticated && !showSplash) {
@@ -302,13 +349,33 @@ export default function App() {
                                 <ChevronDown className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400 me-0.5" />
                             </button>
 
-                            {/* Operations dropdown */}
-                            <div className="flex items-center gap-2 p-1 ps-2 h-9 bg-slate-100 dark:bg-zinc-800 rounded-lg cursor-default select-none">
-                                <div className="flex items-center justify-center w-7 h-7 rounded-md bg-white dark:bg-zinc-700 shadow-sm border border-slate-200 dark:border-zinc-600">
-                                    <img src="/icon_agam.svg" alt="Agam" className="w-4 h-4 object-contain brightness-0 dark:brightness-200" />
-                                </div>
-                                <span className="text-sm font-medium text-slate-700 dark:text-zinc-200">{t('header.operations')}</span>
-                                <ChevronDown className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
+                            {/* Role dropdown — switches session.role between the unit's three role types */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsRoleDropdownOpen(prev => !prev)}
+                                    className="flex items-center gap-2 p-1 ps-2 h-9 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+                                >
+                                    <div className="flex items-center justify-center w-7 h-7 rounded-md bg-white dark:bg-zinc-700 shadow-sm border border-slate-200 dark:border-zinc-600">
+                                        <img src="/icon_agam.svg" alt="" className="w-4 h-4 object-contain brightness-0 dark:brightness-200" />
+                                    </div>
+                                    <span className="text-sm font-medium text-slate-700 dark:text-zinc-200">
+                                        {session ? roleShortLabels[session.role] : ''}
+                                    </span>
+                                    <ChevronDown className={`w-3.5 h-3.5 text-slate-500 dark:text-zinc-400 transition-transform ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                {isRoleDropdownOpen && (
+                                    <div className="absolute top-full start-0 mt-1.5 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-slate-200 dark:border-zinc-600 py-1 min-w-[140px] z-30">
+                                        {(['telecomOfficer', 'operationsOfficer', 'malka'] as UserRole[]).map((role) => (
+                                            <button
+                                                key={role}
+                                                onClick={() => handleRoleChange(role)}
+                                                className={`w-full text-start px-3 py-1.5 text-sm transition-colors ${session?.role === role ? 'bg-primary/10 text-primary font-medium' : 'text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-700'}`}
+                                            >
+                                                {roleShortLabels[role]}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Placeholder view-mode icons */}
@@ -393,86 +460,84 @@ export default function App() {
                                                 active={currentSection === 'main'}
                                                 onClick={() => {
                                                     setCurrentSection('main');
-                                                    setIsOrderSidebarOpen(false);
-                                                }}
-                                                isDarkMode={isDarkMode}
-                                                isCollapsed={isSidebarCollapsed}
-                                            />
-                                            <NavItem
-                                                icon={<Library className="w-5 h-5" />}
-                                                label={t('nav.plans')}
-                                                active={currentSection === 'plans'}
-                                                onClick={() => {
-                                                    setCurrentSection('plans');
-                                                    setIsOrderSidebarOpen(false);
-                                                }}
-                                                isDarkMode={isDarkMode}
-                                                isCollapsed={isSidebarCollapsed}
-                                            />
-                                            <NavItem
-                                                icon={<SlidersHorizontal className="w-5 h-5" />}
-                                                label={t('nav.definitions')}
-                                                active={currentSection === 'definitions'}
-                                                onClick={() => {
-                                                    setCurrentSection('definitions');
-                                                    setIsOrderSidebarOpen(false);
+                                                    closePanel();
                                                 }}
                                                 isDarkMode={isDarkMode}
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem
                                                 icon={<ScrollText className="w-5 h-5" />}
-                                                label={t('nav.order')}
-                                                active={isOrderSidebarOpen || isOrderSectionActive}
+                                                label={t('header.planning')}
+                                                active={openPanel === 'planning' || isOrderSectionActive}
                                                 onClick={() => {
                                                     if (!isOrderSectionActive) {
                                                         setCurrentSection('general');
-                                                        setIsOrderSidebarOpen(true);
-                                                    } else {
-                                                        setIsOrderSidebarOpen(prev => !prev);
                                                     }
+                                                    setOpenPanel('planning');
                                                 }}
                                                 isDarkMode={isDarkMode}
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem
-                                                icon={<Swords className="w-5 h-5" />}
-                                                label={t('nav.combat_script')}
-                                                active={currentSection === 'combat_script'}
+                                                icon={<Shield className="w-5 h-5" />}
+                                                label={t('nav.control')}
+                                                active={openPanel === 'control' || isControlSectionActive}
                                                 onClick={() => {
-                                                    setCurrentSection('combat_script');
-                                                    setIsOrderSidebarOpen(false);
+                                                    if (!isControlSectionActive) {
+                                                        setCurrentSection('telecom_journal');
+                                                    }
+                                                    setOpenPanel('control');
                                                 }}
                                                 isDarkMode={isDarkMode}
                                                 isCollapsed={isSidebarCollapsed}
                                             />
-                                            <StaticSpaceNavButton isDarkMode={isDarkMode} isCollapsed={isSidebarCollapsed} />
                                             <NavItem
-                                                icon={<Radar className="w-5 h-5" />}
-                                                label={t('nav.tikshov_cop')}
-                                                active={currentSection === 'tikshov_cop'}
+                                                icon={<Radio className="w-5 h-5" />}
+                                                label={t('nav.radio')}
+                                                active={currentSection === 'radio'}
                                                 onClick={() => {
-                                                    setCurrentSection('tikshov_cop');
-                                                    setIsOrderSidebarOpen(false);
+                                                    setCurrentSection('radio');
+                                                    closePanel();
                                                 }}
                                                 isDarkMode={isDarkMode}
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem
-                                                icon={<ScrollText className="w-5 h-5" />}
-                                                label={t('nav.telecom_journal')}
-                                                active={currentSection === 'telecom_journal'}
+                                                icon={<Waves className="w-5 h-5" />}
+                                                label={t('spectrum.layerName')}
+                                                active={openPanel === 'spectrum' || isSpectrumSectionActive}
                                                 onClick={() => {
-                                                    setCurrentSection('telecom_journal');
-                                                    setIsOrderSidebarOpen(false);
+                                                    if (!isSpectrumSectionActive) {
+                                                        setCurrentSection('spectrum_jamming');
+                                                    }
+                                                    setOpenPanel('spectrum');
                                                 }}
                                                 isDarkMode={isDarkMode}
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem
-                                                icon={<Grid3x3 className="w-5 h-5" />}
-                                                label={t('nav.sync_efforts')}
-                                                onClick={() => { }}
+                                                icon={<Eye className="w-5 h-5" />}
+                                                label={t('nav.monitoring')}
+                                                active={openPanel === 'monitoring' || isMonitoringSectionActive}
+                                                onClick={() => {
+                                                    if (!isMonitoringSectionActive) {
+                                                        setCurrentSection('tikshov_cop');
+                                                    }
+                                                    setOpenPanel('monitoring');
+                                                }}
+                                                isDarkMode={isDarkMode}
+                                                isCollapsed={isSidebarCollapsed}
+                                            />
+                                            <NavItem
+                                                icon={<Settings className="w-5 h-5" />}
+                                                label={t('nav.management')}
+                                                active={openPanel === 'management' || isManagementSectionActive}
+                                                onClick={() => {
+                                                    if (!isManagementSectionActive) {
+                                                        setCurrentSection('plans');
+                                                    }
+                                                    setOpenPanel('management');
+                                                }}
                                                 isDarkMode={isDarkMode}
                                                 isCollapsed={isSidebarCollapsed}
                                             />
@@ -506,48 +571,21 @@ export default function App() {
                             )}
                         </AnimatePresence>
 
-                        {/* Main Content Area */}
-                        <MapProvider currentSection={currentSection}>
-                            <AnalysisProvider>
-                                <DocProvider>
-                                    <main className="flex-1 flex bg-slate-50 dark:bg-zinc-950 overflow-hidden transition-colors duration-200 relative">
-                                        <ContentArea
-                                            currentSection={currentSection}
-                                            chatKey={chatKey}
-                                            activePlan={activePlan}
-                                            setCurrentSection={setCurrentSection}
-                                            session={session}
-                                        />
-
-                                        <DocEdgeHandle />
-                                        <DocPanel />
-                                        <MapEdgeHandle />
-                                        <MapPanel />
-                                    </main>
-                                    <StaticSpaceDrawer />
-                                    <AddCommSitesModal />
-                                    <CommSiteDetailPage />
-                                </DocProvider>
-                            </AnalysisProvider>
-                        </MapProvider>
-                    </div>
-                        {/* Order helper nav: a horizontal bar pinned to the bottom of the
-                            screen, rather than a vertical column beside the main sidebar. */}
-                        <AnimatePresence initial={false}>
-                            {isSidebarVisible && isOrderSidebarOpen && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                                    className="flex items-center gap-1 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 overflow-x-auto overflow-y-hidden shrink-0 shadow-sm z-10 px-3 py-2"
-                                >
-                                    <h3 className="shrink-0 text-xs font-semibold text-slate-500 dark:text-zinc-500 uppercase tracking-wider pe-3 me-1 border-e border-slate-200 dark:border-zinc-800">
-                                        {t('nav.order')}
-                                    </h3>
-                                    <div className="flex items-center gap-1">
-                                        {(() => {
-                                            const orderItems = session?.role === 'telecomOfficer' ? [
+                        {/* Content column: category bar + main content, confined to the
+                            space beside the icon sidebar so the bar never spans under it
+                            or pushes its buttons down. */}
+                        <div className="flex flex-col flex-1 overflow-hidden">
+                            {/* Category bar: a horizontal strip pinned above the content area.
+                                Hidden only on the map (ראשי) so the map gets the full height;
+                                everywhere else it's always rendered (never mounted/unmounted)
+                                so switching between categories never collapses and reopens the
+                                layout — it just shows whichever category's buttons are
+                                relevant, or stays empty for categories with none (radio /
+                                spectrum). */}
+                            {currentSection !== 'main' && (
+                            <div className="flex items-center gap-1 min-h-[52px] bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 overflow-x-auto overflow-y-hidden shrink-0 shadow-sm z-10 px-3 py-2">
+                                {openPanel === 'planning' && (() => {
+                                            const planningItems = session?.role === 'telecomOfficer' ? [
                                                 { id: 'telecom_journal', icon: <ScrollText className="w-4 h-4" />, label: t('nav.telecom_journal') },
                                                 { id: 'telecom_deployment', icon: <Map className="w-4 h-4" />, label: t('nav.telecom_deployment') },
                                             ] : [
@@ -560,27 +598,144 @@ export default function App() {
                                                 { id: 'diagram', icon: <PenTool className="w-4 h-4" />, label: t('nav.diagram') },
                                                 { id: 'calendar', icon: <CalendarIcon className="w-4 h-4" />, label: t('nav.calendar') },
                                             ];
-
-                                            return orderItems.map((item) => (
-                                                <button
-                                                    key={item.id}
-                                                    onClick={() => { setCurrentSection(item.id as any); }}
-                                                    className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
-                                                        ? 'bg-primary/10 text-primary'
-                                                        : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
-                                                        }`}
-                                                >
-                                                    <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>
-                                                        {item.icon}
+                                            return (
+                                                <>
+                                                    <div className="flex items-center gap-1">
+                                                        {planningItems.map((item) => (
+                                                            <button
+                                                                key={item.id}
+                                                                onClick={() => setCurrentSection(item.id as any)}
+                                                                className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
+                                                                    ? 'bg-primary/10 text-primary'
+                                                                    : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
+                                                                    }`}
+                                                            >
+                                                                <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>{item.icon}</div>
+                                                                <span className="leading-none">{item.label}</span>
+                                                            </button>
+                                                        ))}
                                                     </div>
-                                                    <span className="leading-none">{item.label}</span>
-                                                </button>
-                                            ));
+                                                </>
+                                            );
                                         })()}
-                                    </div>
-                                </motion.div>
+
+                                        {openPanel === 'control' && (
+                                            <>
+                                                <div className="flex items-center gap-1">
+                                                    {([
+                                                        { id: 'telecom_journal', icon: <ScrollText className="w-4 h-4" />, label: t('nav.telecom_journal') },
+                                                        { id: 'combat_script', icon: <Swords className="w-4 h-4" />, label: t('nav.combat_script') },
+                                                    ] as const).map((item) => (
+                                                        <button
+                                                            key={item.id}
+                                                            onClick={() => setCurrentSection(item.id as any)}
+                                                            className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
+                                                                ? 'bg-primary/10 text-primary'
+                                                                : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
+                                                                }`}
+                                                        >
+                                                            <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>{item.icon}</div>
+                                                            <span className="leading-none">{item.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {openPanel === 'monitoring' && (
+                                            <div className="flex items-center gap-1">
+                                                {([
+                                                    { id: 'static_space', icon: <RadioTower className="w-4 h-4" />, label: t('nav.static_space') },
+                                                    { id: 'tikshov_cop', icon: <Radar className="w-4 h-4" />, label: t('nav.tikshov_cop') },
+                                                ] as const).map((item) => (
+                                                    <button
+                                                        key={item.id}
+                                                        onClick={() => setCurrentSection(item.id as any)}
+                                                        className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
+                                                            ? 'bg-primary/10 text-primary'
+                                                            : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
+                                                            }`}
+                                                    >
+                                                        <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>{item.icon}</div>
+                                                        <span className="leading-none">{item.label}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {openPanel === 'spectrum' && (
+                                            <div className="flex items-center gap-1">
+                                                {([
+                                                    { id: 'spectrum_jamming', icon: <Radio className="w-4 h-4" />, label: t('spectrum.tabs.jamming') },
+                                                    { id: 'spectrum_blocking', icon: <Ban className="w-4 h-4" />, label: t('spectrum.tabs.blocking') },
+                                                ] as const).map((item) => (
+                                                    <button
+                                                        key={item.id}
+                                                        onClick={() => setCurrentSection(item.id as any)}
+                                                        className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
+                                                            ? 'bg-primary/10 text-primary'
+                                                            : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
+                                                            }`}
+                                                    >
+                                                        <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>{item.icon}</div>
+                                                        <span className="leading-none">{item.label}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {openPanel === 'management' && (
+                                            <>
+                                                <div className="flex items-center gap-1">
+                                                    {([
+                                                        { id: 'sync_efforts', icon: <Grid3x3 className="w-4 h-4" />, label: t('nav.sync_efforts') },
+                                                        { id: 'order', icon: <ScrollText className="w-4 h-4" />, label: t('nav.order') },
+                                                        { id: 'definitions', icon: <SlidersHorizontal className="w-4 h-4" />, label: t('nav.definitions') },
+                                                        { id: 'plans', icon: <Library className="w-4 h-4" />, label: t('nav.plans') },
+                                                    ] as const).map((item) => (
+                                                        <button
+                                                            key={item.id}
+                                                            onClick={() => setCurrentSection(item.id as any)}
+                                                            className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
+                                                                ? 'bg-primary/10 text-primary'
+                                                                : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
+                                                                }`}
+                                                        >
+                                                            <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>{item.icon}</div>
+                                                            <span className="leading-none">{item.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+                            </div>
                             )}
-                        </AnimatePresence>
+
+                            {/* Main Content Area */}
+                            <MapProvider currentSection={currentSection}>
+                                <AnalysisProvider>
+                                    <DocProvider>
+                                        <main className="flex-1 flex bg-slate-50 dark:bg-zinc-950 overflow-hidden transition-colors duration-200 relative">
+                                            <ContentArea
+                                                currentSection={currentSection}
+                                                chatKey={chatKey}
+                                                activePlan={activePlan}
+                                                setCurrentSection={setCurrentSection}
+                                                session={session}
+                                            />
+
+                                            <DocEdgeHandle />
+                                            <DocPanel />
+                                            <MapEdgeHandle />
+                                            <MapPanel />
+                                        </main>
+                                        <AddCommSitesModal />
+                                        <CommSiteDetailPage />
+                                    </DocProvider>
+                                </AnalysisProvider>
+                            </MapProvider>
+                        </div>
+                    </div>
                 </CombatLogProvider>
                 </SpectrumProvider>
                 </TikshovProvider>

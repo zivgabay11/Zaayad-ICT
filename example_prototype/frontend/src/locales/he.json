@@ -24,6 +24,10 @@
         "definitions": "הגדרות",
         "static_space": "כינון מרחב נייח",
         "tikshov_cop": "תמ\"כ תקשוב",
+        "control": "שליטה וניהול",
+        "management": "ניהול",
+        "radio": "רדיו",
+        "monitoring": "ניטור",
         "switch_theme": "עיצוב",
         "sign_out": "התנתק",
         "expand_sidebar": "הרחב תפריט צד",
@@ -84,7 +88,8 @@
     "roles": {
         "intelligenceOfficer": "קמ\"ן",
         "operationsOfficer": "קצין אג\"ם",
-        "telecomOfficer": "תקשוב"
+        "telecomOfficer": "תקשוב",
+        "malka": "מלכ\"א"
     },
     "common": {
         "welcome": "ברוך הבא",
@@ -804,9 +809,14 @@
     },
     "spectrum": {
         "layerName": "ספקטרום",
+        "screenSubtitle": "מעקב אחר השתקות וחסימות תדרים",
         "zoneTypes": {
             "jamming": "השתקות",
             "blocking": "חסימות"
+        },
+        "blockingBands": {
+            "l1": "L1",
+            "comms": "תדרי שו\"ב"
         },
         "jammingStatus": {
             "ended": "נגמרה",
@@ -818,6 +828,22 @@
         "metersAbbrev": "מ׳",
         "endsIn": "מסתיימת בעוד",
         "startsIn": "מתחילה בעוד",
+        "tabs": {
+            "jamming": "מעקב השתקות",
+            "blocking": "מעקב חסימות"
+        },
+        "columns": {
+            "name": "שם",
+            "status": "סטטוס",
+            "band": "פס תדר",
+            "startTime": "זמן התחלה",
+            "endTime": "זמן סיום"
+        },
+        "filters": {
+            "allStatuses": "הכל",
+            "allBands": "הכל"
+        },
+        "empty": "אין אזורים תואמים",
         "time": {
             "minutes": "{{count}} דק'",
             "hours": "{{count}} שע'"

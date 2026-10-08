@@ -144,7 +144,7 @@ export interface SystemUnit {
     parentCode?: string;
 }
 
-export type UserRole = 'intelligenceOfficer' | 'operationsOfficer' | 'telecomOfficer';
+export type UserRole = 'intelligenceOfficer' | 'operationsOfficer' | 'telecomOfficer' | 'malka';
 
 export interface Session {
     user: SystemUser;
@@ -300,10 +300,15 @@ export interface ServiceSubItem {
 
 // "Spectrum" map layer (ספקטרום): two filters — Jamming zones (השתקות, a frequency band
 // muted with no spectral interference over a mapped polygon) and Blocking zones (חסימות,
-// a frequency + altitude band denied over a mapped polygon). Jamming further splits by
-// timing into ended/active/future; Blocking has no sub-split and is always rendered red.
+// a frequency + altitude band denied over a mapped polygon). Jamming splits by timing into
+// ended/active/future; Blocking splits by frequency band (L1 / שו"ב) and, when it carries an
+// end time, by active/ended too — each band rendered in its own color on the map.
 export type SpectrumZoneType = 'jamming' | 'blocking';
 export type JammingStatus = 'ended' | 'active' | 'future';
+export type BlockingStatus = 'active' | 'ended';
+// Blocking only — which frequency band the block falls under: L1 (GPS/L-band) or שו"ב
+// (command & control comms frequencies).
+export type BlockingBand = 'l1' | 'comms';
 
 export interface SpectrumZone {
     id: string;
@@ -312,10 +317,12 @@ export interface SpectrumZone {
     coordinates: GeoCoordinate[]; // the mapped polygon
     freqRangeMhz: { from: number; to: number };
     heightRangeM?: { from: number; to: number }; // Blocking only — the altitude band it covers
-    // Jamming only — its status (ended/active/future) is derived from this window via
-    // computeJammingStatus() rather than stored, so it can never drift out of sync.
+    band?: BlockingBand; // Blocking only
+    // Jamming: its status (ended/active/future) is derived from this window via
+    // computeJammingStatus(). Blocking: an unset endAt means the block has no expiry (always
+    // active); when set, computeBlockingStatus() derives active/ended from it the same way.
     startAt?: string; // ISO — jamming window start
-    endAt?: string; // ISO — jamming window end
+    endAt?: string; // ISO — jamming window end, or blocking's expiry
     notes?: string;
 }
 

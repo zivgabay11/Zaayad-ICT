@@ -1,22 +1,26 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { JammingStatus } from '../utilities/types';
+import { JammingStatus, BlockingBand } from '../utilities/types';
 
 // State for the "Spectrum" (ספקטרום) map layer: the parent layer toggle, its two filters —
-// Jamming (השתקות) and Blocking (חסימות) — and Jamming's own three timing sub-filters
-// (ended/active/future). The zone catalog itself lives in mockData.ts; this context only
-// tracks which of it is switched on, same division of responsibility as StaticSpaceContext.
+// Jamming (השתקות) and Blocking (חסימות) — Jamming's own three timing sub-filters
+// (ended/active/future), and Blocking's own two frequency-band sub-filters (L1 / תדרי שו"ב).
+// The zone catalog itself lives in mockData.ts; this context only tracks which of it is
+// switched on, same division of responsibility as StaticSpaceContext.
 
 const ALL_JAMMING_STATUSES: JammingStatus[] = ['ended', 'active', 'future'];
+const ALL_BLOCKING_BANDS: BlockingBand[] = ['l1', 'comms'];
 
 interface SpectrumContextType {
     layerOn: boolean;
     jammingFilterOn: boolean;
     blockingFilterOn: boolean;
     jammingStatusFilters: Record<JammingStatus, boolean>;
+    blockingBandFilters: Record<BlockingBand, boolean>;
     toggleLayer: () => void;
     toggleJammingFilter: () => void;
     toggleBlockingFilter: () => void;
     toggleJammingStatusFilter: (status: JammingStatus) => void;
+    toggleBlockingBandFilter: (band: BlockingBand) => void;
 }
 
 const SpectrumContext = createContext<SpectrumContextType | undefined>(undefined);
@@ -28,6 +32,11 @@ export const SpectrumProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [jammingStatusFilters, setJammingStatusFilters] = useState<Record<JammingStatus, boolean>>(() => {
         const all = {} as Record<JammingStatus, boolean>;
         ALL_JAMMING_STATUSES.forEach(s => { all[s] = true; });
+        return all;
+    });
+    const [blockingBandFilters, setBlockingBandFilters] = useState<Record<BlockingBand, boolean>>(() => {
+        const all = {} as Record<BlockingBand, boolean>;
+        ALL_BLOCKING_BANDS.forEach(b => { all[b] = true; });
         return all;
     });
 
@@ -59,16 +68,23 @@ export const SpectrumProvider: React.FC<{ children: ReactNode }> = ({ children }
         setJammingStatusFilters(prev => ({ ...prev, [status]: !prev[status] }));
     };
 
+    const toggleBlockingBandFilter = (band: BlockingBand) => {
+        if (!layerOn || !blockingFilterOn) return;
+        setBlockingBandFilters(prev => ({ ...prev, [band]: !prev[band] }));
+    };
+
     return (
         <SpectrumContext.Provider value={{
             layerOn,
             jammingFilterOn,
             blockingFilterOn,
             jammingStatusFilters,
+            blockingBandFilters,
             toggleLayer,
             toggleJammingFilter,
             toggleBlockingFilter,
             toggleJammingStatusFilter,
+            toggleBlockingBandFilter,
         }}>
             {children}
         </SpectrumContext.Provider>
