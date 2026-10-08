@@ -1,0 +1,852 @@
+{
+    "header": {
+        "planning": "תכנון",
+        "operations": "אג\"מ",
+        "sync_efforts": "סנכרון המאמצים",
+        "operational_reality": "מציאות מבצעית"
+    },
+    "nav": {
+        "main": "ראשי",
+        "plans": "תוכניות",
+        "order": "פקמ״ב",
+        "combat_script": "תסריט הקרב",
+        "sync_efforts": "סנכרון מאמצים",
+        "calendar": "לו״ז",
+        "telecom_journal": "יומן לחימה מתכלל",
+        "telecom_deployment": "פריסת התקשוב במרחב",
+        "general": "כללי",
+        "intelligence": "הסביבה המבצעית",
+        "objective": "מטרה",
+        "mission": "משימה",
+        "method": "שיטה",
+        "tasks": "כוחות, יכולות ומשימות",
+        "diagram": "תרשים סכמטי",
+        "definitions": "הגדרות",
+        "static_space": "כינון מרחב נייח",
+        "tikshov_cop": "תמ\"כ תקשוב",
+        "control": "שליטה וניהול",
+        "management": "ניהול",
+        "radio": "רדיו",
+        "monitoring": "ניטור",
+        "switch_theme": "עיצוב",
+        "sign_out": "התנתק",
+        "expand_sidebar": "הרחב תפריט צד",
+        "collapse_sidebar": "כווץ תפריט צד",
+        "settings": "הגדרות"
+    },
+    "H-Hour": "שעת ה- \"ש\"",
+    "Time Scale": "סרגל זמנים",
+    "Phase": "שלב",
+    "Unit": "אוגדה",
+    "Unassigned": "לא משויך",
+    "to": "עד",
+    "Timeline": "ציר זמן",
+    "H": "ש",
+    "D": "ע",
+    "Tasks": "שלבים, כוחות ומשימות",
+    "New Task": "משימה חדשה",
+    "Combat Script": "תסריט הקרב",
+    "Table": "טבלה",
+    "Calendar": "לוח שנה",
+    "Actual Execution": "ביצוע בפועל",
+    "Planned Time": "זמן תכנון",
+    "Location": "מיקום",
+    "Please select or create a plan first.": "אנא בחר או צור תוכנית תחילה.",
+    "timeline": "שלבים",
+    "list": "רשימה",
+    "board": "לוח",
+    "Unit / Phase": "יחידה / שלב",
+    "Name": "שם",
+    "Description": "תיאור",
+    "Status": "סטטוס",
+    "Primary Unit": "יחידה ראשית",
+    "Edit Task": "עריכת משימה",
+    "Delete Task": "מחיקת משימה",
+    "Cancel": "ביטול",
+    "Save": "שמור",
+    "Clear": "נקה",
+    "Showing grouped tasks": "מציג משימות מקובצות",
+    "To Do": "לביצוע",
+    "In Progress": "בתהליך",
+    "On Hold": "מוקפא",
+    "Done": "הושלמה",
+    "Cancelled": "בוטלה",
+    "login": {
+        "title": "Ecosystem Prototype",
+        "subtitle": "כניסה למערכת",
+        "username": "שם משתמש",
+        "password": "ססמה",
+        "signIn": "היכנס",
+        "error": "פרטים שגויים.",
+        "selectUnit": "בחר יחידה",
+        "selectRole": "בחר תפקיד",
+        "usernamePlaceholder": "שם משתמש",
+        "passwordPlaceholder": "ססמה",
+        "selectUnitPlaceholder": "בחר יחידה",
+        "selectRolePlaceholder": "בחר תפקיד"
+    },
+    "roles": {
+        "intelligenceOfficer": "קמ\"ן",
+        "operationsOfficer": "קצין אג\"ם",
+        "telecomOfficer": "תקשוב",
+        "malka": "מלכ\"א"
+    },
+    "common": {
+        "welcome": "ברוך הבא",
+        "logout": "התנתק",
+        "keep": "שמור",
+        "undo": "בטל",
+        "time": {
+            "start": "התחלה",
+            "end": "סיום",
+            "days": "ימים",
+            "hours": "שעות",
+            "before": "לפני",
+            "after": "אחרי",
+            "d": "d",
+            "h": "h"
+        }
+    },
+    "plans": {
+        "title": "תוכניות",
+        "subtitle": "בחר ונהל תוכניות מבצעיות",
+        "newPlanBtn": "הוספת תוכנית חדשה",
+        "newPlanModalTitle": "צור תוכנית חדשה",
+        "planNameLabel": "שם התוכנית",
+        "descriptionLabel": "תיאור קצר",
+        "cancelBtn": "ביטול",
+        "saveBtn": "שמור תוכנית",
+        "noDescription": "לא סופק תיאור.",
+        "activeStatus": "פעיל",
+        "selectedBtn": "נבחרה",
+        "selectBtn": "בחר",
+        "noPlans": "לא נמצאו תוכניות. צור אחת כדי להתחיל.",
+        "ribbonPrivate": "פרטית",
+        "ribbonPrivateTooltip": "רק אתה יכול לראות ולערוך תוכנית זו.",
+        "ribbonShared": "משותפת",
+        "ribbonSharedTooltip": "משתמשים נוספים ביחידה יכולים לראות ולערוך תוכנית זו.",
+        "searchPlaceholder": "חיפוש",
+        "tabAll": "הכל",
+        "tabMyPlans": "התוכניות שלי",
+        "tabShared": "משותפים איתי",
+        "favorites": "מועדפים",
+        "edit": "עריכה",
+        "delete": "מחיקה"
+    },
+    "definitions": {
+        "noPlanSelected": "אנא בחר תוכנית תחילה כדי לצפות בהגדרותיה.",
+        "planDetails": "פרטי התוכנית",
+        "units": "כוחות",
+        "selectUnit": "בחר יחידה",
+        "presentationChecklist": "שקפים להצגה",
+        "colorLegend": "מקרא צבעים",
+        "planName": "שם התוכנית",
+        "description": "תיאור קצר",
+        "status": "סטטוס",
+        "sharing": "שיתוף",
+        "dDay": "יום ה-ע׳",
+        "hHour": "שעת ה-ש׳",
+        "phases": "שלבים",
+        "newPhase": "שלב חדש",
+        "phaseName": "שם השלב",
+        "title": "כותרת",
+        "phaseTitlePlaceholder": "לדוגמה, היערכות",
+        "noPhases": "אין שלבים מוגדרים.",
+        "ourForces": "כוחותינו",
+        "addUnit": "הוסף כוח",
+        "unitNamePlaceholder": "הזן שם יחידה",
+        "noUnits": "לא הוגדרו כוחות",
+        "checklistDescription": "בחר את הכלים שתרצה להציג כשקף:",
+        "colorLegendHelp": "לחץ על כל סוג יחידה כדי להקצות לה צבע מזהה",
+        "levels": {
+            "command": "פיקוד",
+            "division": "אוגדה",
+            "brigade": "חטיבה",
+            "battalion": "גדוד",
+            "company": "פלוגה",
+            "platoon": "מחלקה"
+        },
+        "legendItems": {
+            "command": "פיקוד",
+            "division": "אוגדה",
+            "brigade": "חטיבה",
+            "bat1": "גדוד 1",
+            "bat2": "גדוד 2",
+            "bat3": "גדוד 3",
+            "bat4": "גדוד 4",
+            "bat5": "גדוד 5",
+            "bat6": "גדוד 6"
+        },
+        "checklistItems": {
+            "intelligence": "מודיעין - דפא״ות",
+            "objectiveMission": "מטרה ומשימה",
+            "phasesForcesGantt": "שלבים, כוחות ומשימות (גאנט)",
+            "schematicChart": "תרשים סכמטי",
+            "attackTasks": "משימות תקיפה",
+            "fireAllocations": "עקרונות האש ומפתחות הקצאה",
+            "targetsSequence": "ריצוף יעדים ומהויות (לפי שלבים)",
+            "artillerySupport": "גאנט הקצאות סיוע ארטילרי",
+            "supportMatrix": "מטריצת הקצאות סיוע (פר שלב)",
+            "rangesJumps": "קשתות ודילוגים",
+            "communications": "תקשוב"
+        }
+    },
+    "chat": {
+        "placeholder": "אז מה קורה וזה...?",
+        "disclaimer": "סוכן Horus יכול לטעות, לכן מומלץ לבדוק את התשובות."
+    },
+    "calendar": {
+        "noPlanSelected": "אנא בחר תוכנית תחילה כדי לצפות בלוח השנה.",
+        "addEvent": "הוסף אירוע",
+        "editEvent": "ערוך אירוע",
+        "eventName": "שם האירוע",
+        "date": "תאריך",
+        "time": "שעה",
+        "location": "מיקום",
+        "level": "רמה",
+        "cancel": "ביטול",
+        "save": "שמור",
+        "delete": "מחק",
+        "levels": {
+            "command": "רמה ממונה (פיקוד)",
+            "division": "אוגדה",
+            "brigade": "חטיבות"
+        },
+        "days": {
+            "sunday": "יום ראשון",
+            "monday": "יום שני",
+            "tuesday": "יום שלישי",
+            "wednesday": "יום רביעי",
+            "thursday": "יום חמישי",
+            "friday": "יום שישי",
+            "saturday": "יום שבת"
+        },
+        "weeklyView": "תצוגה שבועית",
+        "monthlyView": "תצוגה חודשית"
+    },
+    "intelligence": {
+        "title": "הסביבה המבצעית",
+        "subtitle": "כוחותינו, האויב, השטח ודרכי הפעולה האפשריות",
+        "noPlanSelected": "לא נבחרה תוכנית",
+        "tabs": {
+            "enemy": "אויב",
+            "terrain": "שטח",
+            "forces": "כוחותינו ויכולותינו",
+            "coa": "דפ״אות"
+        },
+        "enemy": {
+            "title": "אויב",
+            "subtitle": "ניתוח כוחות האויב ויכולותיו"
+        },
+        "terrain": {
+            "title": "שטח",
+            "subtitle": "ניתוח סביבת הפעולה והשטח"
+        },
+        "forces": {
+            "title": "כוחותינו ויכולותינו",
+            "subtitle": "ניתוח הכוחות והיכולות שלנו"
+        },
+        "mpcoa": {
+            "title": "דפ\"א סבירה",
+            "subtitle": "דרך הפעולה הסבירה ביותר של האויב"
+        },
+        "mdcoa": {
+            "title": "דפ\"א מסוכנת",
+            "subtitle": "דרך הפעולה המסוכנת ביותר של האויב"
+        },
+        "labels": {
+            "threat": "איום",
+            "sequenceOfEvents": "רצף אירועים",
+            "recommendedActions": "פעולות מומלצות"
+        },
+        "noData": "אין נתוני מודיעין זמינים לתוכנית הנוכחית.",
+        "aiRephrase": "ניסוח עם AI",
+        "mapAiTools": "ניתוח מרחב במפה"
+    },
+    "methodScreen": {
+        "title": "השיטה",
+        "subtitle": "פירוט השיטה והרעיון המבצעי של התוכנית",
+        "noPlanSelected": "לא נבחרה תוכנית.",
+        "aiRephrase": "ניסוח עם AI",
+        "method": {
+            "title": "שיטה",
+            "subtitle": "השיטה לביצוע המשימה"
+        },
+        "operationalIdea": {
+            "title": "רעיון מבצעי",
+            "subtitle": "ההיגיון המבצעי המנחה"
+        }
+    },
+    "generalScreen": {
+        "title": "כללי",
+        "subtitle": "המצב הכללי של כוחותינו, אויב וגורמים אחרים.",
+        "noPlanSelected": "לא נבחרה תוכנית.",
+        "aiRephrase": "ניסוח עם AI",
+        "general": {
+            "title": "המצב הכללי",
+            "subtitle": "כוננות או מגמות כלליות, אפשריות או מוערכות."
+        }
+    },
+    "objectiveScreen": {
+        "title": "מטרה",
+        "subtitle": "הגדרת הכוונה המרכזית והמטרה העליונה של התוכנית",
+        "noPlanSelected": "לא נבחרה תוכנית.",
+        "aiRephrase": "ניסוח עם AI",
+        "objective": {
+            "title": "פירוט המטרה",
+            "subtitle": "המשימה של הרמה הממונה."
+        },
+        "designatedOperationalConcept": {
+            "title": "הרעיון המבצעי של הרמה הממונה",
+            "subtitle": "הרעיון המבצעי כפי שהוגדר על ידי הרמה הממונה: פירוט הרעיון - כללי, מצב מבצעי נדרש, הישגי משנה ופעולות נדרשות."
+        }
+    },
+    "missionScreen": {
+        "title": "משימה",
+        "subtitle": "הגדרת הנחיות הביצוע של התוכנית",
+        "noPlanSelected": "לא נבחרה תוכנית.",
+        "aiRephrase": "ניסוח עם AI",
+        "mission": {
+            "title": "פירוט המשימה",
+            "subtitle": "המשימה הספציפית המצביעה בבירור על הפעולה שתינקט והסיבה."
+        }
+    },
+    "diagram": {
+        "title": "תרשים סכמטי",
+        "noPlanSelected": "אנא בחר תוכנית תחילה לשימוש בתרשים.",
+        "map_type": "סוג מפה",
+        "default": "ברירת מחדל",
+        "terrain": "שטח",
+        "satellite": "לוויין",
+        "opacity": "שקיפות",
+        "pan_zoom": "גרירה וזום",
+        "phases": "שלבים",
+        "all_phases": "כל השלבים",
+        "units": "כוחות",
+        "all_units": "כל הכוחות",
+        "select_phase": "בחר שלב",
+        "select_unit": "בחר יחידה",
+        "assign_element": "שיוך אלמנט",
+        "drawing_tools": "כלי ציור",
+        "polygon": "מצולע",
+        "arrow": "חץ",
+        "line": "קו",
+        "arc": "קשת",
+        "text_label": "תווית טקסט",
+        "edit": "עריכת נקודות",
+        "edit_text": "עריכת טקסט",
+        "change_phase": "שינוי שלב",
+        "change_unit": "שינוי יחידה",
+        "stroke_width": "עובי קו",
+        "stroke_thin": "דק",
+        "stroke_medium": "בינוני",
+        "stroke_thick": "עבה",
+        "add_label": "תווית",
+        "change_distance": "שינוי מרחק (ק\"מ)",
+        "add_m9": "הוספת טבעת M9 (18.5 ק\"מ)",
+        "add_m7": "הוספת טבעת M7 (13.5 ק\"מ)",
+        "change_second_ring": "שינוי טבעת שנייה (ק\"מ)",
+        "remove_second_ring": "הסרת טבעת שנייה",
+        "fit_bounds": "מיקוד על אלמנטים",
+        "toggleSubFilters": "הצג/הסתר תתי-מסננים",
+        "delete": "מחיקה",
+        "confirm": "אישור",
+        "terrain_analysis": "ניתוח שטח",
+        "enemy_analysis": "ניתוח אויב",
+        "coa": "דרך פעולה",
+        "coming_soon": "בקרוב",
+        "drag_to_open": "גרור לפתיחת מפה",
+        "analysis": {
+            "elevation_heat_map": "מפת גבהים",
+            "key_axes": "צירים מרכזיים",
+            "coverage_map": "מפת כיסוי אויב",
+            "los_assessment": "הערכת קו ראייה",
+            "route_analysis": "ניתוח מסלולים",
+            "observation_positions": "עמדות תצפית",
+            "clear_results": "נקה תוצאות",
+            "analyzing": "מנתח...",
+            "legend": {
+                "elevation": "גובה (מ')",
+                "key_axes": "צירים מרכזיים",
+                "enemy_threat_coverage": "כיסוי איום אויב",
+                "los_exposure": "חשיפת קו ראייה",
+                "route_options": "אפשרויות מסלול",
+                "observation_positions": "עמדות תצפית",
+                "critical": "קריטי",
+                "high": "גבוה",
+                "medium": "בינוני",
+                "low": "נמוך",
+                "safe": "מוגן (סתירה)",
+                "partial": "חלקי",
+                "exposed": "חשוף",
+                "dominating_areas": "שטחים שולטים",
+                "dominated_areas": "שטחים נשלטים",
+                "deployment_areas": "שטחי פריסה",
+                "target_priority": "תעדוף מטרות",
+                "risk_medium": "מקטע בסיכון בינוני",
+                "risk_high": "מקטע בסיכון גבוה"
+            },
+            "labels": {
+                "main_axis_alpha": "ציר ראשי אלפא",
+                "main_axis_alpha_desc": "מסדרון תנועה משוריין ראשי דרך העמק",
+                "flanking_route_bravo": "ציר עוקף בראבו",
+                "flanking_route_bravo_desc": "מעקף רכס מזרחי לחי\"ר ממוכן",
+                "supply_route_charlie": "ציר אספקה צ'רלי",
+                "supply_route_charlie_desc": "רשת דרכים מערבית ללוגיסטיקה",
+                "dismounted_path_delta": "שביל רגלי דלתא",
+                "dismounted_path_delta_desc": "שביל לחי\"ר בלבד בשטח קשה",
+                "valley_route_fast": "מסלול עמק (מהיר)",
+                "ridge_route_safe": "מסלול רכס (בטוח)",
+                "urban_bypass_concealed": "עוקף עירוני (מוסתר)",
+                "op_alpha": "תצפית אלפא - גבעה 620",
+                "op_bravo": "תצפית בראבו - רכס מזרחי",
+                "op_charlie": "תצפית צ'רלי - צומת",
+                "op_delta": "תצפית דלתא - קדמי",
+                "route_fast": "מהיר",
+                "route_secured": "מאובטח",
+                "route_right_flank": "איגוף ימין",
+                "route_left_flank": "איגוף שמאל",
+                "seg_ridge_crossing": "מעבר קו רכס",
+                "seg_sharp_turn": "עיקולים חדים",
+                "seg_urban_entry": "כניסה ליישוב",
+                "seg_terrain_change": "שינוי סוג שטח",
+                "dom_area_1": "מתחם גבעות צפוני",
+                "dom_area_2": "רכס מרכזי",
+                "dom_area_3": "רמות מזרחיות",
+                "dom_area_4": "רמת תצפית",
+                "deploy_area_1": "שטח פריסה 1",
+                "deploy_area_2": "שטח פריסה 2",
+                "deploy_area_3": "שטח פריסה 3",
+                "deploy_area_4": "שטח פריסה 4",
+                "asset_mortar": "אש מרגמות",
+                "asset_air": "סיוע אווירי",
+                "asset_atgm": "צוות נ\"ט",
+                "asset_direct_fire": "אש ישירה",
+                "fire_asset": "אמצעי סיוע אש"
+            }
+        },
+        "aiTools": {
+            "title": "ניתוח מרחב אלגוריתמי",
+            "tabs": {
+                "terrain": "ניתוח שטח",
+                "enemy": "ניתוח אויב",
+                "mission": "תכנון משימה"
+            },
+            "tools": {
+                "elevationHeatMap": "מפת גבהים",
+                "mobilityAxes": "ניתוח עבירות וצירים",
+                "dominatingAreas": "שטחים שולטים",
+                "dominatedAreas": "שטחים נשלטים",
+                "deploymentAreas": "שטחי כינוס ופריסה",
+                "enemyCoverage": "מפת כיסוי אויב מצרפית",
+                "losThreat": "ניתוח קווי ראייה ורמת איום",
+                "routePlanning": "חיפוש וניתוח מסלולים",
+                "observationPositions": "עמדות תצפית ואש",
+                "targetPriority": "המלצה ותעדוף מטרות"
+            },
+            "run": "הרץ ניתוח",
+            "rerun": "הרץ מחדש",
+            "export": "ייצוא לתוכנית",
+            "exporting": "ה-AI מנסח עדכון לתוכנית...",
+            "exported": "עדכון מוצע נשמר — ניתן לאשר בתוכנית",
+            "hide": "הסתר",
+            "show": "הצג",
+            "remove": "הסר",
+            "clear_all": "נקה הכל",
+            "show_risks": "הצג סיכונים",
+            "targets": "מטרות",
+            "add_target": "הוסף מטרה",
+            "azimuth_start": "אזימוט התחלה",
+            "azimuth_end": "אזימוט סוף",
+            "resolution": "רזולוציית חישוב",
+            "resolutions": {
+                "low": "נמוכה",
+                "medium": "בינונית",
+                "high": "גבוהה"
+            },
+            "force_size": "גודל כוח",
+            "force_sizes": {
+                "company": "פלוגה",
+                "battalion": "גדוד",
+                "brigade": "חטיבה"
+            },
+            "entity_types": {
+                "atgm": "נ\"ט",
+                "artillery": "ארטילריה",
+                "tank": "טנקים",
+                "aa": "נ\"מ",
+                "smallArms": "נשק קל"
+            },
+            "threat_level": "רמת איום",
+            "score": "ציון",
+            "safety": "בטיחות",
+            "speed": "מהירות",
+            "concealment": "הסתרה",
+            "dominance": "שליטה",
+            "suitability": "התאמה",
+            "capacity": "קיבולת",
+            "exposure_observation": "תחת תצפית",
+            "exposure_fire": "תחת אש",
+            "observed_from": "נשלט ע\"י",
+            "recommended_asset": "אמצעי מומלץ",
+            "risk_segments": "מקטעי סיכון",
+            "export_fallback_prefix": "סיכום ניתוח —"
+        }
+    },
+    "resetModal": {
+        "title": "איפוס נתונים?",
+        "description": "האם אתה בטוח שברצונך לאפס את האפליקציה? פעולה זו תמחק לצמיתות את כל השינויים שלך, חברות חדשות שנוספו, מוצרים, תוכניות בדיקה ודוחות מעבדה, ותחזיר אותם למצבם ההתחלתי.",
+        "cancel": "ביטול",
+        "confirm": "איפוס אפליקציה"
+    },
+    "doc": {
+        "title": "מסמכים",
+        "upload": "העלאת PDF",
+        "crop": "העתקת איזור במסמך",
+        "close": "סגור",
+        "noFiles": "לא הועלו מסמכים",
+        "dropHere": "גרור PDF לכאן או לחץ להעלאה",
+        "loading": "טוען מסמך...",
+        "copied": "הועתק!",
+        "cropInstruction": "סמן אזור ללכידה",
+        "copyAsImage": "העתק כתמונה",
+        "brainstormAI": "דבר אלי עם AI",
+        "sentToChat": "נשלח לצ׳אט!",
+        "zoomIn": "הגדל תצוגה",
+        "zoomOut": "הקטן תצוגה",
+        "resetZoom": "אפס תצוגה",
+        "magnify": "הגדלת אזור",
+        "magnifyInstruction": "סמן אזור להגדלה"
+    },
+    "staticSpace": {
+        "layerName": "כינון מרחב נייח",
+        "operationalLayers": "שכבות תפעוליות",
+        "eladTopology": "טופולוגיית אלעד",
+        "mabanTopology": "טופולוגיית מב\"ן",
+        "tableTitle": "טבלת כינון מרחב נייח",
+        "tableSubtitle": "אתרי הקשר של היחידה",
+        "emptyTitle": "הטבלה ריקה",
+        "emptyDescription": "בחר אתרי קשר מתוך קטלוג הניטור (Nitor) כדי להציג אותם בטבלה ועל המפה.",
+        "addSites": "הוסף אתרים",
+        "sitesInTable": "אתרים בטבלת היחידה",
+        "anchor": "עוגן",
+        "tagam": "תג\"מ",
+        "clientsShort": "לקוחות אלעד / מב\"ן",
+        "lastSync": "סנכרון אחרון",
+        "removeSite": "הסר מהטבלה",
+        "eladAnchor": "עוגן אלעד",
+        "mabanAnchor": "עוגן מב\"ן",
+        "tagamRelayOnly": "ממסר תג\"מ בלבד",
+        "meterAbbr": "מ׳",
+        "confidenceLabel": "עדכניות נתונים",
+        "eladClients": "לקוחות אלעד",
+        "mabanClients": "לקוחות מב\"ן",
+        "eladIp": "IP עוגן אלעד",
+        "mabanIp": "IP עוגן מב\"ן",
+        "confidence": {
+            "live": "עדכני",
+            "stale": "מיושן",
+            "unknown": "לא ידוע"
+        },
+        "addSitesModalTitle": "הוספת אתרי קשר",
+        "addSitesModalSubtitle": "בחר אתרים מקטלוג הניטור (Nitor) להוספה לטבלת היחידה שלך",
+        "searchPlaceholder": "חיפוש אתר לפי שם...",
+        "noResults": "לא נמצאו אתרים תואמים",
+        "alreadyInTable": "כבר בטבלה",
+        "sitesSelected": "{{count}} אתרים נבחרו",
+        "cancel": "ביטול",
+        "faults": {
+            "sectionTitle": "תקלות תקשוב",
+            "openCount": "{{count}} פתוחות",
+            "historyToggle": "היסטוריה ({{count}})"
+        }
+    },
+    "tikshovCop": {
+        "layerName": "תמ\"כ תקשוב",
+        "screenSubtitle": "תמונת מצב חיה של כל כוח במעקב בתחום אחריות היחידה",
+        "unit": "יחידה",
+        "confidenceLabel": "עדכניות נתונים",
+        "lastReport": "דיווח אחרון",
+        "inactiveSince": "לא דולק מאז",
+        "deviceTypes": {
+            "sheked": "ערכת שקד",
+            "dual": "ערכה דואלית",
+            "setz": "ס\"צ",
+            "maban": "מב\"ן",
+            "setz_modem": "מודם ס\"צ",
+            "elad_green": "אלעד ירוק"
+        },
+        "status": {
+            "active": "דולק",
+            "inactive": "לא דולק",
+            "flapping": "רצידה"
+        },
+        "time": {
+            "secondsAgo": "לפני {{count}} שניות",
+            "minutesAgo": "לפני {{count}} דקות",
+            "hoursAgo": "לפני {{count}} שעות",
+            "daysAgo": "לפני {{count}} ימים"
+        },
+        "tabs": {
+            "table": "טבלת כוחות",
+            "statistics": "סטטיסטיקה",
+            "watched": "יחידות במעקב"
+        },
+        "timeRange": {
+            "1h": "שעה",
+            "2h": "שעתיים",
+            "day": "יום",
+            "week": "שבוע",
+            "custom": "טווח מותאם"
+        },
+        "searchCallsign": "חיפוש אות קשר...",
+        "allDeviceTypes": "כל סוגי המכשירים",
+        "allStatuses": "כל הסטטוסים",
+        "forcesCount": "{{count}} כוחות",
+        "noForces": "אין כוחות בטווח הצפייה",
+        "activeInRangeHint": "היה דולק בשלב כלשהו בטווח הזמן הנבחר",
+        "columns": {
+            "callsign": "אות קשר",
+            "deviceType": "סוג מכשיר",
+            "subtype": "תת-סוג",
+            "unit": "יחידה",
+            "lastConnection": "חיבור אחרון",
+            "status": "סטטוס",
+            "lastKnownLocation": "מיקום אחרון ידוע",
+            "timeInStatus": "זמן במצב הנוכחי"
+        },
+        "stats": {
+            "totalForces": "סה\"כ כוחות",
+            "activeNow": "דולקים כעת",
+            "activeInRange": "דלקו בטווח הנבחר",
+            "byDeviceType": "דולקים מול סה\"כ לפי סוג מכשיר",
+            "total": "סה\"כ",
+            "statusDistribution": "התפלגות סטטוסים",
+            "drilldownTitle": "כוחות מסוננים",
+            "clearDrilldown": "נקה"
+        },
+        "explorer": {
+            "title": "כשירות לפי היררכיה",
+            "direct": "ישיר (מפח\"ט)",
+            "activeOfTotal": "{{active}}/{{total}} דולקים"
+        },
+        "watchedUnitsTitle": "יחידות במעקב",
+        "watchedUnitsSubtitle": "הרחב את התמונה שלך עם כל יחידה נוספת שמעניינת אותך",
+        "addWatchedUnit": "הוסף יחידה",
+        "removeWatchedUnit": "הסר ממעקב",
+        "homeUnitBadge": "יחידת הבית",
+        "noWatchedUnits": "עדיין אין יחידות במעקב. הוסף יחידה כדי לראות את התמ\"כ שלה לצד שלך.",
+        "addedBy": "נוסף על ידי {{user}} בתאריך {{date}}",
+        "addWatchedUnitModalTitle": "הוספת יחידה למעקב",
+        "addWatchedUnitModalSubtitle": "בחר יחידה כדי להרחיב את תמונת התמ\"כ שלך",
+        "searchUnitPlaceholder": "חיפוש יחידה לפי שם או מספר...",
+        "noUnitsFound": "לא נמצאו יחידות תואמות"
+    },
+    "unitPicker": {
+        "allUnits": "כל היחידות",
+        "unitsSelectedCount": "{{count}} יחידות נבחרו",
+        "pickerTitle": "בחירת יחידות",
+        "clearSelection": "נקה",
+        "includedViaAncestor": "כלול כבר דרך יחידת-אב שנבחרה"
+    },
+    "combatLog": {
+        "screenTitle": "יומן לחימה מתכלל",
+        "screenSubtitle": "תמונת מצב מבצעית מאוחדת על פני כל סוגי היומן",
+        "newEvent": "אירוע חדש",
+        "exportExcel": "ייצוא ל-Excel",
+        "tabs": { "table": "טבלה", "gantt": "ציר זמן" },
+        "logTypes": {
+            "reports": "דיווחים",
+            "ict_faults": "תקלות תקשוב",
+            "losses": "אובדנים",
+            "work_future_events": "עבודות ואירועים עתידיים",
+            "spectrum": "ספקטרום",
+            "other": "אחר"
+        },
+        "columns": { "startTime": "זמן התחלה", "logType": "סוג יומן", "title": "כותרת", "status": "סטטוס" },
+        "actions": { "view": "צפייה", "edit": "עריכה", "share": "שיתוף", "close": "סגירה", "save": "שמירה", "cancel": "ביטול" },
+        "fields": {
+            "type": "סוג יומן",
+            "title": "כותרת",
+            "description": "תיאור מפורט",
+            "start": "זמן התחלה",
+            "end": "זמן סיום",
+            "status": "סטטוס",
+            "reporter": "גורם מדווח",
+            "severity": "חומרה",
+            "affectedSystem": "מערכת מושפעת",
+            "linkedFaults": "תקלות מקושרות",
+            "relatedCommSite": "אתר קשר קשור",
+            "updateNotes": "עדכון",
+            "attachments": "קבצים מצורפים",
+            "createdAt": "נוצר ב",
+            "updatedAt": "עודכן ב"
+        },
+        "severity": { "critical": "קריטי", "high": "גבוה", "medium": "בינוני", "low": "נמוך" },
+        "empty": "אין אירועים תואמים",
+        "filters": {
+            "allTypes": "כל סוגי היומן",
+            "allStatuses": "כל הסטטוסים",
+            "searchPlaceholder": "חיפוש בכותרת ובתיאור...",
+            "dateFrom": "מתאריך",
+            "dateTo": "עד תאריך",
+            "clear": "נקה סינון"
+        },
+        "dashboard": {
+            "totalEvents": "סה\"כ אירועים",
+            "totalEventsBreakdown": "{{open}} פתוחים · {{closed}} נסגרו היום · {{pending}} ממתינים",
+            "criticalFaults": "תקלות קריטיות",
+            "criticalFaultsBreakdown": "{{critical}} קריטי · {{high}} גבוה",
+            "workEvents": "עבודות ואירועים עתידיים",
+            "workEventsBreakdown": "{{active}} בביצוע · {{upcoming}} ממתינים",
+            "activeSpectrum": "ספקטרום פעיל",
+            "activeSpectrumBreakdown": "{{active}} פעיל · {{cancelled}} בוטל",
+            "closedToday": "נסגרו היום",
+            "closedTodayBreakdown": "זמן טיפול ממוצע: {{minutes}} דק'",
+            "noUpdate": "ללא עדכון 2h+",
+            "noUpdateBreakdown": "{{percent}}% מהפתוחים"
+        },
+        "newEventModal": {
+            "title": "אירוע חדש",
+            "subtitle": "בחר סוג יומן כדי להמשיך",
+            "selectType": "בחר סוג יומן",
+            "linkedFaultsHint": "בחר את התקלות הפתוחות שהעבודה הזו יוצאת לטפל בהן — הן ייסגרו אוטומטית עם סיום העבודה",
+            "relatedCommSiteHint": "תיוג התקלה לאתר קשר יציג אותה בהיסטוריית התקלות של אותו אתר (נוכחיות + עבר)",
+            "noOpenFaults": "אין תקלות פתוחות לקישור",
+            "requiredError": "שדה חובה"
+        },
+        "editModal": {
+            "title": "עדכון אירוע",
+            "readonlySection": "פרטי האירוע המקוריים (נעול)",
+            "editableSection": "עדכון",
+            "updateNotesPlaceholder": "מה התעדכן?",
+            "autoEndTimeHint": "בבחירת סטטוס סוגר, זמן הסיום יוגדר אוטומטית לרגע זה — ניתן לשנות ידנית"
+        },
+        "viewPanel": {
+            "history": "היסטוריית עדכונים",
+            "noHistory": "אין עדכונים עדיין",
+            "attachments": "קבצים מצורפים",
+            "noAttachments": "אין קבצים מצורפים",
+            "systemNote": "אוטומטי"
+        },
+        "shareModal": {
+            "title": "שיתוף אירוע",
+            "subtitle": "בחר יחידה להעברת נראות על האירוע",
+            "alreadyShared": "כבר שותף",
+            "searchPlaceholder": "חיפוש יחידה..."
+        },
+        "badges": {
+            "recurring": "חוזרת ({{count}})",
+            "handledBy": "מטופל במסגרת: {{title}}",
+            "stale": "ללא עדכון"
+        },
+        "permissions": {
+            "readonly": "צפייה בלבד",
+            "attachmentsOnly": "ניתן לצרף קובץ בלבד"
+        }
+    },
+    "commSiteDetail": {
+        "expand": "הרחב",
+        "closeDetail": "סגירה",
+        "pageSubtitle": "ניטור שירותים",
+        "lastUpdated": "עדכון אחרון",
+        "unitContext": "נצפה מתוך",
+        "serviceTypes": {
+            "cellular": "סלולר צבאי",
+            "lcn_network": "רשת לכ\"ן",
+            "roip": "ROIP",
+            "elad": "אלעד",
+            "maban": "מב\"ן",
+            "components": "רכיבים"
+        },
+        "status": {
+            "healthy": "תקין",
+            "degraded": "חלקי",
+            "down": "לא תקין"
+        },
+        "noLongerReporting": "אינו מדווח יותר",
+        "metrics": {
+            "active_sectors_of_total": "סקטורים פעילים",
+            "equipment_count": "כמות ציוד",
+            "tx_rx_count": "משדר/מקלט",
+            "bandwidth_used_of_total": "רוחב פס בשימוש",
+            "active_extensions_of_total": "שלוחות פעילות",
+            "total_records": "סה\"כ רשומות",
+            "client_count": "לקוחות",
+            "anchor_ip": "IP עוגן",
+            "component_count": "כמות רכיבים"
+        },
+        "allTypesFilter": "כל השירותים",
+        "noServices": "לא הותקנו שירותים באתר זה",
+        "drillDown": {
+            "searchPlaceholder": "חיפוש...",
+            "allStatuses": "כל הסטטוסים",
+            "downloadReport": "הורדת דוח",
+            "empty": "אין פריטים תואמים",
+            "pageOf": "עמוד {{page}} מתוך {{total}}",
+            "prev": "הקודם",
+            "next": "הבא"
+        },
+        "columns": {
+            "sector_id": "מזהה סקטור",
+            "azimuth": "אזימוט",
+            "unit": "יחידה",
+            "direction": "כיוון",
+            "extension_id": "מזהה שלוחה",
+            "level_height": "גובה",
+            "band_designation": "סימון פס",
+            "remote_unit": "יחידה מרוחקת",
+            "client_id": "מזהה לקוח",
+            "ip": "IP",
+            "ip_address": "כתובת IP",
+            "mount_location": "מיקום התקנה",
+            "device_name": "שם מכשיר",
+            "device_type": "סוג",
+            "frequency": "תדר",
+            "antenna_height": "גובה אנטנה",
+            "status": "סטטוס"
+        }
+    },
+    "spectrum": {
+        "layerName": "ספקטרום",
+        "screenSubtitle": "מעקב אחר השתקות וחסימות תדרים",
+        "zoneTypes": {
+            "jamming": "השתקות",
+            "blocking": "חסימות"
+        },
+        "blockingBands": {
+            "l1": "L1",
+            "comms": "תדרי שו\"ב"
+        },
+        "jammingStatus": {
+            "ended": "נגמרה",
+            "active": "פעילה",
+            "future": "עתידית"
+        },
+        "freqRange": "טווח תדרים",
+        "heightRange": "טווח גובה",
+        "metersAbbrev": "מ׳",
+        "endsIn": "מסתיימת בעוד",
+        "startsIn": "מתחילה בעוד",
+        "tabs": {
+            "jamming": "מעקב השתקות",
+            "blocking": "מעקב חסימות"
+        },
+        "columns": {
+            "name": "שם",
+            "status": "סטטוס",
+            "band": "פס תדר",
+            "startTime": "זמן התחלה",
+            "endTime": "זמן סיום"
+        },
+        "filters": {
+            "allStatuses": "הכל",
+            "allBands": "הכל"
+        },
+        "empty": "אין אזורים תואמים",
+        "time": {
+            "minutes": "{{count}} דק'",
+            "hours": "{{count}} שע'"
+        }
+    }
+}
