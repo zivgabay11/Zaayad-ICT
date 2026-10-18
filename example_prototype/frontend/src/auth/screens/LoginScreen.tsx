@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Session, UserRole } from '../../common/utilities/types';
 import { mockUsers, mockUnits } from '../../common/utilities/mockData';
 import { formatUnitName } from '../../common/utilities/formatting';
+import { ALL_ROLES } from '../../common/utilities/roles';
 
 interface LoginScreenProps {
     onLogin: (session: Session) => void;
@@ -109,9 +110,9 @@ export function LoginScreen({ onLogin, isDarkMode }: LoginScreenProps) {
                             className={selectClasses}
                         >
                             <option value="" disabled>{t('login.selectRolePlaceholder')}</option>
-                            <option value="operationsOfficer">{t('roles.operationsOfficer')}</option>
-                            <option value="intelligenceOfficer">{t('roles.intelligenceOfficer')}</option>
-                            <option value="telecomOfficer">{t('roles.telecomOfficer')}</option>
+                            {ALL_ROLES.map(role => (
+                                <option key={role} value={role}>{t(`roles.${role}`)}</option>
+                            ))}
                         </select>
                     </div>
 

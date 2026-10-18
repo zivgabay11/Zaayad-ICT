@@ -14,6 +14,7 @@
         "calendar": "לו״ז",
         "telecom_journal": "יומן לחימה מתכלל",
         "telecom_deployment": "פריסת התקשוב במרחב",
+        "personal_task_log": "יומן משימות אישי",
         "general": "כללי",
         "intelligence": "הסביבה המבצעית",
         "objective": "מטרה",
@@ -86,10 +87,16 @@
         "selectRolePlaceholder": "בחר תפקיד"
     },
     "roles": {
-        "intelligenceOfficer": "קמ\"ן",
         "operationsOfficer": "קצין אג\"ם",
         "telecomOfficer": "תקשוב",
-        "malka": "מלכ\"א"
+        "logistics": "לוגיסטיקה",
+        "control": "שליטה",
+        "space": "מרחב",
+        "planning": "תכנון",
+        "monitoring": "ניטור",
+        "continuity": "רציפות התפקוד",
+        "radioOfficer": "רדיו",
+        "spectrumOfficer": "ספקטרום"
     },
     "common": {
         "welcome": "ברוך הבא",
@@ -664,7 +671,7 @@
             "other": "אחר"
         },
         "columns": { "startTime": "זמן התחלה", "logType": "סוג יומן", "title": "כותרת", "status": "סטטוס" },
-        "actions": { "view": "צפייה", "edit": "עריכה", "share": "שיתוף", "close": "סגירה", "save": "שמירה", "cancel": "ביטול" },
+        "actions": { "view": "צפייה", "edit": "עריכה", "share": "שיתוף", "assignRole": "שיוך לתא", "close": "סגירה", "save": "שמירה", "cancel": "ביטול" },
         "fields": {
             "type": "סוג יומן",
             "title": "כותרת",
@@ -713,6 +720,7 @@
             "linkedFaultsHint": "בחר את התקלות הפתוחות שהעבודה הזו יוצאת לטפל בהן — הן ייסגרו אוטומטית עם סיום העבודה",
             "relatedCommSiteHint": "תיוג התקלה לאתר קשר יציג אותה בהיסטוריית התקלות של אותו אתר (נוכחיות + עבר)",
             "noOpenFaults": "אין תקלות פתוחות לקישור",
+            "assignRoleHint": "בחר תא אחד או יותר שיקבלו את האירוע הזה ביומן המשימות האישי שלהם (אופציונלי)",
             "requiredError": "שדה חובה"
         },
         "editModal": {
@@ -735,6 +743,13 @@
             "alreadyShared": "כבר שותף",
             "searchPlaceholder": "חיפוש יחידה..."
         },
+        "assignRoleModal": {
+            "title": "שיוך לתא",
+            "subtitle": "בחר תא אחד או יותר שיקבלו את האירוע הזה ביומן המשימות האישי שלהם",
+            "assigned": "משויך",
+            "notAssigned": "לא משויך",
+            "assignedRolesLabel": "משויך לתאים"
+        },
         "badges": {
             "recurring": "חוזרת ({{count}})",
             "handledBy": "מטופל במסגרת: {{title}}",
@@ -743,6 +758,71 @@
         "permissions": {
             "readonly": "צפייה בלבד",
             "attachmentsOnly": "ניתן לצרף קובץ בלבד"
+        }
+    },
+    "personalTaskLog": {
+        "screenTitle": "יומן משימות אישי",
+        "screenSubtitle": "ניהול המשימות האישיות עבור התפקיד הנבחר",
+        "newTask": "הוספת משימה",
+        "taskCount": "{{count}} משימות",
+        "empty": "אין משימות בסטטוס זה",
+        "confirmDelete": "למחוק את המשימה?",
+        "confirmUnassign": "להסיר את השיוך של המשימה הזו מהתא שלך?",
+        "stats": {
+            "total": "סה\"כ משימות"
+        },
+        "statuses": {
+            "open": "פתוח",
+            "inProgress": "בביצוע",
+            "done": "בוצע",
+            "blocked": "חסום",
+            "cancelled": "בוטל"
+        },
+        "severity": {
+            "high": "גבוהה",
+            "low": "נמוכה",
+            "medium": "בינונית",
+            "unknown": "לא ידוע"
+        },
+        "frequency": {
+            "daily": "יומי",
+            "weekly": "שבועי",
+            "monthly": "חודשי"
+        },
+        "recurrence": {
+            "periodic": "תקופתית"
+        },
+        "actions": {
+            "view": "צפייה",
+            "edit": "עריכה",
+            "delete": "מחיקה",
+            "unassign": "הסרת שיוך",
+            "cancel": "ביטול",
+            "save": "שמירת שינויים"
+        },
+        "viewPanel": {
+            "noNotes": "אין הערות",
+            "createdBy": "נוצר על ידי {{name}} · {{date}}"
+        },
+        "fields": {
+            "title": "כותרת",
+            "description": "תיאור",
+            "start": "תאריך ושעת התחלה",
+            "end": "תאריך ושעת סיום",
+            "status": "סטטוס",
+            "severity": "חומרה",
+            "notes": "הערות",
+            "isPeriodic": "משימה תקופתית (חוזרת)",
+            "frequency": "תדירות",
+            "recurrenceEndDate": "תאריך סיום חזרה",
+            "linkToCombatLog": "שיוך ליומן לחימה",
+            "linkToCombatLogHint": "בחר סוג אירוע (אופציונלי) — בלחיצה על שמירת שינויים המשימה תהפוך לאירוע ביומן הלחימה המתכלל, משויך לתא שלך, וכל עדכון בה יופיע בשני המקומות",
+            "linkToCombatLogSelected": "בשמירה, משימה זו תהפוך לאירוע ביומן הלחימה"
+        },
+        "form": {
+            "createTitle": "הוספת משימה",
+            "editTitle": "עריכת משימה",
+            "requiredError": "שדה חובה"
         }
     },
     "commSiteDetail": {

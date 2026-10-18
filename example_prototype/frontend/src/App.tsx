@@ -4,7 +4,7 @@ import {
     Map, Calendar as CalendarIcon, Target, CheckSquare, Crosshair, Flag, Globe, Lightbulb,
     SlidersHorizontal, TriangleAlert, X, PenTool, Sparkles, ScrollText, Swords,
     ChevronDown, ChevronUp, LayoutGrid, Grid3x3, Home, Library, Shield, Radio, Waves, Eye,
-    RadioTower, Radar, Ban
+    RadioTower, Radar, Ban, ListChecks
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavItem } from './common/widgets/NavItem';
@@ -15,6 +15,7 @@ import { usePlanContext } from './common/context/PlanContext';
 import { useTranslation } from 'react-i18next';
 import { Session, UserRole } from './common/utilities/types';
 import { mockUsers, mockUnits } from './common/utilities/mockData';
+import { ALL_ROLES, getRoleShortLabel } from './common/utilities/roles';
 
 import { PlansScreen } from './plans/screens/PlansScreen';
 import { CalendarScreen } from './calendar/screens/CalendarScreen';
@@ -31,6 +32,8 @@ import { SpectrumProvider } from './common/context/SpectrumContext';
 import { TikshovCopScreen } from './tikshov_cop/screens/TikshovCopScreen';
 import { CombatLogProvider } from './common/context/CombatLogContext';
 import { CombatLogScreen } from './combat_log/screens/CombatLogScreen';
+import { PersonalTaskLogProvider } from './common/context/PersonalTaskLogContext';
+import { PersonalTaskLogScreen } from './personal_task_log/screens/PersonalTaskLogScreen';
 import { MapPanel } from './common/widgets/MapPanel';
 import { MapEdgeHandle } from './common/widgets/MapEdgeHandle';
 import { DocPanel } from './common/widgets/DocPanel';
@@ -94,6 +97,8 @@ const ContentArea: React.FC<ContentAreaProps> = ({ currentSection, chatKey, acti
                         <SpectrumScreen tab="blocking" />
                     ) : currentSection === 'telecom_journal' ? (
                         <CombatLogScreen />
+                    ) : currentSection === 'personal_task_log' ? (
+                        <PersonalTaskLogScreen />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-400 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-slate-200 dark:border-zinc-800">
                             {(currentSection as string).charAt(0).toUpperCase() + (currentSection as string).slice(1).replace('-', ' ')}
@@ -186,15 +191,12 @@ const ChatSection: React.FC<ChatSectionProps> = ({ chatKey, activePlan, currentS
 export default function App() {
     const { activePlan, resetData } = usePlanContext();
     const { t, i18n } = useTranslation();
-    // Short labels for the header's role switcher — "קצין אג\"ם" is used for the role's full
-    // name elsewhere (e.g. the plan-info box), but this corner only ever showed the short
-    // "אג\"ם" form, so the switcher keeps that instead of roles.operationsOfficer's long form.
-    const roleShortLabels: Record<UserRole, string> = {
-        telecomOfficer: t('roles.telecomOfficer'),
-        operationsOfficer: t('header.operations'),
-        malka: t('roles.malka'),
-        intelligenceOfficer: t('roles.intelligenceOfficer'),
-    };
+    // Short labels for the header's role switcher — getRoleShortLabel is the single shared
+    // source every other role picker in the app (Combat Log's assign-to-cell UI, Personal
+    // Task Log badges) must also call, so they stay byte-identical to this dropdown.
+    const roleShortLabels: Record<UserRole, string> = Object.fromEntries(
+        ALL_ROLES.map(role => [role, getRoleShortLabel(t, role)])
+    ) as Record<UserRole, string>;
     // Splash + login are disabled for this build: it opens straight to the main map
     // screen with the Static Space Establishment feature, no auth step in the way.
     const [showSplash, setShowSplash] = useState(false);
@@ -242,14 +244,14 @@ export default function App() {
     // a time: opening one closes any other, same as switching between them directly.
     const [openPanel, setOpenPanel] = useState<'planning' | 'control' | 'monitoring' | 'spectrum' | 'management' | null>(null);
     const closePanel = () => setOpenPanel(null);
-    const [currentSection, setCurrentSection] = useState<'main' | 'plans' | 'definitions' | 'calendar' | 'general' | 'intelligence' | 'objective' | 'mission' | 'tasks' | 'method' | 'diagram' | 'combat_script' | 'telecom_journal' | 'telecom_deployment' | 'tikshov_cop' | 'static_space' | 'radio' | 'spectrum_jamming' | 'spectrum_blocking' | 'sync_efforts' | 'order'>('main');
+    const [currentSection, setCurrentSection] = useState<'main' | 'plans' | 'definitions' | 'calendar' | 'general' | 'intelligence' | 'objective' | 'mission' | 'tasks' | 'method' | 'diagram' | 'combat_script' | 'telecom_journal' | 'telecom_deployment' | 'personal_task_log' | 'tikshov_cop' | 'static_space' | 'radio' | 'spectrum_jamming' | 'spectrum_blocking' | 'sync_efforts' | 'order'>('main');
 
     // Group of sections that belong to "תכנון" (Planning)
     const orderSections = ['general', 'intelligence', 'objective', 'mission', 'method', 'tasks', 'diagram', 'calendar'];
     const isOrderSectionActive = orderSections.includes(currentSection);
 
     // Group of sections that belong to "שליטה וניהול" (Command & Control)
-    const controlSections = ['telecom_journal', 'combat_script'];
+    const controlSections = ['telecom_journal', 'combat_script', 'personal_task_log'];
     const isControlSectionActive = controlSections.includes(currentSection);
 
     // Group of sections that belong to "ניטור" (Monitoring)
@@ -333,6 +335,7 @@ export default function App() {
                 <TikshovProvider>
                 <SpectrumProvider>
                 <CombatLogProvider>
+                <PersonalTaskLogProvider>
                     {/* Top Header */}
                     <header className="flex items-center justify-between px-2 py-2 bg-white dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-800 z-20 transition-colors duration-200 relative">
                         {/* End section (right in RTL): Toggle sidebar + Operations dropdown + placeholder icons */}
@@ -365,7 +368,7 @@ export default function App() {
                                 </button>
                                 {isRoleDropdownOpen && (
                                     <div className="absolute top-full start-0 mt-1.5 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-slate-200 dark:border-zinc-600 py-1 min-w-[140px] z-30">
-                                        {(['telecomOfficer', 'operationsOfficer', 'malka'] as UserRole[]).map((role) => (
+                                        {ALL_ROLES.map((role) => (
                                             <button
                                                 key={role}
                                                 onClick={() => handleRoleChange(role)}
@@ -625,6 +628,7 @@ export default function App() {
                                                     {([
                                                         { id: 'telecom_journal', icon: <ScrollText className="w-4 h-4" />, label: t('nav.telecom_journal') },
                                                         { id: 'combat_script', icon: <Swords className="w-4 h-4" />, label: t('nav.combat_script') },
+                                                        { id: 'personal_task_log', icon: <ListChecks className="w-4 h-4" />, label: t('nav.personal_task_log') },
                                                     ] as const).map((item) => (
                                                         <button
                                                             key={item.id}
@@ -736,6 +740,7 @@ export default function App() {
                             </MapProvider>
                         </div>
                     </div>
+                </PersonalTaskLogProvider>
                 </CombatLogProvider>
                 </SpectrumProvider>
                 </TikshovProvider>

@@ -12,6 +12,7 @@ import { NewEventModal } from '../widgets/NewEventModal';
 import { EventEditModal } from '../widgets/EventEditModal';
 import { EventViewPanel } from '../widgets/EventViewPanel';
 import { ShareEventModal } from '../widgets/ShareEventModal';
+import { AssignRoleModal } from '../widgets/AssignRoleModal';
 import { exportCombatLogToCsv } from '../utilities/exportCsv';
 
 // Integrated Combat Log (יומן לחימה מתכלל) — full screen, reachable from the sidebar,
@@ -46,6 +47,7 @@ export const CombatLogScreen: React.FC = () => {
     const [viewEventId, setViewEventId] = useState<string | null>(null);
     const [editEventId, setEditEventId] = useState<string | null>(null);
     const [shareEventId, setShareEventId] = useState<string | null>(null);
+    const [assignRoleEventId, setAssignRoleEventId] = useState<string | null>(null);
 
     // FR-21/AC-04.5 — active filters are reflected in the URL so the view is shareable.
     useEffect(() => {
@@ -83,6 +85,7 @@ export const CombatLogScreen: React.FC = () => {
     const viewEvent = events.find(e => e.id === viewEventId) || null;
     const editEvent = events.find(e => e.id === editEventId) || null;
     const shareEvent = events.find(e => e.id === shareEventId) || null;
+    const assignRoleEvent = events.find(e => e.id === assignRoleEventId) || null;
 
     return (
         <div className="p-6 h-full flex flex-col w-full min-w-0 max-w-full overflow-hidden">
@@ -150,6 +153,7 @@ export const CombatLogScreen: React.FC = () => {
                 onClose={() => setViewEventId(null)}
                 onEdit={(id) => { setViewEventId(null); setEditEventId(id); }}
                 onShare={(id) => { setViewEventId(null); setShareEventId(id); }}
+                onAssignRole={(id) => { setViewEventId(null); setAssignRoleEventId(id); }}
                 viewingUnitCode={homeUnitCode}
             />
 
@@ -160,6 +164,7 @@ export const CombatLogScreen: React.FC = () => {
             />
 
             <ShareEventModal event={shareEvent} onClose={() => setShareEventId(null)} />
+            <AssignRoleModal event={assignRoleEvent} onClose={() => setAssignRoleEventId(null)} />
         </div>
     );
 };

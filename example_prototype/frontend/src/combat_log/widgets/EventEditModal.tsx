@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Paperclip } from 'lucide-react';
 import { useCombatLogContext } from '../../common/context/CombatLogContext';
-import { CombatLogEvent } from '../../common/utilities/types';
+import { CombatLogEvent, UserRole } from '../../common/utilities/types';
 import { COMBAT_LOG_STATUS_OPTIONS, isTerminalStatus, getEditPermission } from '../../common/utilities/combatLog';
 
 // Edit dialog (PRD 4.3/6.2/7.3/US-02): every original field is locked; only end_time,
@@ -13,6 +13,7 @@ interface EventEditModalProps {
     event: CombatLogEvent | null;
     onClose: () => void;
     viewingUnitCode: number;
+    viewingRole?: UserRole; // set when opened from the Personal Task Log — grants full edit rights when the event is assigned to this role
 }
 
 function toDatetimeLocal(iso: string): string {
@@ -24,7 +25,7 @@ function toDatetimeLocal(iso: string): string {
 const readonlyFieldClass = "w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800/50 text-slate-400 dark:text-zinc-500";
 const labelClass = "text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block";
 
-export const EventEditModal: React.FC<EventEditModalProps> = ({ event, onClose, viewingUnitCode }) => {
+export const EventEditModal: React.FC<EventEditModalProps> = ({ event, onClose, viewingUnitCode, viewingRole }) => {
     const { t } = useTranslation();
     const { updateEvent, addAttachment } = useCombatLogContext();
     const [status, setStatus] = useState(event?.status || '');
@@ -44,7 +45,7 @@ export const EventEditModal: React.FC<EventEditModalProps> = ({ event, onClose, 
     }, [event?.id]);
 
     if (!event) return null;
-    const permission = getEditPermission(event, viewingUnitCode);
+    const permission = getEditPermission(event, viewingUnitCode, viewingRole);
     const canEditFields = permission === 'owner' || permission === 'sharedFull';
     const canAttachOnly = permission === 'sharedAttachmentsOnly';
 

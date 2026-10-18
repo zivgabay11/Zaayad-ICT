@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { CombatLogEvent, CombatLogType, CombatLogSeverity, CombatLogAttachment } from '../utilities/types';
+import { CombatLogEvent, CombatLogType, CombatLogSeverity, CombatLogAttachment, UserRole } from '../utilities/types';
 import { mockCombatLogEvents } from '../utilities/mockData';
 import {
     COMBAT_LOG_STATUS_OPTIONS,
@@ -40,6 +40,7 @@ export interface CreateCombatLogEventInput {
     linkedFaultIds?: string[];
     relatedCommSiteId?: string;
     attachments?: { fileName: string; fileType: 'word' | 'pdf' | 'excel' }[];
+    assignedToRoles?: UserRole[]; // Personal Task Log integration — assign at creation time
 }
 
 export interface UpdateCombatLogEventInput {
@@ -55,6 +56,10 @@ interface CombatLogContextType {
     updateEvent: (id: string, input: UpdateCombatLogEventInput) => void;
     shareEvent: (id: string, targetUnitCode: number) => void;
     addAttachment: (id: string, fileName: string, fileType: CombatLogAttachment['fileType']) => void;
+    // Personal Task Log integration (my addition): toggles whether a role/cell has this
+    // event pushed to its Personal Task Log — the event itself stays the single shared
+    // record, this just tracks who it's currently assigned to.
+    toggleAssignedRole: (id: string, role: UserRole) => void;
 }
 
 const STORAGE_KEY = 'horus_combat_log_events';
@@ -135,6 +140,7 @@ export const CombatLogProvider: React.FC<{ children: ReactNode }> = ({ children 
             updatedAt: now,
             sharedWithUnitCodes: [],
             linkedFaultIds: input.type === 'work_future_events' ? input.linkedFaultIds : undefined,
+            assignedToRoles: input.assignedToRoles || [],
         };
 
         persist([event, ...events]);
@@ -237,8 +243,22 @@ export const CombatLogProvider: React.FC<{ children: ReactNode }> = ({ children 
         ));
     };
 
+    const toggleAssignedRole = (id: string, role: UserRole) => {
+        const now = new Date().toISOString();
+        persist(events.map(e => {
+            if (e.id !== id) return e;
+            const current = e.assignedToRoles || [];
+            const isAssigned = current.includes(role);
+            return {
+                ...e,
+                assignedToRoles: isAssigned ? current.filter(r => r !== role) : [...current, role],
+                updatedAt: now,
+            };
+        }));
+    };
+
     return (
-        <CombatLogContext.Provider value={{ events, homeUnitCode, createEvent, updateEvent, shareEvent, addAttachment }}>
+        <CombatLogContext.Provider value={{ events, homeUnitCode, createEvent, updateEvent, shareEvent, addAttachment, toggleAssignedRole }}>
             {children}
         </CombatLogContext.Provider>
     );

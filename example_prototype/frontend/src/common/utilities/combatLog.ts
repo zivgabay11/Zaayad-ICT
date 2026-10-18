@@ -1,4 +1,4 @@
-import { CombatLogEvent, CombatLogType } from './types';
+import { CombatLogEvent, CombatLogType, CombatLogSeverity, UserRole } from './types';
 
 // Domain constants + pure helpers for the Integrated Combat Log (יומן לחימה מתכלל).
 // See PRD v2.0 sections 3, 5.2, 9 for the source-of-truth tables these mirror, and the
@@ -6,6 +6,10 @@ import { CombatLogEvent, CombatLogType } from './types';
 // full in CombatLogContext.tsx, where they're actually triggered).
 
 export const COMBAT_LOG_TYPES: CombatLogType[] = ['reports', 'ict_faults', 'losses', 'work_future_events', 'spectrum', 'other'];
+
+// Personal Task Log integration (my addition): only these 4 sub-logs can be pushed to a
+// role's Personal Task Log — spectrum and other are excluded per product decision.
+export const LINKABLE_COMBAT_LOG_TYPES: CombatLogType[] = ['ict_faults', 'work_future_events', 'reports', 'losses'];
 
 // PRD Section 3 — one color per log type, used for the badge, the Gantt blocks, and charts.
 export const COMBAT_LOG_TYPE_COLORS: Record<CombatLogType, string> = {
@@ -15,6 +19,15 @@ export const COMBAT_LOG_TYPE_COLORS: Record<CombatLogType, string> = {
     work_future_events: '#D97706',
     spectrum: '#0D9488',
     other: '#64748B',
+};
+
+// Dot/badge color per severity (ict_faults only) — used on the fault table row and reused
+// by the Personal Task Log's linked-item cards for the same visual language.
+export const COMBAT_LOG_SEVERITY_COLOR: Record<CombatLogSeverity, string> = {
+    critical: '#dc2626',
+    high: '#f97316',
+    medium: '#eab308',
+    low: '#22c55e',
 };
 
 // PRD Section 5.2 — status vocabulary is closed per log type. Reports has exactly one
@@ -119,7 +132,11 @@ export function getHandlingWorkEvent(faultId: string, allEvents: CombatLogEvent[
 // event has been explicitly shared with it, and then only per the log type's table in 4.2.
 export type CombatLogEditPermission = 'owner' | 'sharedFull' | 'sharedAttachmentsOnly' | 'sharedReadonly' | 'readonly';
 
-export function getEditPermission(event: CombatLogEvent, viewingUnitCode: number): CombatLogEditPermission {
+export function getEditPermission(event: CombatLogEvent, viewingUnitCode: number, viewingRole?: UserRole): CombatLogEditPermission {
+    // A role the event was explicitly assigned to (Personal Task Log integration) gets full
+    // owner-equivalent rights — that's a deliberate handoff of responsibility, distinct from
+    // the passive cross-unit visibility rules below.
+    if (viewingRole && event.assignedToRoles?.includes(viewingRole)) return 'owner';
     if (event.reporterUnitCode === viewingUnitCode) return 'owner';
     if (event.sharedWithUnitCodes.includes(viewingUnitCode)) {
         if (event.type === 'ict_faults' || event.type === 'work_future_events' || event.type === 'other') return 'sharedFull';

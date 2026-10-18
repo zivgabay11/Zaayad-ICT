@@ -144,7 +144,17 @@ export interface SystemUnit {
     parentCode?: string;
 }
 
-export type UserRole = 'intelligenceOfficer' | 'operationsOfficer' | 'telecomOfficer' | 'malka';
+export type UserRole =
+    | 'operationsOfficer'   // אג"ם
+    | 'telecomOfficer'      // תקשוב
+    | 'logistics'           // לוגיסטיקה
+    | 'control'             // שליטה
+    | 'space'               // מרחב
+    | 'planning'            // תכנון
+    | 'monitoring'          // ניטור
+    | 'continuity'          // רציפות התפקוד
+    | 'radioOfficer'        // רדיו
+    | 'spectrumOfficer';    // ספקטרום
 
 export interface Session {
     user: SystemUser;
@@ -264,6 +274,12 @@ export interface CombatLogEvent {
     createdAt: string; // ISO
     updatedAt: string; // ISO
     sharedWithUnitCodes: number[]; // units this event has been pushed to, up or down the force tree (PRD 4.2)
+    // Personal Task Log integration (my addition): roles/cells this event has been pushed to
+    // as a personal task. Only set for the 4 linkable types (see LINKABLE_COMBAT_LOG_TYPES in
+    // combatLog.ts) — the event itself is the single shared record; the Personal Task Log
+    // just displays/edits it through its own UI for each assigned role, so editing status or
+    // adding a note from either screen updates this same record.
+    assignedToRoles?: UserRole[];
     // Cross-log automation (see CombatLogContext.tsx): work_future_events only — the ICT
     // Faults this work item is going out to resolve. Completing the work auto-closes them.
     linkedFaultIds?: string[];
@@ -271,6 +287,38 @@ export interface CombatLogEvent {
     // only — the Comm Site (CommSite.id) this fault is tagged against, so the site's own
     // table row / map marker can surface its live + historical fault picture.
     relatedCommSiteId?: string;
+}
+
+// --- Personal Task Log (יומן משימות אישי) ---
+// Per-role personal task manager, scoped by ownerRole the same way CombatLogEvent is
+// scoped by reporterUnitCode — switching the active role in the header shows a different
+// filtered slice of the one shared tasks array (see PersonalTaskLogContext.tsx).
+
+export type PersonalTaskRecurrence = 'oneTime' | 'periodic';
+export type PersonalTaskFrequency = 'daily' | 'weekly' | 'monthly';
+export type PersonalTaskStatus = 'open' | 'inProgress' | 'done' | 'blocked' | 'cancelled';
+export type PersonalTaskSeverity = 'high' | 'low' | 'medium' | 'unknown';
+
+export interface PersonalTaskRecurrenceRule {
+    frequency: PersonalTaskFrequency;
+    endDate: string; // ISO date — recurrence stops generating after this date
+}
+
+export interface PersonalTask {
+    id: string;
+    ownerRole: UserRole;
+    title: string;
+    description: string;
+    status: PersonalTaskStatus;
+    start?: string; // ISO datetime — optional, cards may show no date
+    end?: string; // ISO datetime
+    severity: PersonalTaskSeverity;
+    notes?: string; // הערות
+    recurrence: PersonalTaskRecurrence;
+    recurrenceRule?: PersonalTaskRecurrenceRule; // only when recurrence === 'periodic'
+    createdByUserName: string;
+    createdAt: string; // ISO
+    updatedAt: string; // ISO
 }
 
 // --- Comm Site Service Monitoring (ניטור שירותים) ---

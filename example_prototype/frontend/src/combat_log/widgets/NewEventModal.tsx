@@ -2,9 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Paperclip, X } from 'lucide-react';
 import { useCombatLogContext } from '../../common/context/CombatLogContext';
-import { CombatLogEvent, CombatLogType, CombatLogSeverity } from '../../common/utilities/types';
-import { COMBAT_LOG_TYPES, COMBAT_LOG_STATUS_OPTIONS, COMBAT_LOG_END_TIME_DEFAULT_MINUTES, COMBAT_LOG_TYPE_COLORS, isTerminalStatus } from '../../common/utilities/combatLog';
+import { CombatLogEvent, CombatLogType, CombatLogSeverity, UserRole } from '../../common/utilities/types';
+import { COMBAT_LOG_TYPES, COMBAT_LOG_STATUS_OPTIONS, COMBAT_LOG_END_TIME_DEFAULT_MINUTES, COMBAT_LOG_TYPE_COLORS, LINKABLE_COMBAT_LOG_TYPES, isTerminalStatus } from '../../common/utilities/combatLog';
 import { mockCommSites } from '../../common/utilities/mockData';
+import { ALL_ROLES, getRoleShortLabel } from '../../common/utilities/roles';
 
 // New Event creation dialog (PRD 6.1/US-01): log type first, then the common fields plus
 // whatever fields that type needs — including the work→faults linking picker that powers
@@ -40,6 +41,7 @@ export const NewEventModal: React.FC<NewEventModalProps> = ({ isOpen, onClose, a
     const [relatedCommSiteId, setRelatedCommSiteId] = useState('');
     const [linkedFaultIds, setLinkedFaultIds] = useState<string[]>([]);
     const [attachments, setAttachments] = useState<{ fileName: string; fileType: 'word' | 'pdf' | 'excel' }[]>([]);
+    const [assignedRoles, setAssignedRoles] = useState<UserRole[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const openFaults = useMemo(
@@ -49,7 +51,7 @@ export const NewEventModal: React.FC<NewEventModalProps> = ({ isOpen, onClose, a
 
     const reset = () => {
         setType(''); setTitle(''); setDescription(''); setStart(''); setEnd(''); setStatus('');
-        setSeverity(''); setAffectedSystem(''); setRelatedCommSiteId(''); setLinkedFaultIds([]); setAttachments([]); setErrors({});
+        setSeverity(''); setAffectedSystem(''); setRelatedCommSiteId(''); setLinkedFaultIds([]); setAttachments([]); setAssignedRoles([]); setErrors({});
     };
 
     const handleClose = () => { reset(); onClose(); };
@@ -65,7 +67,7 @@ export const NewEventModal: React.FC<NewEventModalProps> = ({ isOpen, onClose, a
             setEnd(toDatetimeLocal(new Date(now.getTime() + defaultMinutes * 60000).toISOString()));
         }
         setStatus(nextType === 'reports' ? '' : COMBAT_LOG_STATUS_OPTIONS[nextType][0]);
-        setSeverity(''); setAffectedSystem(''); setRelatedCommSiteId(''); setLinkedFaultIds([]);
+        setSeverity(''); setAffectedSystem(''); setRelatedCommSiteId(''); setLinkedFaultIds([]); setAssignedRoles([]);
     };
 
     const handleAttachFiles = (fileList: FileList | null) => {
@@ -104,6 +106,7 @@ export const NewEventModal: React.FC<NewEventModalProps> = ({ isOpen, onClose, a
             relatedCommSiteId: type === 'ict_faults' ? (relatedCommSiteId || undefined) : undefined,
             linkedFaultIds: type === 'work_future_events' ? linkedFaultIds : undefined,
             attachments,
+            assignedToRoles: LINKABLE_COMBAT_LOG_TYPES.includes(type) ? assignedRoles : undefined,
         });
         handleClose();
     };
@@ -228,6 +231,26 @@ export const NewEventModal: React.FC<NewEventModalProps> = ({ isOpen, onClose, a
                                             ))}
                                         </div>
                                     )}
+                                </div>
+                            )}
+
+                            {LINKABLE_COMBAT_LOG_TYPES.includes(type) && (
+                                <div>
+                                    <label className={labelClass}>{t('combatLog.actions.assignRole')}</label>
+                                    <p className="text-[11px] text-slate-400 dark:text-zinc-500 mb-2">{t('combatLog.newEventModal.assignRoleHint')}</p>
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1.5 max-h-32 overflow-y-auto rounded-lg border border-slate-200 dark:border-zinc-700 p-2">
+                                        {ALL_ROLES.map(role => (
+                                            <label key={role} className="flex items-center gap-2 text-xs cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={assignedRoles.includes(role)}
+                                                    onChange={() => setAssignedRoles(prev => prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role])}
+                                                    className="accent-primary w-3.5 h-3.5"
+                                                />
+                                                <span className="text-slate-700 dark:text-zinc-200">{getRoleShortLabel(t, role)}</span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 

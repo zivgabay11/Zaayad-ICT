@@ -1,10 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Pencil, Share2, Paperclip, FileText, Cpu } from 'lucide-react';
-import { CombatLogEvent } from '../../common/utilities/types';
-import { COMBAT_LOG_TYPE_COLORS, getEditPermission } from '../../common/utilities/combatLog';
+import { X, Pencil, Share2, Paperclip, FileText, Cpu, Users } from 'lucide-react';
+import { CombatLogEvent, UserRole } from '../../common/utilities/types';
+import { COMBAT_LOG_TYPE_COLORS, getEditPermission, LINKABLE_COMBAT_LOG_TYPES } from '../../common/utilities/combatLog';
 import { mockUnits, mockCommSites } from '../../common/utilities/mockData';
 import { formatUnitName } from '../../common/utilities/formatting';
+import { getRoleShortLabel } from '../../common/utilities/roles';
 
 // Read-only view panel (PRD 6.3/US-03): every relevant field, the full update history
 // (each entry with author + timestamp, automation-generated ones marked distinctly), and
@@ -15,15 +16,18 @@ interface EventViewPanelProps {
     onClose: () => void;
     onEdit: (id: string) => void;
     onShare: (id: string) => void;
+    onAssignRole: (id: string) => void;
     viewingUnitCode: number;
+    viewingRole?: UserRole; // set when opened from the Personal Task Log — grants full view/edit rights when the event is assigned to this role
 }
 
-export const EventViewPanel: React.FC<EventViewPanelProps> = ({ event, onClose, onEdit, onShare, viewingUnitCode }) => {
+export const EventViewPanel: React.FC<EventViewPanelProps> = ({ event, onClose, onEdit, onShare, onAssignRole, viewingUnitCode, viewingRole }) => {
     const { t, i18n } = useTranslation();
     if (!event) return null;
+    const isLinkable = LINKABLE_COMBAT_LOG_TYPES.includes(event.type);
 
     const color = COMBAT_LOG_TYPE_COLORS[event.type];
-    const permission = getEditPermission(event, viewingUnitCode);
+    const permission = getEditPermission(event, viewingUnitCode, viewingRole);
     const canEdit = permission === 'owner' || permission === 'sharedFull' || permission === 'sharedAttachmentsOnly';
     const reporterUnit = mockUnits.find(u => u.code === event.reporterUnitCode);
 
@@ -55,6 +59,18 @@ export const EventViewPanel: React.FC<EventViewPanelProps> = ({ event, onClose, 
                             const site = mockCommSites.find(s => s.id === event.relatedCommSiteId);
                             return site ? <div><span className="text-xs text-slate-400 dark:text-zinc-500 block">{t('combatLog.fields.relatedCommSite')}</span>{site.siteName[i18n.language] || site.siteName.en}</div> : null;
                         })()}
+                        {isLinkable && (event.assignedToRoles?.length ?? 0) > 0 && (
+                            <div className="col-span-2">
+                                <span className="text-xs text-slate-400 dark:text-zinc-500 block mb-1">{t('combatLog.assignRoleModal.assignedRolesLabel')}</span>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {event.assignedToRoles!.map(role => (
+                                        <span key={role} className="text-[11px] font-medium px-2 py-0.5 rounded-full border border-slate-300/60 dark:border-zinc-600/60 bg-black/5 dark:bg-white/5 text-slate-600 dark:text-zinc-300">
+                                            {getRoleShortLabel(t, role)}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="border-t border-slate-100 dark:border-zinc-800 pt-3">
@@ -99,6 +115,11 @@ export const EventViewPanel: React.FC<EventViewPanelProps> = ({ event, onClose, 
                     <button onClick={() => onShare(event.id)} className="inline-flex items-center gap-1.5 text-sm px-4 py-2 text-slate-600 dark:text-zinc-300 hover:text-slate-800 dark:hover:text-zinc-100 transition-colors font-medium">
                         <Share2 className="w-3.5 h-3.5" /> {t('combatLog.actions.share')}
                     </button>
+                    {isLinkable && (
+                        <button onClick={() => onAssignRole(event.id)} className="inline-flex items-center gap-1.5 text-sm px-4 py-2 text-slate-600 dark:text-zinc-300 hover:text-slate-800 dark:hover:text-zinc-100 transition-colors font-medium">
+                            <Users className="w-3.5 h-3.5" /> {t('combatLog.actions.assignRole')}
+                        </button>
+                    )}
                     {canEdit && (
                         <button onClick={() => onEdit(event.id)} className="inline-flex items-center gap-1.5 text-sm px-4 py-2 bg-primary hover:bg-primary/90 text-white dark:text-zinc-900 rounded-lg transition-colors font-medium shadow-sm">
                             <Pencil className="w-3.5 h-3.5" /> {t('combatLog.actions.edit')}

@@ -14,6 +14,7 @@
         "calendar": "Calendar",
         "telecom_journal": "Telecom Journal",
         "telecom_deployment": "Telecom Deployment",
+        "personal_task_log": "Personal Task Log",
         "general": "General",
         "intelligence": "Intelligence",
         "objective": "Objective",
@@ -86,10 +87,16 @@
         "selectRolePlaceholder": "Select a role..."
     },
     "roles": {
-        "intelligenceOfficer": "Intelligence Officer",
         "operationsOfficer": "Operations Officer",
         "telecomOfficer": "Telecom/Comms Officer",
-        "malka": "MALKA Officer"
+        "logistics": "Logistics",
+        "control": "Control",
+        "space": "Space",
+        "planning": "Planning",
+        "monitoring": "Monitoring",
+        "continuity": "Continuity of Operations",
+        "radioOfficer": "Radio",
+        "spectrumOfficer": "Spectrum"
     },
     "common": {
         "welcome": "Welcome",
@@ -664,7 +671,7 @@
             "other": "Other"
         },
         "columns": { "startTime": "Start Time", "logType": "Log Type", "title": "Title", "status": "Status" },
-        "actions": { "view": "View", "edit": "Edit", "share": "Share", "close": "Close", "save": "Save", "cancel": "Cancel" },
+        "actions": { "view": "View", "edit": "Edit", "share": "Share", "assignRole": "Assign to Cell", "close": "Close", "save": "Save", "cancel": "Cancel" },
         "fields": {
             "type": "Log Type",
             "title": "Title",
@@ -713,6 +720,7 @@
             "linkedFaultsHint": "Pick the open faults this work is going out to resolve — they'll auto-close when the work is marked done",
             "relatedCommSiteHint": "Tag this fault to a Comm Site to show it in that site's own fault history (current + past)",
             "noOpenFaults": "No open faults to link",
+            "assignRoleHint": "Pick one or more cells to receive this event in their Personal Task Log (optional)",
             "requiredError": "Required field"
         },
         "editModal": {
@@ -735,6 +743,13 @@
             "alreadyShared": "Already shared",
             "searchPlaceholder": "Search unit..."
         },
+        "assignRoleModal": {
+            "title": "Assign to Cell",
+            "subtitle": "Pick one or more cells to receive this event in their Personal Task Log",
+            "assigned": "Assigned",
+            "notAssigned": "Not assigned",
+            "assignedRolesLabel": "Assigned to cells"
+        },
         "badges": {
             "recurring": "Recurring ({{count}})",
             "handledBy": "Handled under: {{title}}",
@@ -743,6 +758,71 @@
         "permissions": {
             "readonly": "Read only",
             "attachmentsOnly": "Attachments only"
+        }
+    },
+    "personalTaskLog": {
+        "screenTitle": "Personal Task Log",
+        "screenSubtitle": "Manage personal tasks for the selected role",
+        "newTask": "Add Task",
+        "taskCount": "{{count}} tasks",
+        "empty": "No tasks in this status",
+        "confirmDelete": "Delete this task?",
+        "confirmUnassign": "Remove this task's assignment from your cell?",
+        "stats": {
+            "total": "Total Tasks"
+        },
+        "statuses": {
+            "open": "Open",
+            "inProgress": "In Progress",
+            "done": "Done",
+            "blocked": "Blocked",
+            "cancelled": "Cancelled"
+        },
+        "severity": {
+            "high": "High",
+            "low": "Low",
+            "medium": "Medium",
+            "unknown": "Unknown"
+        },
+        "frequency": {
+            "daily": "Daily",
+            "weekly": "Weekly",
+            "monthly": "Monthly"
+        },
+        "recurrence": {
+            "periodic": "Recurring"
+        },
+        "actions": {
+            "view": "View",
+            "edit": "Edit",
+            "delete": "Delete",
+            "unassign": "Unassign",
+            "cancel": "Cancel",
+            "save": "Save Changes"
+        },
+        "viewPanel": {
+            "noNotes": "No notes",
+            "createdBy": "Created by {{name}} · {{date}}"
+        },
+        "fields": {
+            "title": "Title",
+            "description": "Description",
+            "start": "Start Date & Time",
+            "end": "End Date & Time",
+            "status": "Status",
+            "severity": "Severity",
+            "notes": "Notes",
+            "isPeriodic": "Recurring task",
+            "frequency": "Frequency",
+            "recurrenceEndDate": "Recurrence End Date",
+            "linkToCombatLog": "Link to Combat Log",
+            "linkToCombatLogHint": "Pick an event type (optional) — pressing Save Changes will turn this task into an event in the Combat Log, assigned to your cell, and any update to it will show up in both places",
+            "linkToCombatLogSelected": "On save, this task will become an event in the Combat Log"
+        },
+        "form": {
+            "createTitle": "Add Task",
+            "editTitle": "Edit Task",
+            "requiredError": "Required field"
         }
     },
     "commSiteDetail": {

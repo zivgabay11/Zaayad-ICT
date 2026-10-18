@@ -1,4 +1,4 @@
-import { Plan, MockEnemyEntity, MockTarget, CommSite, ClientDevice, TrackedDevice, TrackedDeviceType, GeoCoordinate, CombatLogEvent, CommSiteService, ServiceSubItem, SpectrumZone } from './types';
+import { Plan, MockEnemyEntity, MockTarget, CommSite, ClientDevice, TrackedDevice, TrackedDeviceType, GeoCoordinate, CombatLogEvent, CommSiteService, ServiceSubItem, SpectrumZone, PersonalTask } from './types';
 
 export const mockUsers = [
     {
@@ -833,6 +833,9 @@ export const mockCombatLogEvents: CombatLogEvent[] = [
         start: hoursAgo(3), status: 'פתוח', reporterUserName: 'רב"ט עידן שגיא', reporterUnitCode: 400,
         severity: 'critical', affectedSystem: 'אלעד - אתר תבור', relatedCommSiteId: 'cs-1',
         updateNotes: [], attachments: [], createdAt: hoursAgo(3), updatedAt: hoursAgo(3), sharedWithUnitCodes: [],
+        // Demonstrates the Personal Task Log integration: pushed to two cells at once, each
+        // sees this same event (and can change its status / add notes) from their own view.
+        assignedToRoles: ['operationsOfficer', 'telecomOfficer'],
     },
     {
         id: 'log-fault-2', type: 'ict_faults', title: 'ירידת קישור מב"ן - חטיבה 200', description: 'קישור מב"ן יורד לסירוגין, חשד לתקלת ציוד.',
@@ -1209,5 +1212,51 @@ export const mockSpectrumZones: SpectrumZone[] = [
         band: 'l1',
         endAt: daysAgo(1),
         notes: '',
+    },
+];
+
+function daysFromNow(d: number): string { return daysAgo(-d); }
+
+// Personal Task Log (יומן משימות אישי) — a handful of sample manual tasks spread across a
+// few roles so the default role (operationsOfficer) has at least one task per status
+// section, plus one periodic task. The "linked to Combat Log" demo lives on the
+// mockCombatLogEvents side instead (log-fault-1's assignedToRoles) — see the comment there.
+export const mockPersonalTasks: PersonalTask[] = [
+    {
+        id: 'ptask-1', ownerRole: 'operationsOfficer', title: 'עדכון תמונת מצב יומית', description: 'ריכוז תמונת מצב ודיווח לגורמים הרלוונטיים.',
+        status: 'open', start: daysFromNow(0), severity: 'medium', recurrence: 'periodic',
+        recurrenceRule: { frequency: 'daily', endDate: daysFromNow(30) },
+        createdByUserName: 'רס"ן דני כהן', createdAt: hoursAgo(20), updatedAt: hoursAgo(20),
+    },
+    {
+        id: 'ptask-2', ownerRole: 'operationsOfficer', title: 'תיאום תרגיל עם חטיבה 200', description: 'סבב תיאומים מול קציני המבצעים של חטיבה 200.',
+        status: 'open', start: daysFromNow(3), end: daysFromNow(3), severity: 'high', recurrence: 'oneTime',
+        createdByUserName: 'רס"ן דני כהן', createdAt: hoursAgo(10), updatedAt: hoursAgo(10),
+    },
+    {
+        id: 'ptask-4', ownerRole: 'operationsOfficer', title: 'הכנת תדריך שבועי', description: 'הכנת מצגת ותדריך לישיבת סיכום השבוע.',
+        status: 'inProgress', start: daysFromNow(1), severity: 'low', recurrence: 'periodic',
+        recurrenceRule: { frequency: 'weekly', endDate: daysFromNow(90) },
+        createdByUserName: 'רס"ן דני כהן', createdAt: hoursAgo(30), updatedAt: hoursAgo(5),
+    },
+    {
+        id: 'ptask-5', ownerRole: 'operationsOfficer', title: 'סיכום תרגיל קודם', description: 'ריכוז לקחים והפצתם לגורמים הנוגעים.',
+        status: 'done', start: daysAgo(4), end: daysAgo(3), severity: 'unknown', recurrence: 'oneTime',
+        createdByUserName: 'רס"ן דני כהן', createdAt: daysAgo(4), updatedAt: daysAgo(3),
+    },
+    {
+        id: 'ptask-6', ownerRole: 'operationsOfficer', title: 'ביקור מתוכנן שבוטל', description: 'ביקור שגרתי שבוטל בשל אילוצי שטח.',
+        status: 'cancelled', start: daysAgo(2), severity: 'low', recurrence: 'oneTime',
+        createdByUserName: 'רס"ן דני כהן', createdAt: daysAgo(5), updatedAt: daysAgo(2),
+    },
+    {
+        id: 'ptask-7', ownerRole: 'operationsOfficer', title: 'המתנה לאישור תקציב ציוד', description: 'ממתין לאישור גורם עליון לפני המשך הטיפול.',
+        status: 'blocked', start: daysAgo(1), severity: 'medium', recurrence: 'oneTime',
+        createdByUserName: 'רס"ן דני כהן', createdAt: daysAgo(1), updatedAt: hoursAgo(6),
+    },
+    {
+        id: 'ptask-9', ownerRole: 'logistics', title: 'חידוש מלאי ציוד קשר', description: 'הזמנת ציוד חלופי למלאי החירום.',
+        status: 'open', start: daysFromNow(5), severity: 'medium', recurrence: 'oneTime',
+        createdByUserName: 'סרן מאיה זיו', createdAt: hoursAgo(12), updatedAt: hoursAgo(12),
     },
 ];
