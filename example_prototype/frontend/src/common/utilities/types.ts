@@ -51,6 +51,7 @@ export interface Plan {
     description: Record<string, string>;
     status?: string;
     shared?: 'private' | 'sameUnit';
+    folderId?: string; // FK into OperationFolder — "תיק" grouping, set via the User Settings modal
     createdBy?: string;
     updatedBy?: string;
     created?: string;
@@ -156,10 +157,32 @@ export type UserRole =
     | 'radioOfficer'        // רדיו
     | 'spectrumOfficer';    // ספקטרום
 
+// --- Identity redesign: Cell (תא) is what now drives app behavior (combined with Unit),
+// not Role. Role stays on Session purely as the descriptive "תפקיד" field in the User
+// Settings modal — see common/utilities/cells.ts for the fixed global Cell list.
+export type Cell =
+    | 'strike'          // תא תקיפה
+    | 'support'         // תא תמיכה
+    | 'control'         // תא שליטה
+    | 'communications'  // תא תקשוב
+    | 'intelligence'    // תא מודיעין
+    | 'logistics';      // תא לוגיסטיקה
+
+export type Reality = 'operational' | 'drill'; // מציאות: מבצעית | תרגילית
+
+// A grouping above several Plans (e.g. folder "חרבות ברזל" containing plan "תוכנית שמש
+// צפונית") — selected together as "תיק + תוכנית" in the User Settings modal.
+export interface OperationFolder {
+    id: string;
+    name: Record<string, string>;
+}
+
 export interface Session {
     user: SystemUser;
     unit: SystemUnit;
-    role: UserRole;
+    role: UserRole; // descriptive only ("תפקיד") — no longer read for any behavioral branch
+    cell: Cell;
+    reality: Reality;
 }
 
 // --- Static Space Establishment (כינון מרחב נייח) ---
@@ -274,12 +297,13 @@ export interface CombatLogEvent {
     createdAt: string; // ISO
     updatedAt: string; // ISO
     sharedWithUnitCodes: number[]; // units this event has been pushed to, up or down the force tree (PRD 4.2)
-    // Personal Task Log integration (my addition): roles/cells this event has been pushed to
-    // as a personal task. Only set for the 4 linkable types (see LINKABLE_COMBAT_LOG_TYPES in
+    // Personal Task Log integration (my addition): cells this event has been pushed to as
+    // a personal task. Only set for the 4 linkable types (see LINKABLE_COMBAT_LOG_TYPES in
     // combatLog.ts) — the event itself is the single shared record; the Personal Task Log
-    // just displays/edits it through its own UI for each assigned role, so editing status or
-    // adding a note from either screen updates this same record.
-    assignedToRoles?: UserRole[];
+    // just displays/edits it through its own UI for each assigned cell (combined with the
+    // viewer's unit), so editing status or adding a note from either screen updates this
+    // same record.
+    assignedToCells?: Cell[];
     // Cross-log automation (see CombatLogContext.tsx): work_future_events only — the ICT
     // Faults this work item is going out to resolve. Completing the work auto-closes them.
     linkedFaultIds?: string[];
@@ -290,9 +314,10 @@ export interface CombatLogEvent {
 }
 
 // --- Personal Task Log (יומן משימות אישי) ---
-// Per-role personal task manager, scoped by ownerRole the same way CombatLogEvent is
-// scoped by reporterUnitCode — switching the active role in the header shows a different
-// filtered slice of the one shared tasks array (see PersonalTaskLogContext.tsx).
+// Per-unit-and-cell personal task manager: scoped by the COMBINATION of ownerUnitCode and
+// ownerCell (not role) — switching the active unit or cell in the User Settings modal
+// shows a different filtered slice of the one shared tasks array (see
+// PersonalTaskLogContext.tsx).
 
 export type PersonalTaskRecurrence = 'oneTime' | 'periodic';
 export type PersonalTaskFrequency = 'daily' | 'weekly' | 'monthly';
@@ -306,7 +331,8 @@ export interface PersonalTaskRecurrenceRule {
 
 export interface PersonalTask {
     id: string;
-    ownerRole: UserRole;
+    ownerUnitCode: number;
+    ownerCell: Cell;
     title: string;
     description: string;
     status: PersonalTaskStatus;
@@ -374,3 +400,34 @@ export interface SpectrumZone {
     notes?: string;
 }
 
+
+// --- Link Planning (תכנון קשר) ---
+// Lets a user draw a terrain cell (polygon) to examine, add mock mobile comm platforms,
+// then run a mock coverage "cut" combining existing Comm Sites (from the Static Space
+// catalog) and/or mobile platforms. Coverage is a purely visual approximation (no real RF
+// data) — see common/utilities/linkPlanning.ts for the color/distance model.
+
+export interface LinkCell {
+    id: string;
+    name: string;
+    coordinates: GeoCoordinate[]; // the user-drawn polygon
+    createdAt: string; // ISO
+}
+
+export interface MobileCommPlatform {
+    id: string;
+    name: string;
+    position: GeoCoordinate;
+    createdAt: string; // ISO
+}
+
+export interface LinkCoverageCut {
+    id: string;
+    cellId: string; // FK into LinkCell
+    commSiteIds: string[]; // FK into CommSite (the existing catalog)
+    platformIds: string[]; // FK into MobileCommPlatform
+    visible: boolean;
+    createdAt: string; // ISO
+}
+
+export type LinkCoverageTier = 'good' | 'medium' | 'low' | 'none';

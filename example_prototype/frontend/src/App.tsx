@@ -4,7 +4,7 @@ import {
     Map, Calendar as CalendarIcon, Target, CheckSquare, Crosshair, Flag, Globe, Lightbulb,
     SlidersHorizontal, TriangleAlert, X, PenTool, Sparkles, ScrollText, Swords,
     ChevronDown, ChevronUp, LayoutGrid, Grid3x3, Home, Library, Shield, Radio, Waves, Eye,
-    RadioTower, Radar, Ban, ListChecks
+    RadioTower, Radar, Ban, ListChecks, Signal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavItem } from './common/widgets/NavItem';
@@ -13,9 +13,9 @@ import { DefinitionsScreen } from './definitions/screens/DefinitionsScreen';
 import { ChatPanel } from './common/chat/widgets/ChatPanel';
 import { usePlanContext } from './common/context/PlanContext';
 import { useTranslation } from 'react-i18next';
-import { Session, UserRole } from './common/utilities/types';
-import { mockUsers, mockUnits } from './common/utilities/mockData';
-import { ALL_ROLES, getRoleShortLabel } from './common/utilities/roles';
+import { Session } from './common/utilities/types';
+import { mockUsers, mockUnits, mockOperationFolders } from './common/utilities/mockData';
+import { getCellLabel } from './common/utilities/cells';
 
 import { PlansScreen } from './plans/screens/PlansScreen';
 import { CalendarScreen } from './calendar/screens/CalendarScreen';
@@ -27,8 +27,10 @@ import { MapProvider, useMapContext } from './common/context/MapContext';
 import { DocProvider } from './common/context/DocContext';
 import { AnalysisProvider } from './common/context/AnalysisContext';
 import { StaticSpaceProvider } from './common/context/StaticSpaceContext';
+import { MobileSpaceProvider } from './common/context/MobileSpaceContext';
 import { TikshovProvider } from './common/context/TikshovContext';
 import { SpectrumProvider } from './common/context/SpectrumContext';
+import { LinkPlanningProvider } from './common/context/LinkPlanningContext';
 import { TikshovCopScreen } from './tikshov_cop/screens/TikshovCopScreen';
 import { CombatLogProvider } from './common/context/CombatLogContext';
 import { CombatLogScreen } from './combat_log/screens/CombatLogScreen';
@@ -40,6 +42,8 @@ import { DocPanel } from './common/widgets/DocPanel';
 import { DocEdgeHandle } from './common/widgets/DocEdgeHandle';
 import { AddCommSitesModal } from './common/widgets/AddCommSitesModal';
 import { CommSiteDetailPage } from './common/widgets/CommSiteDetailPage';
+import { ComputeCoverageCutModal } from './link_planning/widgets/ComputeCoverageCutModal';
+import { UserSettingsModal } from './common/widgets/UserSettingsModal';
 import { StaticSpaceScreen } from './static_space/screens/StaticSpaceScreen';
 import { SpectrumScreen } from './spectrum/screens/SpectrumScreen';
 import { formatUnitName } from './common/utilities/formatting';
@@ -65,7 +69,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({ currentSection, chatKey, acti
                 onNavigate={(section) => setCurrentSection(section)}
             />
 
-            {!['diagram', 'main'].includes(currentSection) && (
+            {!['diagram', 'main', 'link_planning'].includes(currentSection) && (
                 <div className="flex-1 min-w-[400px] overflow-hidden rounded-2xl">
                     {currentSection === 'plans' ? (
                         <PlansScreen session={session!} onNavigate={(section) => setCurrentSection(section)} />
@@ -133,11 +137,11 @@ const ChatSection: React.FC<ChatSectionProps> = ({ chatKey, activePlan, currentS
 
     // On diagram screen, chat hides at a higher threshold (since there's no content panel)
     const DIAGRAM_CHAT_HIDE_THRESHOLD = 85;
-    const isChatHidden = isChatManuallyHidden || (isMapOpen && mapWidth >= (['diagram', 'main'].includes(currentSection) ? DIAGRAM_CHAT_HIDE_THRESHOLD : CHAT_HIDE_THRESHOLD));
+    const isChatHidden = isChatManuallyHidden || (isMapOpen && mapWidth >= (['diagram', 'main', 'link_planning'].includes(currentSection) ? DIAGRAM_CHAT_HIDE_THRESHOLD : CHAT_HIDE_THRESHOLD));
 
     const handleShowChat = () => {
         setIsChatManuallyHidden(false);
-        if (['diagram', 'main'].includes(currentSection)) {
+        if (['diagram', 'main', 'link_planning'].includes(currentSection)) {
             setMapWidth(70);
         } else if (isMapOpen && mapWidth >= CHAT_HIDE_THRESHOLD) {
             setMapWidth(CHAT_HIDE_THRESHOLD - 5);
@@ -146,7 +150,7 @@ const ChatSection: React.FC<ChatSectionProps> = ({ chatKey, activePlan, currentS
 
     const handleHideChat = () => {
         setIsChatManuallyHidden(true);
-        if (['diagram', 'main'].includes(currentSection)) {
+        if (['diagram', 'main', 'link_planning'].includes(currentSection)) {
             setMapWidth(100);
         }
     };
@@ -191,12 +195,6 @@ const ChatSection: React.FC<ChatSectionProps> = ({ chatKey, activePlan, currentS
 export default function App() {
     const { activePlan, resetData } = usePlanContext();
     const { t, i18n } = useTranslation();
-    // Short labels for the header's role switcher — getRoleShortLabel is the single shared
-    // source every other role picker in the app (Combat Log's assign-to-cell UI, Personal
-    // Task Log badges) must also call, so they stay byte-identical to this dropdown.
-    const roleShortLabels: Record<UserRole, string> = Object.fromEntries(
-        ALL_ROLES.map(role => [role, getRoleShortLabel(t, role)])
-    ) as Record<UserRole, string>;
     // Splash + login are disabled for this build: it opens straight to the main map
     // screen with the Static Space Establishment feature, no auth step in the way.
     const [showSplash, setShowSplash] = useState(false);
@@ -205,13 +203,24 @@ export default function App() {
     const [session, setSession] = useState<Session | null>(() => {
         const stored = localStorage.getItem('session');
         if (stored) return JSON.parse(stored);
-        const defaultSession: Session = { user: mockUsers[0], unit: mockUnits[1], role: 'operationsOfficer' };
+        const defaultSession: Session = { user: mockUsers[0], unit: mockUnits[1], role: 'operationsOfficer', cell: 'control', reality: 'operational' };
         localStorage.setItem('session', JSON.stringify(defaultSession));
         return defaultSession;
     });
     const isAuthenticated = !!session;
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-    const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+    const [isUserSettingsOpen, setIsUserSettingsOpen] = useState(false);
+    // The top-right "צי"ד" selector is purely decorative per the redesign — Cell (not
+    // Role) is what drives behavior now (see Session.cell, set via the User Settings
+    // modal). This local state is never persisted and has no effect anywhere else.
+    const CIZUD_OPTIONS = [
+        { key: 'agam', label: 'צי"ד אג"ם' },
+        { key: 'telecom', label: 'צי"ד תקשוב' },
+        { key: 'malka', label: 'צי"ד מלכ"א' },
+        { key: 'esh', label: 'צי"ד אש' },
+    ] as const;
+    const [decorativeCizud, setDecorativeCizud] = useState<typeof CIZUD_OPTIONS[number]['key']>('agam');
+    const [isCizudDropdownOpen, setIsCizudDropdownOpen] = useState(false);
 
     useEffect(() => {
         const fadeTimer = setTimeout(() => {
@@ -244,7 +253,7 @@ export default function App() {
     // a time: opening one closes any other, same as switching between them directly.
     const [openPanel, setOpenPanel] = useState<'planning' | 'control' | 'monitoring' | 'spectrum' | 'management' | null>(null);
     const closePanel = () => setOpenPanel(null);
-    const [currentSection, setCurrentSection] = useState<'main' | 'plans' | 'definitions' | 'calendar' | 'general' | 'intelligence' | 'objective' | 'mission' | 'tasks' | 'method' | 'diagram' | 'combat_script' | 'telecom_journal' | 'telecom_deployment' | 'personal_task_log' | 'tikshov_cop' | 'static_space' | 'radio' | 'spectrum_jamming' | 'spectrum_blocking' | 'sync_efforts' | 'order'>('main');
+    const [currentSection, setCurrentSection] = useState<'main' | 'plans' | 'definitions' | 'calendar' | 'general' | 'intelligence' | 'objective' | 'mission' | 'tasks' | 'method' | 'diagram' | 'combat_script' | 'telecom_journal' | 'telecom_deployment' | 'personal_task_log' | 'tikshov_cop' | 'static_space' | 'radio' | 'spectrum_jamming' | 'spectrum_blocking' | 'sync_efforts' | 'order' | 'link_planning'>('main');
 
     // Group of sections that belong to "תכנון" (Planning)
     const orderSections = ['general', 'intelligence', 'objective', 'mission', 'method', 'tasks', 'diagram', 'calendar'];
@@ -297,14 +306,16 @@ export default function App() {
         setSession(null);
     };
 
-    const handleRoleChange = (role: UserRole) => {
+    // Generic session-field updater backing every field in the User Settings modal
+    // (user/unit/cell/role/reality) — same read-merge-persist pattern the old
+    // handleRoleChange used, just not limited to one field.
+    const handleSessionFieldChange = (patch: Partial<Session>) => {
         setSession(prev => {
             if (!prev) return prev;
-            const updated = { ...prev, role };
+            const updated = { ...prev, ...patch };
             localStorage.setItem('session', JSON.stringify(updated));
             return updated;
         });
-        setIsRoleDropdownOpen(false);
     };
 
     if (!isAuthenticated && !showSplash) {
@@ -332,8 +343,10 @@ export default function App() {
             )}
             {!showSplash && (
                 <StaticSpaceProvider>
+                <MobileSpaceProvider>
                 <TikshovProvider>
                 <SpectrumProvider>
+                <LinkPlanningProvider>
                 <CombatLogProvider>
                 <PersonalTaskLogProvider>
                     {/* Top Header */}
@@ -352,29 +365,30 @@ export default function App() {
                                 <ChevronDown className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400 me-0.5" />
                             </button>
 
-                            {/* Role dropdown — switches session.role between the unit's three role types */}
+                            {/* צי"ד selector — purely decorative (see CIZUD_OPTIONS comment
+                                above): clicking an option has no effect anywhere in the app. */}
                             <div className="relative">
                                 <button
-                                    onClick={() => setIsRoleDropdownOpen(prev => !prev)}
+                                    onClick={() => setIsCizudDropdownOpen(prev => !prev)}
                                     className="flex items-center gap-2 p-1 ps-2 h-9 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
                                 >
                                     <div className="flex items-center justify-center w-7 h-7 rounded-md bg-white dark:bg-zinc-700 shadow-sm border border-slate-200 dark:border-zinc-600">
                                         <img src="/icon_agam.svg" alt="" className="w-4 h-4 object-contain brightness-0 dark:brightness-200" />
                                     </div>
                                     <span className="text-sm font-medium text-slate-700 dark:text-zinc-200">
-                                        {session ? roleShortLabels[session.role] : ''}
+                                        {CIZUD_OPTIONS.find(o => o.key === decorativeCizud)?.label}
                                     </span>
-                                    <ChevronDown className={`w-3.5 h-3.5 text-slate-500 dark:text-zinc-400 transition-transform ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
+                                    <ChevronDown className={`w-3.5 h-3.5 text-slate-500 dark:text-zinc-400 transition-transform ${isCizudDropdownOpen ? 'rotate-180' : ''}`} />
                                 </button>
-                                {isRoleDropdownOpen && (
+                                {isCizudDropdownOpen && (
                                     <div className="absolute top-full start-0 mt-1.5 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-slate-200 dark:border-zinc-600 py-1 min-w-[140px] z-30">
-                                        {ALL_ROLES.map((role) => (
+                                        {CIZUD_OPTIONS.map((option) => (
                                             <button
-                                                key={role}
-                                                onClick={() => handleRoleChange(role)}
-                                                className={`w-full text-start px-3 py-1.5 text-sm transition-colors ${session?.role === role ? 'bg-primary/10 text-primary font-medium' : 'text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-700'}`}
+                                                key={option.key}
+                                                onClick={() => { setDecorativeCizud(option.key); setIsCizudDropdownOpen(false); }}
+                                                className={`w-full text-start px-3 py-1.5 text-sm transition-colors ${decorativeCizud === option.key ? 'bg-primary/10 text-primary font-medium' : 'text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-700'}`}
                                             >
-                                                {roleShortLabels[role]}
+                                                {option.label}
                                             </button>
                                         ))}
                                     </div>
@@ -393,15 +407,19 @@ export default function App() {
                         {/* Center section: plan info + ecosystem symbol + session info */}
                         <div className="invisible h-9 w-0"></div>
                         <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none z-30">
-                            <div className="flex items-stretch pointer-events-auto bg-slate-100 dark:bg-[#303134] rounded-lg shadow-sm border border-slate-300 dark:border-zinc-700/70 h-9">
+                            <div
+                                onClick={() => setIsUserSettingsOpen(prev => !prev)}
+                                title={t('userSettings.openHint')}
+                                className="flex items-stretch pointer-events-auto bg-slate-100 dark:bg-[#303134] rounded-lg shadow-sm border border-slate-300 dark:border-zinc-700/70 h-9 cursor-pointer hover:border-primary/50 transition-colors"
+                            >
 
-                                {/* Start block: Operational Reality & Role */}
+                                {/* Start block: Reality & "all permissions" (role no longer gates anything) */}
                                 <div className="flex flex-col items-center justify-center px-4 min-w-[140px]">
                                     <span className="text-[13px] font-bold text-slate-800 dark:text-white leading-none mb-0.5">
-                                        {t('header.operational_reality', 'מציאות מבצעית')}
+                                        {session?.reality === 'drill' ? t('header.drillReality') : t('header.operational_reality', 'מציאות מבצעית')}
                                     </span>
                                     <span className="text-[11px] text-slate-500 dark:text-slate-300 leading-none">
-                                        {session ? t(`roles.${session.role}`) : ''}
+                                        {session ? getCellLabel(t, session.cell) : ''}
                                     </span>
                                 </div>
 
@@ -414,11 +432,17 @@ export default function App() {
                                     />
                                 </div>
 
-                                {/* End block: Plan Name & Unit Name + Dropdown */}
+                                {/* End block: Folder + Plan Name & Unit Name + Dropdown */}
                                 <div className="flex items-stretch">
                                     <div className="flex flex-col items-center justify-center px-3 min-w-[140px]">
                                         <span className="text-[13px] font-bold text-slate-800 dark:text-white leading-none mb-0.5">
-                                            {activePlan ? (activePlan.name?.[i18n.language] || activePlan.name?.['en']) : '---'}
+                                            {(() => {
+                                                if (!activePlan) return '---';
+                                                const planName = activePlan.name?.[i18n.language] || activePlan.name?.['en'];
+                                                const folder = mockOperationFolders.find(f => f.id === activePlan.folderId);
+                                                const folderName = folder ? (folder.name[i18n.language] || folder.name.en) : null;
+                                                return folderName ? `${folderName}, ${planName}` : planName;
+                                            })()}
                                         </span>
                                         <span className="text-[11px] text-slate-500 dark:text-slate-300 leading-none">
                                             {session ? formatUnitName(session.unit, t, i18n.language) : '---'}
@@ -426,9 +450,9 @@ export default function App() {
                                     </div>
 
                                     <div className="flex items-center pe-1.5 ps-0.5">
-                                        <button className="flex items-center justify-center p-1 rounded-md bg-slate-200 dark:bg-[#4a4d51] hover:bg-slate-300 dark:hover:bg-[#5a5d61] transition-colors border-none">
+                                        <div className="flex items-center justify-center p-1 rounded-md bg-slate-200 dark:bg-[#4a4d51] hover:bg-slate-300 dark:hover:bg-[#5a5d61] transition-colors">
                                             <ChevronUp className="w-4 h-4 text-slate-600 dark:text-slate-300" />
-                                        </button>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -588,9 +612,10 @@ export default function App() {
                             {currentSection !== 'main' && (
                             <div className="flex items-center gap-1 min-h-[52px] bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 overflow-x-auto overflow-y-hidden shrink-0 shadow-sm z-10 px-3 py-2">
                                 {openPanel === 'planning' && (() => {
-                                            const planningItems = session?.role === 'telecomOfficer' ? [
+                                            const planningItems = session?.cell === 'communications' ? [
                                                 { id: 'telecom_journal', icon: <ScrollText className="w-4 h-4" />, label: t('nav.telecom_journal') },
                                                 { id: 'telecom_deployment', icon: <Map className="w-4 h-4" />, label: t('nav.telecom_deployment') },
+                                                { id: 'link_planning', icon: <Signal className="w-4 h-4" />, label: t('nav.link_planning') },
                                             ] : [
                                                 { id: 'general', icon: <ClipboardList className="w-4 h-4" />, label: t('nav.general') },
                                                 { id: 'objective', icon: <Crosshair className="w-4 h-4" />, label: t('nav.objective') },
@@ -600,6 +625,7 @@ export default function App() {
                                                 { id: 'tasks', icon: <CheckSquare className="w-4 h-4" />, label: t('nav.tasks') },
                                                 { id: 'diagram', icon: <PenTool className="w-4 h-4" />, label: t('nav.diagram') },
                                                 { id: 'calendar', icon: <CalendarIcon className="w-4 h-4" />, label: t('nav.calendar') },
+                                                { id: 'link_planning', icon: <Signal className="w-4 h-4" />, label: t('nav.link_planning') },
                                             ];
                                             return (
                                                 <>
@@ -716,7 +742,10 @@ export default function App() {
                             )}
 
                             {/* Main Content Area */}
-                            <MapProvider currentSection={currentSection}>
+                            <MapProvider
+                                currentSection={currentSection}
+                                onEnterLinkPlanningEditor={() => { setOpenPanel('planning'); setCurrentSection('link_planning'); }}
+                            >
                                 <AnalysisProvider>
                                     <DocProvider>
                                         <main className="flex-1 flex bg-slate-50 dark:bg-zinc-950 overflow-hidden transition-colors duration-200 relative">
@@ -735,6 +764,16 @@ export default function App() {
                                         </main>
                                         <AddCommSitesModal />
                                         <CommSiteDetailPage />
+                                        <ComputeCoverageCutModal />
+                                        {session && (
+                                            <UserSettingsModal
+                                                isOpen={isUserSettingsOpen}
+                                                onClose={() => setIsUserSettingsOpen(false)}
+                                                session={session}
+                                                onSessionFieldChange={handleSessionFieldChange}
+                                                onSignOut={handleSignOut}
+                                            />
+                                        )}
                                     </DocProvider>
                                 </AnalysisProvider>
                             </MapProvider>
@@ -742,8 +781,10 @@ export default function App() {
                     </div>
                 </PersonalTaskLogProvider>
                 </CombatLogProvider>
+                </LinkPlanningProvider>
                 </SpectrumProvider>
                 </TikshovProvider>
+                </MobileSpaceProvider>
                 </StaticSpaceProvider>
             )}
 

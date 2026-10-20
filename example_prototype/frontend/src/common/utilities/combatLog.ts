@@ -1,4 +1,4 @@
-import { CombatLogEvent, CombatLogType, CombatLogSeverity, UserRole } from './types';
+import { CombatLogEvent, CombatLogType, CombatLogSeverity, Cell } from './types';
 
 // Domain constants + pure helpers for the Integrated Combat Log (יומן לחימה מתכלל).
 // See PRD v2.0 sections 3, 5.2, 9 for the source-of-truth tables these mirror, and the
@@ -132,11 +132,11 @@ export function getHandlingWorkEvent(faultId: string, allEvents: CombatLogEvent[
 // event has been explicitly shared with it, and then only per the log type's table in 4.2.
 export type CombatLogEditPermission = 'owner' | 'sharedFull' | 'sharedAttachmentsOnly' | 'sharedReadonly' | 'readonly';
 
-export function getEditPermission(event: CombatLogEvent, viewingUnitCode: number, viewingRole?: UserRole): CombatLogEditPermission {
-    // A role the event was explicitly assigned to (Personal Task Log integration) gets full
+export function getEditPermission(event: CombatLogEvent, viewingUnitCode: number, viewingCell?: Cell): CombatLogEditPermission {
+    // A cell the event was explicitly assigned to (Personal Task Log integration) gets full
     // owner-equivalent rights — that's a deliberate handoff of responsibility, distinct from
     // the passive cross-unit visibility rules below.
-    if (viewingRole && event.assignedToRoles?.includes(viewingRole)) return 'owner';
+    if (viewingCell && event.assignedToCells?.includes(viewingCell)) return 'owner';
     if (event.reporterUnitCode === viewingUnitCode) return 'owner';
     if (event.sharedWithUnitCodes.includes(viewingUnitCode)) {
         if (event.type === 'ict_faults' || event.type === 'work_future_events' || event.type === 'other') return 'sharedFull';

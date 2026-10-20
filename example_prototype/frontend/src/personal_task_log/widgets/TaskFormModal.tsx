@@ -3,14 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { X, Link2 } from 'lucide-react';
 import { usePersonalTaskLogContext } from '../../common/context/PersonalTaskLogContext';
 import { useCombatLogContext } from '../../common/context/CombatLogContext';
-import { PersonalTask, PersonalTaskSeverity, PersonalTaskFrequency, PersonalTaskStatus, UserRole, CombatLogType, CombatLogSeverity } from '../../common/utilities/types';
+import { PersonalTask, PersonalTaskSeverity, PersonalTaskFrequency, PersonalTaskStatus, Cell, CombatLogType, CombatLogSeverity } from '../../common/utilities/types';
 import { LINKABLE_COMBAT_LOG_TYPES, COMBAT_LOG_TYPE_COLORS } from '../../common/utilities/combatLog';
 import { PERSONAL_TASK_SEVERITY_ORDER, PERSONAL_TASK_SEVERITY_DOT_COLOR, PERSONAL_TASK_STATUS_ORDER } from '../utilities/personalTaskLog';
 
 interface TaskFormModalProps {
     isOpen: boolean;
     onClose: () => void;
-    ownerRole: UserRole;
+    ownerUnitCode: number;
+    ownerCell: Cell;
     task?: PersonalTask | null; // when set, the modal edits this task instead of creating one
     onLinked?: (eventId: string) => void; // called instead of onClose after "link to combat log" succeeds, so the caller can open the resulting item
 }
@@ -30,7 +31,7 @@ function toCombatLogSeverity(severity: PersonalTaskSeverity): CombatLogSeverity 
 const inputClass = "w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 outline-none focus:border-primary transition-colors";
 const labelClass = "text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block";
 
-export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, ownerRole, task, onLinked }) => {
+export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, ownerUnitCode, ownerCell, task, onLinked }) => {
     const { t } = useTranslation();
     const { createTask, updateTask, deleteTask } = usePersonalTaskLogContext();
     const { createEvent } = useCombatLogContext();
@@ -84,8 +85,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
         // Linked to a Combat Log type → this single Save press both creates the shared
         // event (assigned back to this role) and, if converting an existing manual task,
         // removes the old manual row — one atomic action, not two separate steps.
-        // assignedToRoles is set in this same createEvent call rather than a follow-up
-        // toggleAssignedRole call, since two context mutations chained in one handler would
+        // assignedToCells is set in this same createEvent call rather than a follow-up
+        // toggleAssignedCell call, since two context mutations chained in one handler would
         // each close over the pre-update array and the second would overwrite the first.
         if (linkedType) {
             const newEvent = createEvent({
@@ -95,7 +96,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
                 start: start ? new Date(start).toISOString() : undefined,
                 end: end ? new Date(end).toISOString() : undefined,
                 severity: linkedType === 'ict_faults' ? toCombatLogSeverity(severity) : undefined,
-                assignedToRoles: [ownerRole],
+                assignedToCells: [ownerCell],
             });
             if (isEdit && task) deleteTask(task.id);
             if (onLinked) onLinked(newEvent.id);
@@ -118,7 +119,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
         if (isEdit && task) {
             updateTask(task.id, payload);
         } else {
-            createTask({ ownerRole, ...payload });
+            createTask({ ownerUnitCode, ownerCell, ...payload });
         }
         handleClose();
     };

@@ -3,7 +3,8 @@
         "planning": "Planning",
         "operations": "Operations",
         "sync_efforts": "Sync Efforts",
-        "operational_reality": "Operational Reality"
+        "operational_reality": "Operational Reality",
+        "drillReality": "Drill Reality"
     },
     "nav": {
         "main": "Main",
@@ -25,6 +26,7 @@
         "definitions": "Definitions",
         "static_space": "Static Space Establishment",
         "tikshov_cop": "Tikshov Common Operational Picture",
+        "link_planning": "Link Planning",
         "control": "Command & Control",
         "management": "Management",
         "radio": "Radio",
@@ -97,6 +99,14 @@
         "continuity": "Continuity of Operations",
         "radioOfficer": "Radio",
         "spectrumOfficer": "Spectrum"
+    },
+    "cells": {
+        "strike": "Strike Cell",
+        "support": "Support Cell",
+        "control": "Control Cell",
+        "communications": "Communications Cell",
+        "intelligence": "Intelligence Cell",
+        "logistics": "Logistics Cell"
     },
     "common": {
         "welcome": "Welcome",
@@ -928,5 +938,96 @@
             "minutes": "{{count}}m",
             "hours": "{{count}}h"
         }
+    },
+    "linkPlanning": {
+        "layerName": "Radio Link Planning",
+        "noCuts": "No coverage cuts computed yet",
+        "drawCell": "Draw Link Cell Polygon",
+        "addPlatform": "Add Mobile Platform",
+        "computeCut": "Compute Coverage Cut",
+        "mobilePlatform": "Mobile Comm Platform",
+        "nameCellTitle": "Name the terrain cell",
+        "cellNamePlaceholder": "e.g. North Cell",
+        "namePlatformTitle": "Name the mobile platform",
+        "platformNamePlaceholder": "e.g. Mobile Unit 1",
+        "computeCutModalTitle": "Compute Coverage Cut",
+        "computeCutModalSubtitle": "Pick a terrain cell and the comm sites/platforms affecting it",
+        "selectCell": "Terrain Cell",
+        "selectCellPlaceholder": "Select a terrain cell",
+        "noCellsHint": "Draw a terrain cell on the map before computing a cut",
+        "selectCommSites": "Comm Sites",
+        "selectPlatforms": "Mobile Platforms",
+        "noPlatformsHint": "No mobile platforms added yet",
+        "deleteCut": "Delete cut",
+        "rename": "Rename",
+        "renameTitle": "Rename",
+        "changeLocation": "Change location",
+        "deleteCell": "Delete terrain cell",
+        "deletePlatform": "Delete platform"
+    },
+    "mobileSpace": {
+        "layerName": "Mobile Space Establishment"
+    },
+    "layerOrganizer": {
+        "transferToNihuk": "Transfer to NIHUK",
+        "cancelTransferToNihuk": "Cancel transfer to NIHUK",
+        "openLinkPlanningEditor": "Open Radio Link Planning editor",
+        "groups": {
+            "nihuk": "NIHUK (Combat Mgmt)",
+            "planning": "NOHAK (Battle Procedure)",
+            "combat": "Combat",
+            "operations": "Operations",
+            "enemy": "Enemy",
+            "collection": "Collection",
+            "administration": "Administration",
+            "comms": "Communications",
+            "cutsFolder": "Cuts Folder",
+            "otherUnitsNihuk": "Other Units' NIHUK",
+            "battlePlanning": "Battle Planning"
+        },
+        "combatItems": {
+            "ourForces": "Our Forces",
+            "detectionsEvents": "Detections & Events",
+            "coordControl": "Coordination & Control",
+            "mainOperations": "Main Operations",
+            "mainIntel": "Main Intelligence"
+        },
+        "operationsItems": {
+            "ourMinesLosses": "Our Forces' Mines & Losses",
+            "commonLanguage": "Common Language",
+            "draftOperations": "Draft Operations",
+            "assignedOperations": "Assigned Operations",
+            "subordinateOperations": "Subordinate Operations",
+            "neighboringOperations": "Neighboring Operations",
+            "rokak": "ROK\"K",
+            "engineering": "Engineering",
+            "rear": "Rear Echelon",
+            "bakadama": "BAKADAMA",
+            "formationsCop": "Formations COP",
+            "intelReports": "Intel & Reports",
+            "landingZones": "Landing Zones (Real-Time)"
+        },
+        "enemyItems": {
+            "draftEnemyPicture": "Draft Enemy Picture",
+            "subordinateEnemyPicture": "Subordinate Enemy Picture",
+            "higherEnemyPicture": "Higher Echelon Enemy Picture",
+            "sectorHistory": "Sector History"
+        },
+        "battlePlanningItems": {
+            "mainOpsPlanning": "Main Operations Planning",
+            "coordControl": "Coordination & Control"
+        }
+    },
+    "userSettings": {
+        "title": "User Settings",
+        "openHint": "Open user settings",
+        "user": "User",
+        "unit": "Unit",
+        "cell": "Cell",
+        "role": "Role",
+        "reality": "Reality",
+        "realityOperational": "Operational",
+        "realityDrill": "Drill",
+        "folderAndPlan": "Folder + Plan"
     }
 }

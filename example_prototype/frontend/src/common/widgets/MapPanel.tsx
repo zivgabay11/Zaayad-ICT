@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
@@ -11,12 +11,19 @@ import { MapToolbar } from '../../diagram/widgets/MapToolbar';
 import { AnalysisLegend } from '../../diagram/widgets/AnalysisLegend';
 import { MapAiToolsPanel } from '../../diagram/widgets/MapAiToolsPanel';
 import { useGeoman } from '../../diagram/hooks/useGeoman';
-import { DiagramElement, SystemUnit } from '../utilities/types';
+import { DiagramElement, GeoCoordinate, SystemUnit } from '../utilities/types';
 import { ElementAssignPopover } from '../../diagram/widgets/ElementAssignPopover';
 import { MapContextMenu } from '../../diagram/widgets/MapContextMenu';
 import { StaticSpaceMapLayer } from './StaticSpaceMapLayer';
 import { TikshovCopMapLayer } from './TikshovCopMapLayer';
 import { SpectrumMapLayer } from './SpectrumMapLayer';
+import { LinkCoverageMapLayer } from './LinkCoverageMapLayer';
+import { MobileSpaceMapLayer } from './MobileSpaceMapLayer';
+import { useLinkPlanningContext } from '../context/LinkPlanningContext';
+import { useLinkPlanningDrawing } from '../../link_planning/hooks/useLinkPlanningDrawing';
+import { NamePromptPopover } from '../../link_planning/widgets/NamePromptPopover';
+import { MobilePlatformContextMenu } from '../../link_planning/widgets/MobilePlatformContextMenu';
+import { LinkCellContextMenu } from '../../link_planning/widgets/LinkCellContextMenu';
 
 // Fix Leaflet's default icon path issue with Vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -63,42 +70,25 @@ function MapResizer() {
     return null;
 }
 
-// Component to handle live coordinates display
-function MapCoordinates() {
-    const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-
-    useMapEvents({
-        mousemove(e) {
-            setCoords(e.latlng);
-        },
-        mouseout() {
-            setCoords(null);
-        }
-    });
-
-    if (!coords) return null;
-
-    const latStr = Math.abs(coords.lat).toFixed(5);
-    const lngStr = Math.abs(coords.lng).toFixed(5);
-    const latDir = coords.lat >= 0 ? 'N' : 'S';
-    const lngDir = coords.lng >= 0 ? 'E' : 'W';
-
-    return (
-        <div className="absolute bottom-3 end-16 z-[1000] pointer-events-none mb-0.5">
-            <div className="flex items-center justify-center bg-white dark:bg-zinc-800 rounded-xl shadow-md border border-slate-200 dark:border-zinc-600 px-3 py-1.5 text-slate-600 dark:text-zinc-300 font-mono text-[11px] tracking-wider whitespace-nowrap">
-                {lngStr}° {lngDir} / {latStr}° {latDir}
-            </div>
-        </div>
-    );
-}
-
 export const MapPanel: React.FC = () => {
+    const { t } = useTranslation();
     const { isMapOpen, mapWidth, activeMapType, opacity, activePhaseId, activeUnitCode, currentSection } = useMapContext();
     const { activePlan, updatePlan } = usePlanContext();
     const { setMapInstance: setAnalysisMapInstance } = useAnalysisContext();
+    const {
+        linkCells, mobilePlatforms, addLinkCell, addMobilePlatform,
+        renameLinkCell, updateLinkCellCoordinates, renameMobilePlatform, updateMobilePlatformPosition,
+        removeLinkCell,
+    } = useLinkPlanningContext();
     const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
     const [activeDrawingTool, setActiveDrawingTool] = useState<string | null>(null);
     const [pendingElement, setPendingElement] = useState<DiagramElement | null>(null);
+    const [pendingCellCoords, setPendingCellCoords] = useState<GeoCoordinate[] | null>(null);
+    const [pendingPlatformPos, setPendingPlatformPos] = useState<GeoCoordinate | null>(null);
+    const [platformContextMenu, setPlatformContextMenu] = useState<{ platformId: string; x: number; y: number } | null>(null);
+    const [linkCellContextMenu, setLinkCellContextMenu] = useState<{ cellId: string; x: number; y: number } | null>(null);
+    const [pendingRename, setPendingRename] = useState<{ kind: 'cell' | 'platform'; id: string; currentName: string } | null>(null);
+    const linkPlanningSuppressRef = React.useRef(false);
 
     const diagramElements = activePlan?.diagramElements || [];
     const planUnitCodes = useMemo(() => (activePlan?.units || []).map(u => u.code), [activePlan?.units]);
@@ -153,6 +143,16 @@ export const MapPanel: React.FC = () => {
         planUnitCodes,
         onElementsChange: handleElementsChange,
         onElementCreatedWithoutAssignment: handleElementCreatedWithoutAssignment,
+        externalDrawSuppressRef: linkPlanningSuppressRef,
+    });
+
+    const { enableDrawCell, enablePlacePlatform, enableRedrawCell, enableMovePlatform } = useLinkPlanningDrawing({
+        map: mapInstance,
+        suppressRef: linkPlanningSuppressRef,
+        onCellDrawn: setPendingCellCoords,
+        onPlatformPlaced: setPendingPlatformPos,
+        onCellRedrawn: updateLinkCellCoordinates,
+        onPlatformMoved: updateMobilePlatformPosition,
     });
 
     const handleDrawPolygon = useCallback(() => {
@@ -263,7 +263,7 @@ export const MapPanel: React.FC = () => {
                     exit={{ width: 0, opacity: 0 }}
                     transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                     className="h-full flex overflow-hidden isolate"
-                    style={['diagram', 'main'].includes(currentSection) ? undefined : { maxWidth: '70%', flexShrink: 0 }}
+                    style={['diagram', 'main', 'link_planning'].includes(currentSection) ? undefined : { maxWidth: '70%', flexShrink: 0 }}
                 >
                     {/* Map container */}
                     <div className="flex-1 relative rounded-none overflow-hidden shadow-lg border border-e-0 border-slate-200 dark:border-zinc-700 bg-white dark:bg-black">
@@ -274,6 +274,8 @@ export const MapPanel: React.FC = () => {
                             onDrawArc={handleDrawArc}
                             onDrawTextLabel={handleDrawTextLabel}
                             activeDrawingTool={activeDrawingTool}
+                            onDrawLinkCell={enableDrawCell}
+                            onPlaceMobilePlatform={enablePlacePlatform}
                             onFitBounds={() => {
                                 if (!mapInstance || diagramElements.length === 0) return;
                                 const boundsPoints: [number, number][] = [];
@@ -332,10 +334,14 @@ export const MapPanel: React.FC = () => {
                                 />
                                 <MapInstanceGetter onMap={handleMapReady} />
                                 <MapResizer />
-                                <MapCoordinates />
                                 <StaticSpaceMapLayer />
+                                <MobileSpaceMapLayer onPlatformContextMenu={(platformId, x, y) => setPlatformContextMenu({ platformId, x, y })} />
                                 <TikshovCopMapLayer />
                                 <SpectrumMapLayer />
+                                <LinkCoverageMapLayer
+                                    onPlatformContextMenu={(platformId, x, y) => setPlatformContextMenu({ platformId, x, y })}
+                                    onCellContextMenu={(cellId, x, y) => setLinkCellContextMenu({ cellId, x, y })}
+                                />
                             </MapContainer>
                         </div>
 
@@ -369,6 +375,64 @@ export const MapPanel: React.FC = () => {
                                 sessionUnit={sessionUnit}
                                 onConfirm={handlePopoverConfirm}
                                 onCancel={handlePopoverCancel}
+                            />
+                        )}
+
+                        {/* Link Planning: name a just-drawn cell or just-placed platform */}
+                        {pendingCellCoords && (
+                            <NamePromptPopover
+                                title={t('linkPlanning.nameCellTitle')}
+                                placeholder={t('linkPlanning.cellNamePlaceholder')}
+                                onConfirm={(name) => { addLinkCell(name, pendingCellCoords); setPendingCellCoords(null); }}
+                                onCancel={() => setPendingCellCoords(null)}
+                            />
+                        )}
+                        {pendingPlatformPos && (
+                            <NamePromptPopover
+                                title={t('linkPlanning.namePlatformTitle')}
+                                placeholder={t('linkPlanning.platformNamePlaceholder')}
+                                onConfirm={(name) => { addMobilePlatform(name, pendingPlatformPos); setPendingPlatformPos(null); }}
+                                onCancel={() => setPendingPlatformPos(null)}
+                            />
+                        )}
+                        {pendingRename && (
+                            <NamePromptPopover
+                                title={t('linkPlanning.renameTitle')}
+                                placeholder={pendingRename.kind === 'cell' ? t('linkPlanning.cellNamePlaceholder') : t('linkPlanning.platformNamePlaceholder')}
+                                initialValue={pendingRename.currentName}
+                                onConfirm={(name) => {
+                                    if (pendingRename.kind === 'cell') renameLinkCell(pendingRename.id, name);
+                                    else renameMobilePlatform(pendingRename.id, name);
+                                    setPendingRename(null);
+                                }}
+                                onCancel={() => setPendingRename(null)}
+                            />
+                        )}
+                        {platformContextMenu && (
+                            <MobilePlatformContextMenu
+                                platformId={platformContextMenu.platformId}
+                                x={platformContextMenu.x}
+                                y={platformContextMenu.y}
+                                onRename={() => {
+                                    const platform = mobilePlatforms.find(p => p.id === platformContextMenu.platformId);
+                                    if (platform) setPendingRename({ kind: 'platform', id: platform.id, currentName: platform.name });
+                                }}
+                                onChangeLocation={() => enableMovePlatform(platformContextMenu.platformId)}
+                                onClose={() => setPlatformContextMenu(null)}
+                            />
+                        )}
+                        {linkCellContextMenu && (
+                            <LinkCellContextMenu
+                                cellId={linkCellContextMenu.cellId}
+                                x={linkCellContextMenu.x}
+                                y={linkCellContextMenu.y}
+                                onRename={() => {
+                                    const cell = linkCells.find(c => c.id === linkCellContextMenu.cellId);
+                                    if (cell) setPendingRename({ kind: 'cell', id: cell.id, currentName: cell.name });
+                                }}
+                                onChangeLocation={() => enableRedrawCell(linkCellContextMenu.cellId)}
+                                onDelete={() => removeLinkCell(linkCellContextMenu.cellId)}
+                                onClose={() => setLinkCellContextMenu(null)}
                             />
                         )}
 

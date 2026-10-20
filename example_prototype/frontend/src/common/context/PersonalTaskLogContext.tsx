@@ -5,17 +5,18 @@ import {
     PersonalTaskSeverity,
     PersonalTaskRecurrence,
     PersonalTaskRecurrenceRule,
-    UserRole,
+    Cell,
 } from '../utilities/types';
 import { mockPersonalTasks } from '../utilities/mockData';
 
 // State + CRUD for the Personal Task Log (יומן משימות אישי). Mirrors CombatLogContext.tsx:
 // one shared array persisted to localStorage, filtered client-side by the screen (here, by
-// ownerRole instead of reporterUnitCode) — switching the header's role selector therefore
-// just changes what the screen filters to, no extra plumbing needed.
+// the COMBINATION of ownerUnitCode + ownerCell) — switching the Unit or Cell in the User
+// Settings modal therefore just changes what the screen filters to, no extra plumbing needed.
 
 export interface CreatePersonalTaskInput {
-    ownerRole: UserRole;
+    ownerUnitCode: number;
+    ownerCell: Cell;
     title: string;
     description: string;
     status?: PersonalTaskStatus;
@@ -27,11 +28,12 @@ export interface CreatePersonalTaskInput {
     recurrenceRule?: PersonalTaskRecurrenceRule;
 }
 
-export type UpdatePersonalTaskInput = Partial<Omit<CreatePersonalTaskInput, 'ownerRole'>>;
+export type UpdatePersonalTaskInput = Partial<Omit<CreatePersonalTaskInput, 'ownerUnitCode' | 'ownerCell'>>;
 
 interface PersonalTaskLogContextType {
     tasks: PersonalTask[];
-    myRole: UserRole;
+    myUnitCode: number;
+    myCell: Cell;
     createTask: (input: CreatePersonalTaskInput) => PersonalTask;
     updateTask: (id: string, input: UpdatePersonalTaskInput) => void;
     deleteTask: (id: string) => void;
@@ -51,13 +53,23 @@ function readSessionUserName(): string {
     }
 }
 
-function readSessionRole(): UserRole {
+function readSessionCell(): Cell {
     try {
         const raw = localStorage.getItem('session');
         const session = raw ? JSON.parse(raw) : null;
-        return (session?.role as UserRole) || 'operationsOfficer';
+        return (session?.cell as Cell) || 'control';
     } catch {
-        return 'operationsOfficer';
+        return 'control';
+    }
+}
+
+function readSessionUnitCode(): number {
+    try {
+        const raw = localStorage.getItem('session');
+        const session = raw ? JSON.parse(raw) : null;
+        return session?.unit?.code ?? 1000;
+    } catch {
+        return 1000;
     }
 }
 
@@ -75,7 +87,8 @@ export const PersonalTaskLogProvider: React.FC<{ children: ReactNode }> = ({ chi
             return mockPersonalTasks;
         }
     });
-    const myRole = readSessionRole();
+    const myCell = readSessionCell();
+    const myUnitCode = readSessionUnitCode();
 
     const persist = (next: PersonalTask[]) => {
         setTasks(next);
@@ -86,7 +99,8 @@ export const PersonalTaskLogProvider: React.FC<{ children: ReactNode }> = ({ chi
         const now = new Date().toISOString();
         const task: PersonalTask = {
             id: newId(),
-            ownerRole: input.ownerRole,
+            ownerUnitCode: input.ownerUnitCode,
+            ownerCell: input.ownerCell,
             title: input.title,
             description: input.description,
             status: input.status || 'open',
@@ -124,7 +138,7 @@ export const PersonalTaskLogProvider: React.FC<{ children: ReactNode }> = ({ chi
     };
 
     return (
-        <PersonalTaskLogContext.Provider value={{ tasks, myRole, createTask, updateTask, deleteTask }}>
+        <PersonalTaskLogContext.Provider value={{ tasks, myUnitCode, myCell, createTask, updateTask, deleteTask }}>
             {children}
         </PersonalTaskLogContext.Provider>
     );

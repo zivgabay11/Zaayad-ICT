@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Eye, Pencil, Trash2, Repeat, Link2, Unlink } from 'lucide-react';
 import { COMBAT_LOG_TYPE_COLORS, COMBAT_LOG_SEVERITY_COLOR } from '../../common/utilities/combatLog';
-import { getRoleShortLabel } from '../../common/utilities/roles';
+import { getCellLabel } from '../../common/utilities/cells';
 import { TaskLogItem } from '../utilities/personalTaskLog';
 import {
     PERSONAL_TASK_STATUS_ACCENT,
@@ -71,7 +71,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ item, onView, onEdit, onRemo
 
                     {item.kind === 'manual' && (
                         <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full border border-slate-300/60 dark:border-zinc-600/60 bg-black/5 dark:bg-white/5 text-slate-600 dark:text-zinc-300">
-                            {getRoleShortLabel(t, item.task.ownerRole)}
+                            {getCellLabel(t, item.task.ownerCell)}
                         </span>
                     )}
 

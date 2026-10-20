@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Check, Users } from 'lucide-react';
 import { useCombatLogContext } from '../../common/context/CombatLogContext';
 import { CombatLogEvent } from '../../common/utilities/types';
-import { ALL_ROLES, getRoleShortLabel } from '../../common/utilities/roles';
+import { ALL_CELLS, getCellLabel } from '../../common/utilities/cells';
 
 // Push this event to one or more roles' Personal Task Log (יומן משימות אישי) — unlike
 // ShareEventModal's one-way unit sharing, this is a true toggle: a role can be added or
@@ -17,10 +17,10 @@ interface AssignRoleModalProps {
 
 export const AssignRoleModal: React.FC<AssignRoleModalProps> = ({ event, onClose }) => {
     const { t } = useTranslation();
-    const { toggleAssignedRole } = useCombatLogContext();
+    const { toggleAssignedCell } = useCombatLogContext();
 
     if (!event) return null;
-    const assigned = event.assignedToRoles || [];
+    const assigned = event.assignedToCells || [];
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -31,19 +31,19 @@ export const AssignRoleModal: React.FC<AssignRoleModalProps> = ({ event, onClose
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-2">
-                    {ALL_ROLES.map(role => {
-                        const isAssigned = assigned.includes(role);
+                    {ALL_CELLS.map(cell => {
+                        const isAssigned = assigned.includes(cell);
                         return (
                             <div
-                                key={role}
-                                onClick={() => toggleAssignedRole(event.id, role)}
+                                key={cell}
+                                onClick={() => toggleAssignedCell(event.id, cell)}
                                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
                             >
                                 <span className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 ${isAssigned ? 'bg-emerald-50 text-emerald-500 dark:bg-emerald-500/10' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-zinc-500'}`}>
                                     {isAssigned ? <Check className="w-4 h-4" /> : <Users className="w-4 h-4" />}
                                 </span>
                                 <div className="min-w-0 flex-1">
-                                    <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">{getRoleShortLabel(t, role)}</div>
+                                    <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">{getCellLabel(t, cell)}</div>
                                     <div className="text-[10.5px] text-slate-400 dark:text-zinc-500">
                                         {isAssigned ? t('combatLog.assignRoleModal.assigned') : t('combatLog.assignRoleModal.notAssigned')}
                                     </div>

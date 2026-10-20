@@ -23,6 +23,11 @@ interface UseGeomanOptions {
     planUnitCodes: number[];
     onElementsChange: (elements: DiagramElement[]) => void;
     onElementCreatedWithoutAssignment?: (element: DiagramElement) => void;
+    // Set by another feature sharing this same Geoman/map instance (currently Link
+    // Planning's own polygon tool) right before it starts its own draw, so this hook's
+    // pm:create handler below skips the event instead of also turning it into a
+    // DiagramElement. See link_planning/hooks/useLinkPlanningDrawing.ts.
+    externalDrawSuppressRef?: React.MutableRefObject<boolean>;
 }
 
 export function useGeoman({
@@ -34,6 +39,7 @@ export function useGeoman({
     planUnitCodes,
     onElementsChange,
     onElementCreatedWithoutAssignment,
+    externalDrawSuppressRef,
 }: UseGeomanOptions) {
     const layersRef = useRef<Map<string, L.Layer>>(new Map());
     const elementsRef = useRef<DiagramElement[]>(diagramElements);
@@ -158,6 +164,7 @@ export function useGeoman({
 
         // Handle create events
         map.on('pm:create', (e: any) => {
+            if (externalDrawSuppressRef?.current) return;
             const layer = e.layer;
             const id = `elem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 

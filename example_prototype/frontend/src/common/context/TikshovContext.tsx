@@ -86,7 +86,20 @@ export const TikshovProvider: React.FC<{ children: ReactNode }> = ({ children })
         localStorage.setItem(STORAGE_KEY_WATCHED, JSON.stringify(next));
     };
 
-    const toggleLayer = () => setLayerOn(prev => !prev);
+    // Turning the layer off cascades to every device-type sub-filter too (mirrors
+    // StaticSpace/Spectrum's parent→child relationship) — turning it back on does not
+    // restore them, the user picks which to re-enable.
+    const toggleLayer = () => {
+        setLayerOn(prev => {
+            const next = !prev;
+            if (!next) {
+                const allOff = {} as Record<TrackedDeviceType, boolean>;
+                ALL_DEVICE_TYPES.forEach(t => { allOff[t] = false; });
+                setDeviceTypeFilters(allOff);
+            }
+            return next;
+        });
+    };
 
     const toggleDeviceTypeFilter = (type: TrackedDeviceType) => {
         if (!layerOn) return;

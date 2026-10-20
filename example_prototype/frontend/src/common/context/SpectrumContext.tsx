@@ -40,14 +40,29 @@ export const SpectrumProvider: React.FC<{ children: ReactNode }> = ({ children }
         return all;
     });
 
-    // Turning the parent layer off turns off both sub-filters too (mirrors StaticSpace's
-    // layer/topology-filter relationship).
+    // Turning a parent off cascades all the way down the tree (not just one level) — every
+    // descendant is forced off and, while the parent stays off, locked from being toggled
+    // back on individually; turning the parent back on does NOT restore them, the user
+    // picks which ones to re-enable, same as StaticSpace's layer/topology relationship.
+    const allJammingOff = () => {
+        const all = {} as Record<JammingStatus, boolean>;
+        ALL_JAMMING_STATUSES.forEach(s => { all[s] = false; });
+        return all;
+    };
+    const allBlockingOff = () => {
+        const all = {} as Record<BlockingBand, boolean>;
+        ALL_BLOCKING_BANDS.forEach(b => { all[b] = false; });
+        return all;
+    };
+
     const toggleLayer = () => {
         setLayerOn(prev => {
             const next = !prev;
             if (!next) {
                 setJammingFilterOn(false);
                 setBlockingFilterOn(false);
+                setJammingStatusFilters(allJammingOff());
+                setBlockingBandFilters(allBlockingOff());
             }
             return next;
         });
@@ -55,12 +70,20 @@ export const SpectrumProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     const toggleJammingFilter = () => {
         if (!layerOn) return;
-        setJammingFilterOn(prev => !prev);
+        setJammingFilterOn(prev => {
+            const next = !prev;
+            if (!next) setJammingStatusFilters(allJammingOff());
+            return next;
+        });
     };
 
     const toggleBlockingFilter = () => {
         if (!layerOn) return;
-        setBlockingFilterOn(prev => !prev);
+        setBlockingFilterOn(prev => {
+            const next = !prev;
+            if (!next) setBlockingBandFilters(allBlockingOff());
+            return next;
+        });
     };
 
     const toggleJammingStatusFilter = (status: JammingStatus) => {

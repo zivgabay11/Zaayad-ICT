@@ -21,16 +21,16 @@ import { EventEditModal } from '../../combat_log/widgets/EventEditModal';
 import { ShareEventModal } from '../../combat_log/widgets/ShareEventModal';
 import { AssignRoleModal } from '../../combat_log/widgets/AssignRoleModal';
 
-// Personal Task Log (יומן משימות אישי) — per-role task manager, scoped to the role
-// currently selected in the header (see PersonalTaskLogContext's myRole). Shows two kinds
-// of rows side by side: manual tasks (owned here) and Combat Log events pushed to this role
-// (the single shared record — editing one here edits the real event, so the Combat Log
-// screen sees the same change immediately).
+// Personal Task Log (יומן משימות אישי) — per-unit-and-cell task manager, scoped to the
+// combination currently selected in the User Settings modal (see PersonalTaskLogContext's
+// myUnitCode/myCell). Shows two kinds of rows side by side: manual tasks (owned here) and
+// Combat Log events pushed to this unit+cell (the single shared record — editing one here
+// edits the real event, so the Combat Log screen sees the same change immediately).
 
 export const PersonalTaskLogScreen: React.FC = () => {
     const { t } = useTranslation();
-    const { tasks, myRole, deleteTask, updateTask } = usePersonalTaskLogContext();
-    const { events: combatLogEvents, homeUnitCode, updateEvent, toggleAssignedRole } = useCombatLogContext();
+    const { tasks, myUnitCode, myCell, deleteTask, updateTask } = usePersonalTaskLogContext();
+    const { events: combatLogEvents, homeUnitCode, updateEvent, toggleAssignedCell } = useCombatLogContext();
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<PersonalTask | null>(null);
@@ -47,15 +47,17 @@ export const PersonalTaskLogScreen: React.FC = () => {
 
     const items: TaskLogItem[] = useMemo(() => {
         const manual: TaskLogItem[] = tasks
-            .filter(task => task.ownerRole === myRole)
+            .filter(task => task.ownerUnitCode === myUnitCode && task.ownerCell === myCell)
             .map(task => ({ kind: 'manual', id: task.id, status: task.status, task }));
 
         const linked: TaskLogItem[] = combatLogEvents
-            .filter(event => LINKABLE_COMBAT_LOG_TYPES.includes(event.type) && event.assignedToRoles?.includes(myRole))
+            .filter(event => LINKABLE_COMBAT_LOG_TYPES.includes(event.type)
+                && event.reporterUnitCode === myUnitCode
+                && event.assignedToCells?.includes(myCell))
             .map(event => ({ kind: 'linked', id: event.id, status: mapCombatLogStatusToPersonal(event), event }));
 
         return [...manual, ...linked];
-    }, [tasks, combatLogEvents, myRole]);
+    }, [tasks, combatLogEvents, myUnitCode, myCell]);
 
     const stats = useMemo(() => computeTaskStats(items), [items]);
 
@@ -84,7 +86,7 @@ export const PersonalTaskLogScreen: React.FC = () => {
         if (item.kind === 'manual') {
             if (window.confirm(t('personalTaskLog.confirmDelete'))) deleteTask(item.task.id);
         } else {
-            if (window.confirm(t('personalTaskLog.confirmUnassign'))) toggleAssignedRole(item.event.id, myRole);
+            if (window.confirm(t('personalTaskLog.confirmUnassign'))) toggleAssignedCell(item.event.id, myCell);
         }
     };
 
@@ -145,7 +147,8 @@ export const PersonalTaskLogScreen: React.FC = () => {
             <TaskFormModal
                 isOpen={isFormOpen}
                 onClose={closeForm}
-                ownerRole={myRole}
+                ownerUnitCode={myUnitCode}
+                ownerCell={myCell}
                 task={editingTask}
                 onLinked={(eventId) => { closeForm(); setViewingEventId(eventId); }}
             />
@@ -163,14 +166,14 @@ export const PersonalTaskLogScreen: React.FC = () => {
                 onShare={(id) => { setViewingEventId(null); setShareEventId(id); }}
                 onAssignRole={(id) => { setViewingEventId(null); setAssignRoleEventId(id); }}
                 viewingUnitCode={homeUnitCode}
-                viewingRole={myRole}
+                viewingCell={myCell}
             />
 
             <EventEditModal
                 event={editingEvent}
                 onClose={() => setEditingEventId(null)}
                 viewingUnitCode={homeUnitCode}
-                viewingRole={myRole}
+                viewingCell={myCell}
             />
 
             <ShareEventModal event={shareEvent} onClose={() => setShareEventId(null)} />

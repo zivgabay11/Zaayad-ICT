@@ -24,7 +24,7 @@ export function LoginScreen({ onLogin, isDarkMode }: LoginScreenProps) {
         const user = mockUsers.find(u => u.username.toLowerCase() === email.toLowerCase() && u.password === password);
         if (user) {
             const unit = mockUnits.find(u => String(u.code) === selectedUnitId) || mockUnits[0];
-            onLogin({ user, unit, role: selectedRole });
+            onLogin({ user, unit, role: selectedRole, cell: 'control', reality: 'operational' });
         } else {
             setError(t('login.error'));
         }

@@ -3,7 +3,8 @@
         "planning": "תכנון",
         "operations": "אג\"מ",
         "sync_efforts": "סנכרון המאמצים",
-        "operational_reality": "מציאות מבצעית"
+        "operational_reality": "מציאות מבצעית",
+        "drillReality": "מציאות תרגילית"
     },
     "nav": {
         "main": "ראשי",
@@ -25,6 +26,7 @@
         "definitions": "הגדרות",
         "static_space": "כינון מרחב נייח",
         "tikshov_cop": "תמ\"כ תקשוב",
+        "link_planning": "תכנון קשר",
         "control": "שליטה וניהול",
         "management": "ניהול",
         "radio": "רדיו",
@@ -97,6 +99,14 @@
         "continuity": "רציפות התפקוד",
         "radioOfficer": "רדיו",
         "spectrumOfficer": "ספקטרום"
+    },
+    "cells": {
+        "strike": "תא תקיפה",
+        "support": "תא תמיכה",
+        "control": "תא שליטה",
+        "communications": "תא תקשוב",
+        "intelligence": "תא מודיעין",
+        "logistics": "תא לוגיסטיקה"
     },
     "common": {
         "welcome": "ברוך הבא",
@@ -928,5 +938,96 @@
             "minutes": "{{count}} דק'",
             "hours": "{{count}} שע'"
         }
+    },
+    "linkPlanning": {
+        "layerName": "תכנון קשר רדיו",
+        "noCuts": "אין חתכים מחושבים",
+        "drawCell": "סרטוט פוליגון לחיזוי קשר",
+        "addPlatform": "הוספת פלטפורמה ניידת",
+        "computeCut": "חישוב חתך קשר",
+        "mobilePlatform": "פלטפורמה ניידת",
+        "nameCellTitle": "שם תא השטח",
+        "cellNamePlaceholder": "לדוגמה: תא צפון",
+        "namePlatformTitle": "שם הפלטפורמה הניידת",
+        "platformNamePlaceholder": "לדוגמה: ניידת 1",
+        "computeCutModalTitle": "חישוב חתך קשר",
+        "computeCutModalSubtitle": "בחר תא שטח ואתרי/פלטפורמות קשר להצגת הכיסוי המשוער",
+        "selectCell": "תא שטח",
+        "selectCellPlaceholder": "בחר תא שטח",
+        "noCellsHint": "יש לצייר תא שטח במפה לפני חישוב חתך",
+        "selectCommSites": "אתרי קשר",
+        "selectPlatforms": "פלטפורמות ניידות",
+        "noPlatformsHint": "לא נוספו פלטפורמות ניידות",
+        "deleteCut": "מחיקת חתך",
+        "rename": "ערוך שם",
+        "renameTitle": "שינוי שם",
+        "changeLocation": "שנה מיקום",
+        "deleteCell": "מחק תא שטח",
+        "deletePlatform": "מחק פלטפורמה"
+    },
+    "mobileSpace": {
+        "layerName": "כינון מרחב נייד"
+    },
+    "layerOrganizer": {
+        "transferToNihuk": "העבר לניהו\"ק",
+        "cancelTransferToNihuk": "בטל העברה לניהו\"ק",
+        "openLinkPlanningEditor": "כניסה לעריכת תכנון קשר רדיו",
+        "groups": {
+            "nihuk": "ניהו\"ק",
+            "planning": "נוה\"ק",
+            "combat": "לחימה",
+            "operations": "מבצעים",
+            "enemy": "אויב",
+            "collection": "איסוף",
+            "administration": "מנהלה",
+            "comms": "תקשוב",
+            "cutsFolder": "תיק חתכים",
+            "otherUnitsNihuk": "ניהו\"ק יחידות אחרות",
+            "battlePlanning": "תכנון קרב"
+        },
+        "combatItems": {
+            "ourForces": "כוחותינו",
+            "detectionsEvents": "איתורים ואירועים",
+            "coordControl": "תיאום ושליטה",
+            "mainOperations": "מבצעים ראשי",
+            "mainIntel": "מודיעין ראשי"
+        },
+        "operationsItems": {
+            "ourMinesLosses": "מטעני כוחותינו ונפלים",
+            "commonLanguage": "שפה משותפת",
+            "draftOperations": "מבצעים טיוטה",
+            "assignedOperations": "מבצעים ממונה",
+            "subordinateOperations": "מבצעים כפופות",
+            "neighboringOperations": "מבצעים שכנות",
+            "rokak": "רוק\"ק",
+            "engineering": "הנדסה",
+            "rear": "עורף",
+            "bakadama": "בקדמ\"ה",
+            "formationsCop": "תמ\"כ מסגרות",
+            "intelReports": "ידיעות ודיווחים",
+            "landingZones": "מנחתים זמ\"א"
+        },
+        "enemyItems": {
+            "draftEnemyPicture": "תמ\"א טיוטה",
+            "subordinateEnemyPicture": "תמ\"א כפופים",
+            "higherEnemyPicture": "תמ\"א ממונה",
+            "sectorHistory": "היסטוריה גיזרתית"
+        },
+        "battlePlanningItems": {
+            "mainOpsPlanning": "תכנון מבצעים ראשי",
+            "coordControl": "תיאום ושליטה"
+        }
+    },
+    "userSettings": {
+        "title": "הגדרות משתמש",
+        "openHint": "פתיחת הגדרות משתמש",
+        "user": "משתמש",
+        "unit": "יחידה",
+        "cell": "תא",
+        "role": "תפקיד",
+        "reality": "מציאות",
+        "realityOperational": "מבצעית",
+        "realityDrill": "תרגילית",
+        "folderAndPlan": "תיק + תוכנית"
     }
 }

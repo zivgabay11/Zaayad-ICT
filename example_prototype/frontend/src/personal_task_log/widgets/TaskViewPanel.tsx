@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { X, Pencil, Repeat } from 'lucide-react';
 import { PersonalTask } from '../../common/utilities/types';
 import { PERSONAL_TASK_STATUS_BADGE_CLASS, PERSONAL_TASK_SEVERITY_DOT_COLOR } from '../utilities/personalTaskLog';
-import { getRoleShortLabel } from '../../common/utilities/roles';
+import { getCellLabel } from '../../common/utilities/cells';
 
 // Read-only summary (double-click, mirrors Combat Log's EventViewPanel) for a manual
 // (non-linked) task — every field plus an Edit action into the full form.
@@ -24,7 +24,7 @@ export const TaskViewPanel: React.FC<TaskViewPanelProps> = ({ task, onClose, onE
                 <div className="px-5 pt-5 pb-4 border-b border-slate-200 dark:border-zinc-800 shrink-0 flex items-start justify-between gap-3">
                     <div className="min-w-0">
                         <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full mb-2 border border-slate-300/60 dark:border-zinc-600/60 bg-black/5 dark:bg-white/5 text-slate-600 dark:text-zinc-300">
-                            {getRoleShortLabel(t, task.ownerRole)}
+                            {getCellLabel(t, task.ownerCell)}
                         </span>
                         <h3 className="text-base font-bold text-slate-900 dark:text-white truncate">{task.title}</h3>
                     </div>

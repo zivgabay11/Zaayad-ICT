@@ -1,15 +1,10 @@
 import { Plan, MockEnemyEntity, MockTarget, CommSite, ClientDevice, TrackedDevice, TrackedDeviceType, GeoCoordinate, CombatLogEvent, CommSiteService, ServiceSubItem, SpectrumZone, PersonalTask } from './types';
 
 export const mockUsers = [
-    {
-        username: "john",
-        password: "temp00",
-        name: {
-            en: "John Doe",
-            he: "ג׳ון דו"
-        },
-        "unitCode": 1000,
-    }
+    { username: "john", password: "temp00", name: { en: "John Doe", he: "ג׳ון דו" }, "unitCode": 1000 },
+    { username: "dani", password: "temp00", name: { en: "Dani Cohen", he: "דני כהן" }, "unitCode": 1000 },
+    { username: "maya", password: "temp00", name: { en: "Maya Ziv", he: "מאיה זיו" }, "unitCode": 2000 },
+    { username: "idan", password: "temp00", name: { en: "Idan Saggi", he: "עידן שגיא" }, "unitCode": 400 },
 ];
 
 // Recursively builds a battalion→company→platoon sub-tree under a brigade, so Tikshov
@@ -128,6 +123,13 @@ export const mockPlanSharedOptions = [
     { id: 'sameUnit', name: { en: 'Same Unit', he: 'משותף' } }
 ];
 
+// "תיק" (Folder) grouping above several Plans — selected together as "תיק + תוכנית" in
+// the User Settings modal.
+export const mockOperationFolders: import('./types').OperationFolder[] = [
+    { id: 'folder-1', name: { en: 'Swords of Iron', he: 'חרבות ברזל' } },
+    { id: 'folder-2', name: { en: 'Division Operations', he: 'מבצעי אוגדה' } },
+];
+
 export const mockPlans: Plan[] = [
     {
         id: 'plan-1',
@@ -135,6 +137,7 @@ export const mockPlans: Plan[] = [
         description: { en: 'A massive offensive operation to liberate the occupied territory.', he: 'מבצע התקפי רחב היקף לשחרור השטח הכבוש.' },
         status: 'active',
         shared: 'sameUnit',
+        folderId: 'folder-2',
         createdBy: 'john',
         updatedBy: 'john',
         created: '2026-05-10T08:00:00Z',
@@ -613,6 +616,7 @@ export const mockPlans: Plan[] = [
         description: { en: 'Establish defensive perimeter around main forward operating base.', he: 'הקמת מתחם הגנתי סביב בסיס ההפעלה הקדמי המרכזי.' },
         status: 'draft',
         shared: 'private',
+        folderId: 'folder-2',
         createdBy: 'john',
         updatedBy: 'john',
         created: '2024-11-25T09:00:00Z',
@@ -623,6 +627,24 @@ export const mockPlans: Plan[] = [
         units: [],
         presentationItems: [],
         general: { en: 'General defensive overview.', he: 'סקירה כללית להגנה.' }
+    },
+    {
+        id: 'plan-3',
+        name: { en: 'Northern Sun Plan', he: 'תוכנית שמש צפונית' },
+        description: { en: 'Coordinated action plan along the northern axis.', he: 'תוכנית פעולה מתואמת לאורך הציר הצפוני.' },
+        status: 'planning',
+        shared: 'sameUnit',
+        folderId: 'folder-1',
+        createdBy: 'john',
+        updatedBy: 'john',
+        created: '2026-08-01T09:00:00Z',
+        updated: '2026-08-01T09:00:00Z',
+        dDay: null as unknown as string,
+        hHour: null as unknown as string,
+        phases: [],
+        units: [],
+        presentationItems: [],
+        general: { en: 'General overview of the northern sector plan.', he: 'סקירה כללית של התוכנית בגזרה הצפונית.' }
     }
 ];
 
@@ -830,12 +852,13 @@ export const mockCombatLogEvents: CombatLogEvent[] = [
     // demonstrate the recurring-fault detection (Automation C).
     {
         id: 'log-fault-1', type: 'ict_faults', title: 'ניתוק קשר עם עוגן אלעד - אתר תבור', description: 'אובדן קישוריות מלא לעוגן האלעד באתר תבור, נדרש בדיקת שטח.',
-        start: hoursAgo(3), status: 'פתוח', reporterUserName: 'רב"ט עידן שגיא', reporterUnitCode: 400,
+        start: hoursAgo(3), status: 'פתוח', reporterUserName: 'רב"ט עידן שגיא', reporterUnitCode: 1000,
         severity: 'critical', affectedSystem: 'אלעד - אתר תבור', relatedCommSiteId: 'cs-1',
         updateNotes: [], attachments: [], createdAt: hoursAgo(3), updatedAt: hoursAgo(3), sharedWithUnitCodes: [],
-        // Demonstrates the Personal Task Log integration: pushed to two cells at once, each
-        // sees this same event (and can change its status / add notes) from their own view.
-        assignedToRoles: ['operationsOfficer', 'telecomOfficer'],
+        // Demonstrates the Personal Task Log integration: pushed to two cells at once (both
+        // within the default session's unit, 1000), each sees this same event (and can
+        // change its status / add notes) from their own view.
+        assignedToCells: ['control', 'communications'],
     },
     {
         id: 'log-fault-2', type: 'ict_faults', title: 'ירידת קישור מב"ן - חטיבה 200', description: 'קישור מב"ן יורד לסירוגין, חשד לתקלת ציוד.',
@@ -1218,44 +1241,45 @@ export const mockSpectrumZones: SpectrumZone[] = [
 function daysFromNow(d: number): string { return daysAgo(-d); }
 
 // Personal Task Log (יומן משימות אישי) — a handful of sample manual tasks spread across a
-// few roles so the default role (operationsOfficer) has at least one task per status
-// section, plus one periodic task. The "linked to Combat Log" demo lives on the
-// mockCombatLogEvents side instead (log-fault-1's assignedToRoles) — see the comment there.
+// few unit+cell combinations so the default unit+cell (division 1000 / תא שליטה) has at
+// least one task per status section, plus one periodic task. The "linked to Combat Log"
+// demo lives on the mockCombatLogEvents side instead (log-fault-1's assignedToCells) —
+// see the comment there.
 export const mockPersonalTasks: PersonalTask[] = [
     {
-        id: 'ptask-1', ownerRole: 'operationsOfficer', title: 'עדכון תמונת מצב יומית', description: 'ריכוז תמונת מצב ודיווח לגורמים הרלוונטיים.',
+        id: 'ptask-1', ownerUnitCode: 1000, ownerCell: 'control', title: 'עדכון תמונת מצב יומית', description: 'ריכוז תמונת מצב ודיווח לגורמים הרלוונטיים.',
         status: 'open', start: daysFromNow(0), severity: 'medium', recurrence: 'periodic',
         recurrenceRule: { frequency: 'daily', endDate: daysFromNow(30) },
         createdByUserName: 'רס"ן דני כהן', createdAt: hoursAgo(20), updatedAt: hoursAgo(20),
     },
     {
-        id: 'ptask-2', ownerRole: 'operationsOfficer', title: 'תיאום תרגיל עם חטיבה 200', description: 'סבב תיאומים מול קציני המבצעים של חטיבה 200.',
+        id: 'ptask-2', ownerUnitCode: 1000, ownerCell: 'control', title: 'תיאום תרגיל עם חטיבה 200', description: 'סבב תיאומים מול קציני המבצעים של חטיבה 200.',
         status: 'open', start: daysFromNow(3), end: daysFromNow(3), severity: 'high', recurrence: 'oneTime',
         createdByUserName: 'רס"ן דני כהן', createdAt: hoursAgo(10), updatedAt: hoursAgo(10),
     },
     {
-        id: 'ptask-4', ownerRole: 'operationsOfficer', title: 'הכנת תדריך שבועי', description: 'הכנת מצגת ותדריך לישיבת סיכום השבוע.',
+        id: 'ptask-4', ownerUnitCode: 1000, ownerCell: 'control', title: 'הכנת תדריך שבועי', description: 'הכנת מצגת ותדריך לישיבת סיכום השבוע.',
         status: 'inProgress', start: daysFromNow(1), severity: 'low', recurrence: 'periodic',
         recurrenceRule: { frequency: 'weekly', endDate: daysFromNow(90) },
         createdByUserName: 'רס"ן דני כהן', createdAt: hoursAgo(30), updatedAt: hoursAgo(5),
     },
     {
-        id: 'ptask-5', ownerRole: 'operationsOfficer', title: 'סיכום תרגיל קודם', description: 'ריכוז לקחים והפצתם לגורמים הנוגעים.',
+        id: 'ptask-5', ownerUnitCode: 1000, ownerCell: 'control', title: 'סיכום תרגיל קודם', description: 'ריכוז לקחים והפצתם לגורמים הנוגעים.',
         status: 'done', start: daysAgo(4), end: daysAgo(3), severity: 'unknown', recurrence: 'oneTime',
         createdByUserName: 'רס"ן דני כהן', createdAt: daysAgo(4), updatedAt: daysAgo(3),
     },
     {
-        id: 'ptask-6', ownerRole: 'operationsOfficer', title: 'ביקור מתוכנן שבוטל', description: 'ביקור שגרתי שבוטל בשל אילוצי שטח.',
+        id: 'ptask-6', ownerUnitCode: 1000, ownerCell: 'control', title: 'ביקור מתוכנן שבוטל', description: 'ביקור שגרתי שבוטל בשל אילוצי שטח.',
         status: 'cancelled', start: daysAgo(2), severity: 'low', recurrence: 'oneTime',
         createdByUserName: 'רס"ן דני כהן', createdAt: daysAgo(5), updatedAt: daysAgo(2),
     },
     {
-        id: 'ptask-7', ownerRole: 'operationsOfficer', title: 'המתנה לאישור תקציב ציוד', description: 'ממתין לאישור גורם עליון לפני המשך הטיפול.',
+        id: 'ptask-7', ownerUnitCode: 1000, ownerCell: 'control', title: 'המתנה לאישור תקציב ציוד', description: 'ממתין לאישור גורם עליון לפני המשך הטיפול.',
         status: 'blocked', start: daysAgo(1), severity: 'medium', recurrence: 'oneTime',
         createdByUserName: 'רס"ן דני כהן', createdAt: daysAgo(1), updatedAt: hoursAgo(6),
     },
     {
-        id: 'ptask-9', ownerRole: 'logistics', title: 'חידוש מלאי ציוד קשר', description: 'הזמנת ציוד חלופי למלאי החירום.',
+        id: 'ptask-9', ownerUnitCode: 2000, ownerCell: 'logistics', title: 'חידוש מלאי ציוד קשר', description: 'הזמנת ציוד חלופי למלאי החירום.',
         status: 'open', start: daysFromNow(5), severity: 'medium', recurrence: 'oneTime',
         createdByUserName: 'סרן מאיה זיו', createdAt: hoursAgo(12), updatedAt: hoursAgo(12),
     },

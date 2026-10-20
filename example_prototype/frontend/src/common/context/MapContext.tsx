@@ -17,6 +17,10 @@ interface MapContextType {
     setOpacity: (value: number) => void;
     setActivePhaseId: (phaseId: string | null) => void;
     setActiveUnitCode: (unitCode: number | null) => void;
+    // Lets the Layer Organizer's "תכנון קשר רדיו" row jump straight into its editor (draw
+    // cells, place platforms, compute cuts) without the user separately navigating via the
+    // top nav's planning category bar — see App.tsx for what this actually does.
+    enterLinkPlanningEditor: () => void;
 }
 
 const MapContext = createContext<MapContextType | undefined>(undefined);
@@ -24,9 +28,10 @@ const MapContext = createContext<MapContextType | undefined>(undefined);
 interface MapProviderProps {
     children: ReactNode;
     currentSection: string;
+    onEnterLinkPlanningEditor: () => void;
 }
 
-export const MapProvider: React.FC<MapProviderProps> = ({ children, currentSection }) => {
+export const MapProvider: React.FC<MapProviderProps> = ({ children, currentSection, onEnterLinkPlanningEditor }) => {
     const [isMapOpen, setIsMapOpen] = useState(false);
     const [mapWidth, setMapWidth] = useState(100); // percentage
     const [activeMapType, setActiveMapType] = useState<MapType>('satellite');
@@ -52,7 +57,7 @@ export const MapProvider: React.FC<MapProviderProps> = ({ children, currentSecti
             setIsMapOpen(true);
             setMapWidth(targetWidth);
             setUserClosed(false);
-        } else if (currentSection === 'diagram') {
+        } else if (currentSection === 'diagram' || currentSection === 'link_planning') {
             setIsMapOpen(true);
             setMapWidth(targetWidth);
         } else if (currentSection === 'combat_script') {
@@ -144,6 +149,7 @@ export const MapProvider: React.FC<MapProviderProps> = ({ children, currentSecti
             setOpacity,
             setActivePhaseId,
             setActiveUnitCode,
+            enterLinkPlanningEditor: onEnterLinkPlanningEditor,
         }}>
             {children}
         </MapContext.Provider>
