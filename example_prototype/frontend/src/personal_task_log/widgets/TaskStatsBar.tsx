@@ -18,8 +18,8 @@ export const TaskStatsBar: React.FC<TaskStatsBarProps> = ({ stats, onDropItem })
 
     return (
         <div className="w-48 shrink-0 space-y-2">
-            <div className="flex flex-col justify-center px-3 py-2.5 rounded-xl border-s-2 border-primary bg-white dark:bg-zinc-900 border-y border-e border-slate-200 dark:border-zinc-800">
-                <span className="text-xs text-slate-500 dark:text-zinc-400">{t('personalTaskLog.stats.total')}</span>
+            <div className="flex flex-col justify-center px-3 py-2.5 rounded-2xl border-s-2 border-primary bg-white dark:bg-gradient-to-b dark:from-[#43464d] dark:to-[#333844] border-y border-e border-slate-200 dark:border-y-0 dark:border-e-0 shadow-[0_1px_4px_rgba(0,0,0,0.25)]">
+                <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">{t('personalTaskLog.stats.total')}</span>
                 <span className="text-xl font-bold text-slate-900 dark:text-white leading-tight">{stats.total}</span>
             </div>
             {PERSONAL_TASK_STATUS_ORDER.map(status => (
@@ -33,13 +33,13 @@ export const TaskStatsBar: React.FC<TaskStatsBarProps> = ({ stats, onDropItem })
                         const taskId = e.dataTransfer.getData('text/plain');
                         if (taskId) onDropItem(taskId, status);
                     }}
-                    className={`relative flex items-center justify-between px-3 py-2.5 rounded-xl border overflow-hidden transition-colors ${dragOverStatus === status
+                    className={`relative flex items-center justify-between px-3 py-2.5 rounded-2xl border overflow-hidden transition-colors shadow-[0_1px_4px_rgba(0,0,0,0.25)] ${dragOverStatus === status
                         ? 'border-primary bg-primary/5'
-                        : 'border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
+                        : 'border-slate-200 dark:border-transparent bg-white dark:bg-gradient-to-b dark:from-[#43464d] dark:to-[#333844]'
                         }`}
                 >
                     <span className="absolute inset-y-0 start-0 w-1" style={{ background: PERSONAL_TASK_STATUS_ACCENT[status] }} />
-                    <span className="text-xs text-slate-500 dark:text-zinc-400 ps-1.5">{t(`personalTaskLog.statuses.${status}`)}</span>
+                    <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 ps-1.5">{t(`personalTaskLog.statuses.${status}`)}</span>
                     <span className="text-lg font-bold text-slate-900 dark:text-white leading-tight">{stats[status]}</span>
                 </div>
             ))}

@@ -240,7 +240,7 @@ export const CalendarScreen: React.FC = () => {
                             setSelectedEvent(null);
                             setIsDialogOpen(true);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:opacity-90 text-white dark:text-zinc-900 rounded-lg transition-colors text-sm font-medium"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:opacity-90 text-white rounded-lg transition-colors text-sm font-medium"
                     >
                         <Plus size={16} />
                         {t('calendar.addEvent')}
@@ -345,7 +345,7 @@ export const CalendarScreen: React.FC = () => {
                                         className={`border-b border-e border-slate-200 dark:border-zinc-800 p-2 rtl:border-l rtl:border-r-0 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 cursor-pointer overflow-hidden flex flex-col gap-1 transition-colors ${!isCurrentMonth ? 'bg-slate-50/50 dark:bg-zinc-900/50 opacity-70' : ''}`}
                                     >
                                         <div className="flex justify-between items-center mb-1">
-                                            <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-primary text-white dark:text-zinc-900' : 'text-slate-700 dark:text-zinc-300'}`}>
+                                            <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-primary text-white' : 'text-slate-700 dark:text-zinc-300'}`}>
                                                 {dayNum}
                                             </span>
                                         </div>

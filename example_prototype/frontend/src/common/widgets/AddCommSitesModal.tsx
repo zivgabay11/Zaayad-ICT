@@ -76,7 +76,7 @@ export const AddCommSitesModal: React.FC = () => {
                             >
                                 <span className={`flex items-center justify-center w-[18px] h-[18px] rounded-[6px] border-2 shrink-0 transition-colors
                                     ${checked ? 'bg-primary border-primary' : 'border-slate-300 dark:border-zinc-600'}`}>
-                                    {checked && <Check className="w-3 h-3 text-white dark:text-zinc-900" />}
+                                    {checked && <Check className="w-3 h-3 text-white" />}
                                 </span>
                                 <span className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 ${checked ? 'bg-primary/10 text-primary' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-zinc-500'}`}>
                                     <RadioTower className="w-4 h-4" />
@@ -100,7 +100,7 @@ export const AddCommSitesModal: React.FC = () => {
                         <button onClick={handleClose} className="text-sm px-4 py-2 text-slate-600 dark:text-zinc-300 hover:text-slate-800 dark:hover:text-zinc-100 transition-colors font-medium">
                             {t('staticSpace.cancel')}
                         </button>
-                        <button onClick={handleConfirm} className="text-sm px-4 py-2 bg-primary hover:bg-primary/90 text-white dark:text-zinc-900 rounded-lg transition-colors font-medium shadow-sm">
+                        <button onClick={handleConfirm} className="text-sm px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors font-medium shadow-sm">
                             {t('staticSpace.addSites')}
                         </button>
                     </div>

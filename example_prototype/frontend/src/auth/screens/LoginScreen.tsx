@@ -124,7 +124,7 @@ export function LoginScreen({ onLogin, isDarkMode }: LoginScreenProps) {
 
                     <button
                         type="submit"
-                        className="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-white dark:text-zinc-900 font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mt-4"
+                        className="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mt-4"
                     >
                         {t('login.signIn')}
                     </button>

@@ -3,10 +3,12 @@ import { Marker, Polygon, Popup, Rectangle, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import { useTranslation } from 'react-i18next';
 import { useLinkPlanningContext } from '../context/LinkPlanningContext';
+import { useHeadquartersLayerContext } from '../context/HeadquartersLayerContext';
 import { mockCommSites } from '../utilities/mockData';
 import { computeCombinedGridTiles, getCombinedCutsLabel, LINK_COVERAGE_TIER_COLORS } from '../utilities/linkPlanning';
 import { mobilePlatformIconSvg } from '../utilities/mobilePlatformIcon';
-import { LinkCoverageCut } from '../utilities/types';
+import { getHeadquartersLevel, headquartersMarkerHtml } from '../utilities/headquartersIcon';
+import { HeadquartersKind, HeadquartersLevel, LinkCoverageCut } from '../utilities/types';
 
 // Renders the "Link Planning" (תכנון קשר רדיו) map layer: the user-drawn terrain cells
 // (dashed outline so the true shape stays visible under a coverage mosaic), mobile comm
@@ -33,15 +35,39 @@ function platformDivIcon() {
     return L.divIcon({ html, className: '', iconSize: [30, 30], iconAnchor: [15, 30] });
 }
 
+const HEADQUARTERS_KINDS: HeadquartersKind[] = ['headquarters', 'commandPost'];
+const HEADQUARTERS_LEVELS: HeadquartersLevel[] = ['division', 'brigade', 'battalion'];
+
+function buildHeadquartersIconCache() {
+    const cache = new Map<string, L.DivIcon>();
+    HEADQUARTERS_KINDS.forEach(kind => {
+        HEADQUARTERS_LEVELS.forEach(level => {
+            const html = headquartersMarkerHtml(kind, level, PLATFORM_COLOR, '#0c3a4d', '#082230');
+            cache.set(`${kind}-${level}`, L.divIcon({ html, className: '', iconSize: [30, 30], iconAnchor: [15, 30] }));
+        });
+        // Fallback for the (shouldn't-happen) case a unitCode doesn't resolve to a level.
+        const html = headquartersMarkerHtml(kind, undefined, PLATFORM_COLOR, '#0c3a4d', '#082230');
+        cache.set(`${kind}-unknown`, L.divIcon({ html, className: '', iconSize: [30, 30], iconAnchor: [15, 30] }));
+    });
+    return cache;
+}
+
 interface Props {
     onPlatformContextMenu?: (platformId: string, x: number, y: number) => void;
     onCellContextMenu?: (cellId: string, x: number, y: number) => void;
+    onHeadquartersContextMenu?: (entityId: string, x: number, y: number) => void;
 }
 
-export const LinkCoverageMapLayer: React.FC<Props> = ({ onPlatformContextMenu, onCellContextMenu }) => {
+export const LinkCoverageMapLayer: React.FC<Props> = ({ onPlatformContextMenu, onCellContextMenu, onHeadquartersContextMenu }) => {
     const { t, i18n } = useTranslation();
-    const { linkCells, mobilePlatforms, linkCoverageCuts, cellsLayerOn, cutsLayerOn } = useLinkPlanningContext();
+    const { linkCells, mobilePlatforms, headquartersEntities, linkCoverageCuts, cellsLayerOn, cutsLayerOn } = useLinkPlanningContext();
+    // Once a headquarters/command post is in ניהו"ק it is drawn blue by HeadquartersMapLayer and
+    // must not also be drawn here in the amber נוה"ק colour (the amber marker sits on top and
+    // would hide the blue one). This also covers entities added straight into ניהו"ק from the
+    // "מפקדות וחפ"קים" overview, which never pass through נוה"ק at all.
+    const { ids: transferredHeadquartersIds } = useHeadquartersLayerContext();
     const icon = useMemo(() => platformDivIcon(), []);
+    const headquartersIcons = useMemo(() => buildHeadquartersIconCache(), []);
 
     if (!cellsLayerOn && !cutsLayerOn) return null;
 
@@ -91,6 +117,31 @@ export const LinkCoverageMapLayer: React.FC<Props> = ({ onPlatformContextMenu, o
                     </Popup>
                 </Marker>
             ))}
+
+            {cellsLayerOn && headquartersEntities.filter(entity => !transferredHeadquartersIds.includes(entity.id)).map(entity => {
+                const level = getHeadquartersLevel(entity.unitCode);
+                const icon = headquartersIcons.get(`${entity.kind}-${level ?? 'unknown'}`)!;
+                return (
+                    <Marker
+                        key={entity.id}
+                        position={[entity.position.lat, entity.position.lng]}
+                        icon={icon}
+                        eventHandlers={onHeadquartersContextMenu ? {
+                            contextmenu: (e: L.LeafletMouseEvent) => {
+                                L.DomEvent.stopPropagation(e);
+                                e.originalEvent?.preventDefault();
+                                onHeadquartersContextMenu(entity.id, e.containerPoint.x, e.containerPoint.y);
+                            },
+                        } : undefined}
+                    >
+                        <Tooltip permanent direction="bottom" offset={[0, 2]} opacity={1} className="commsite-label">{entity.name}</Tooltip>
+                        <Popup minWidth={160}>
+                            <div className="text-[12px] font-semibold">{entity.name}</div>
+                            <div className="text-[10.5px] text-slate-400">{t(entity.kind === 'headquarters' ? 'linkPlanning.headquarters' : 'linkPlanning.commandPost')}</div>
+                        </Popup>
+                    </Marker>
+                );
+            })}
 
             {Array.from(cutsByCellId.entries()).map(([cellId, cuts]) => {
                 const cell = linkCells.find(c => c.id === cellId);

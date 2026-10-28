@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ChevronDown, RadioTower, Radio, Truck, Signal, Trash2, PenTool,
-    Swords, Crosshair, Target, Search, Briefcase, Users2, Layers,
+    Swords, Crosshair, Target, Search, Briefcase, Users2, Layers, Building2,
 } from 'lucide-react';
 import { useMapContext } from '../context/MapContext';
 import { useStaticSpaceContext } from '../context/StaticSpaceContext';
@@ -10,6 +10,7 @@ import { useMobileSpaceContext } from '../context/MobileSpaceContext';
 import { useTikshovContext } from '../context/TikshovContext';
 import { useSpectrumContext } from '../context/SpectrumContext';
 import { useLinkPlanningContext } from '../context/LinkPlanningContext';
+import { useHeadquartersLayerContext } from '../context/HeadquartersLayerContext';
 import { DEVICE_TYPE_COLORS } from '../utilities/trackedDeviceIcon';
 import { JAMMING_STATUS_COLORS, BLOCKING_COLOR, BLOCKING_BAND_COLORS } from '../utilities/spectrum';
 import { getCutLabel } from '../utilities/linkPlanning';
@@ -147,6 +148,16 @@ export const LayerOrganizerPanel: React.FC<Props> = ({ onAfterEnterLinkPlanningE
         toggleCutVisible,
         removeCoverageCut,
     } = useLinkPlanningContext();
+    const {
+        layerOn: headquartersLayerOn,
+        showHeadquarters,
+        showCommandPosts,
+        myUnitsOnly: headquartersMyUnitsOnly,
+        toggleLayer: toggleHeadquartersLayer,
+        toggleShowHeadquarters,
+        toggleShowCommandPosts,
+        toggleMyUnitsOnly: toggleHeadquartersMyUnitsOnly,
+    } = useHeadquartersLayerContext();
 
     const handleEnterLinkPlanningEditor = () => {
         if (!cellsLayerOn) toggleCellsLayer(); // make sure what they're about to draw is visible
@@ -165,6 +176,7 @@ export const LayerOrganizerPanel: React.FC<Props> = ({ onAfterEnterLinkPlanningE
     const forceTikshovOff = () => { if (tikshovLayerOn) toggleTikshovLayer(); };
     const forceCutsOff = () => { if (cutsLayerOn) toggleCutsLayer(); };
     const forceCellsOff = () => { if (cellsLayerOn) toggleCellsLayer(); };
+    const forceHeadquartersOff = () => { if (headquartersLayerOn) toggleHeadquartersLayer(); };
 
     const forcePlaceholdersOff = (keys: string[]) => {
         setPlaceholderOn(prev => {
@@ -192,7 +204,7 @@ export const LayerOrganizerPanel: React.FC<Props> = ({ onAfterEnterLinkPlanningE
     const toggleComms = () => {
         const turningOff = isOn('comms');
         togglePlaceholder('comms');
-        if (turningOff) { forceStaticSpaceOff(); forceMobileSpaceOff(); forceSpectrumOff(); forceTikshovOff(); forceCutsOff(); }
+        if (turningOff) { forceStaticSpaceOff(); forceMobileSpaceOff(); forceSpectrumOff(); forceTikshovOff(); forceCutsOff(); forceHeadquartersOff(); }
     };
     const toggleNihuk = () => {
         const turningOff = isOn('nihuk');
@@ -204,7 +216,7 @@ export const LayerOrganizerPanel: React.FC<Props> = ({ onAfterEnterLinkPlanningE
                 'enemy', ...ENEMY_ITEM_KEYS.map(k => `enemy.${k}`),
                 'collection', 'administration', 'comms',
             ]);
-            forceStaticSpaceOff(); forceMobileSpaceOff(); forceSpectrumOff(); forceTikshovOff(); forceCutsOff();
+            forceStaticSpaceOff(); forceMobileSpaceOff(); forceSpectrumOff(); forceTikshovOff(); forceCutsOff(); forceHeadquartersOff();
         }
     };
     const toggleBattlePlanning = () => {
@@ -465,6 +477,27 @@ export const LayerOrganizerPanel: React.FC<Props> = ({ onAfterEnterLinkPlanningE
                                     color={DEVICE_TYPE_COLORS[type]}
                                 />
                             ))}
+
+                            {/* מפקדות וחפ"קים — headquarters/command posts transferred from
+                                תכנון קשר רדיו, with sub-filters by kind */}
+                            <GroupHeaderRow
+                                icon={<Building2 className="w-3.5 h-3.5 text-primary shrink-0" />}
+                                label={t('layerOrganizer.groups.headquartersCop')}
+                                checked={headquartersLayerOn}
+                                onToggleChecked={toggleHeadquartersLayer}
+                                expandable
+                                isExpanded={!!expanded.headquartersCop}
+                                onToggleExpand={() => toggleExpanded('headquartersCop')}
+                                indentClass="ps-12 pe-3"
+                                disabled={!isOn('nihuk') || !isOn('comms')}
+                            />
+                            {expanded.headquartersCop && (
+                                <>
+                                    <ChildCheckRow label={t('layerOrganizer.headquartersFilter')} checked={showHeadquarters} onToggle={toggleShowHeadquarters} indentClass="ps-16" parentOn={isOn('nihuk') && isOn('comms') && headquartersLayerOn} />
+                                    <ChildCheckRow label={t('layerOrganizer.commandPostsFilter')} checked={showCommandPosts} onToggle={toggleShowCommandPosts} indentClass="ps-16" parentOn={isOn('nihuk') && isOn('comms') && headquartersLayerOn} />
+                                    <ChildCheckRow label={t('layerOrganizer.myUnitsOnlyFilter')} checked={headquartersMyUnitsOnly} onToggle={toggleHeadquartersMyUnitsOnly} indentClass="ps-16" parentOn={isOn('nihuk') && isOn('comms') && headquartersLayerOn} />
+                                </>
+                            )}
 
                             {/* תיק חתכים — auto-populated from every cut the user computes
                                 in תכנון קשר רדיו (see the ניהו"ק group... תכנון below) */}

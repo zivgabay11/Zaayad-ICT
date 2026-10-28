@@ -1,4 +1,4 @@
-import { Plan, MockEnemyEntity, MockTarget, CommSite, ClientDevice, TrackedDevice, TrackedDeviceType, GeoCoordinate, CombatLogEvent, CommSiteService, ServiceSubItem, SpectrumZone, PersonalTask } from './types';
+import { Plan, MockEnemyEntity, MockTarget, CommSite, ClientDevice, TrackedDevice, TrackedDeviceType, GeoCoordinate, CombatLogEvent, CommSiteService, ServiceSubItem, SpectrumZone, PersonalTask, BumDemand, BumDemandStatus, BumSeverity, BumDemandType, BumDmatz, BumDmatzStatus, BumCommanderInstruction } from './types';
 
 export const mockUsers = [
     { username: "john", password: "temp00", name: { en: "John Doe", he: "ג׳ון דו" }, "unitCode": 1000 },
@@ -49,6 +49,9 @@ export const mockUnits = [
     { code: 2000, type: "division", parentCode: "5000", name: { en: "Southern Division", he: "אוגדה דרומית" } },
     { code: 2100, type: "brigade", parentCode: "2000" },
     { code: 2200, type: "brigade", parentCode: "2000" },
+    { code: 2300, type: "brigade", parentCode: "2000" },
+    { code: 2400, type: "brigade", parentCode: "2000" },
+    { code: 2500, type: "brigade", parentCode: "2000" },
     ...division2BrigadeSubTree,
 ];
 
@@ -739,6 +742,9 @@ const BRIGADE_AREA_ANCHORS: Record<number, GeoCoordinate> = {
     500: { lat: 31.35, lng: 35.15 },
     2100: { lat: 30.60, lng: 34.90 },
     2200: { lat: 29.75, lng: 34.98 },
+    2300: { lat: 30.15, lng: 34.80 },
+    2400: { lat: 30.95, lng: 34.60 },
+    2500: { lat: 29.55, lng: 34.95 },
 };
 
 function areaAnchorForUnit(unitCode: number): GeoCoordinate {
@@ -760,7 +766,7 @@ const division2Battalions = division2BrigadeSubTree.filter(u => u.type === 'batt
 // devices each, battalions get one, and platoons (the dismounted forces) get two apiece.
 const TIKSHOV_DEVICE_ALLOCATIONS: Array<[number, number]> = [
     [1000, 1], [2000, 1],
-    [100, 3], [200, 3], [300, 3], [500, 3], [2200, 3],
+    [100, 3], [200, 3], [300, 3], [500, 3], [2200, 3], [2300, 3], [2400, 3], [2500, 3],
     [400, 2], [2100, 2],
     ...fireBrigadeBattalions.map((c): [number, number] => [c, 1]),
     ...division2Battalions.map((c): [number, number] => [c, 1]),
@@ -1284,3 +1290,189 @@ export const mockPersonalTasks: PersonalTask[] = [
         createdByUserName: 'סרן מאיה זיו', createdAt: hoursAgo(12), updatedAt: hoursAgo(12),
     },
 ];
+
+// ---- Bum Manager (בו"ם משימות) seed demands ----
+// Built relative to "now" at first load (then persisted by BumContext) so the due dates always
+// land around the current time — a mix of upcoming, due-soon and already-overdue demands, spread
+// across statuses and categories, per owning unit (a division, its brigades, the sibling
+// division) so the unit-scoped views have distinct data to show.
+type BumSeed = [category: string, title: string, description: string, severity: BumSeverity, status: BumDemandStatus, dueHours: number, executor: string, agent: string, type?: BumDemandType, assignedUnitCode?: number];
+
+const BUM_HOUR = 3_600_000;
+
+const BUM_SEEDS_BY_UNIT: Array<[unitCode: number, seeds: BumSeed[]]> = [
+    [1000, [
+        ['agam', 'הכנת מצגת למפקד', 'הכנת מצגת סיכום לשבוע האחרון', 2, 'done', -30, 'ק. אג"ם', 'magad'],
+        ['agam', 'הכנת מצגת לביקור מפקד', 'הכנת מצגת לביקור מפקד אוגדה 223', 1, 'backlog', 26, 'ק. אג"ם', 'deputyMagad'],
+        ['agam', 'דו"ח מצב כוח אדם', 'הכנת דו"ח מפורט על מצב כוח האדם בגדוד 123, גדוד 1254 וגדוד 1234', 3, 'inProgress', 10, 'מנל"ח', 'manlach'],
+        ['ictCenter', 'עדכון מערכת קשר', 'דרוש עדכון דחוף למערכת הקשר בעמדה המרכזית', 5, 'backlog', 5, 'קצין קשר', 'magad', 'demand'],
+        ['ictCenter', 'תיקון תקלת חשמל', 'תקלה במערכת החשמל בחדר מצב, דרוש טיפול בחדר תקשורת', 4, 'blocked', 20, 'קמ"צ אוגדה', 'kAgam'],
+        ['ictCenter', 'תיקון תקלה בעמדה 4', 'דרוש עדכון לתקלת ניוט בעמדה 4', 4, 'backlog', 40, 'קצין קשר', 'magad'],
+        ['ictCenter', 'תיאום מערכות קשר', 'יש צורך בתיאום מערכות קשר במרחב 312', 3, 'blocked', 60, 'קמ"צ אוגדה', 'deputyMagad', 'instruction'],
+        ['ictCenter', 'תקלת חיווט בעמדה 12', 'דרוש עדכון למערכת הקשר בעמדה המרכזית', 3, 'backlog', -6, 'קצין קשר', 'magad'],
+        ['area', 'טיפול בתקלה 1234', 'דרוש עדכון דחוף למערכת הקשר בעמדה המרכזית', 5, 'backlog', 3, 'קצין קשר', 'magad'],
+        ['area', 'תיקון תקלת רדיו בעמדה 2', 'תקלת רדיו בעמדה 2, דרוש טיפול', 3, 'blocked', 70, 'קמ"צ אוגדה', 'kAgam'],
+        ['area', 'טיפול בתקלה 2142', 'דרוש עדכון דחוף למערכת הקשר בעמדה המרכזית', 5, 'inProgress', -26, 'קצין קשר', 'magad'],
+        ['shob', 'עדכון מערכת קשר', 'עדכון מערכת הקשר בעמדת השו"ב', 5, 'inProgress', 8, 'קצין שו"ב', 'magad'],
+        ['shob', 'הכנת מצגת לביקור מפקד', 'הכנת מצגת לביקור מפקד', 2, 'backlog', 30, 'ק. אג"ם', 'kAgam'],
+        ['control', 'תיאום אימון חירום', 'תיאום עם כל הגדודים אימון חירום לשבוע הבא', 3, 'inProgress', 30, 'קצין שליטה', 'magad', 'instruction'],
+        ['control', 'הכנת מצגת לביקור מפקד', 'הכנת מצגת לביקור מפקד אוגדה', 2, 'backlog', 52, 'ק. אג"ם', 'deputyMagad'],
+        ['capabilities', 'תיאום אימון חירום', 'תיאום אימון חירום ליחידות הכשירות', 3, 'inProgress', 50, 'קצין כשירויות', 'magad', 'instruction'],
+        ['capabilities', 'עדכון מערכת קשר', 'עדכון מערכת קשר ביחידות הכשירות', 5, 'inProgress', 12, 'קצין כשירויות', 'magad'],
+        ['capabilities', 'הכנת מצגת לביקור מפקד', 'הכנת מצגת כשירות לביקור מפקד', 2, 'done', -40, 'קצין כשירויות', 'manlach'],
+        ['continuity', 'הכנת מצגת לביקור מפקד', 'מצגת רציפות התפקוד לביקור מפקד', 1, 'backlog', 90, 'קצין רציפות', 'kAgam'],
+        ['continuity', 'תיקון תקלה בעמדה', 'תיקון תקלה כללית בעמדה', 2, 'done', -20, 'קצין רציפות', 'magad'],
+        ['nob', 'הכנת מצגת לביקור מפקד', 'הכנת מצגת נו"ב', 2, 'backlog', 36, 'קצין נו"ב', 'magad'],
+        ['nob', 'תיקון תקלה בעמדה 4', 'דרוש עדכון לתקלת ניוט בעמדה 4', 2, 'backlog', 100, 'קצין נו"ב', 'kAgam'],
+        ['palsam', 'עדכון מערכת קשר', 'עדכון מערכת הקשר בעמדת הפלס"ם', 5, 'inProgress', 6, 'קצין פלס"ם', 'magad'],
+        ['palsam', 'תיקון תקלה בעמדה 4', 'תיקון תקלה בעמדה 4', 3, 'inProgress', 44, 'קצין פלס"ם', 'deputyMagad'],
+        ['planning', 'עדכון מערכת קשר', 'דרוש עדכון למערכת הקשר בחדר התכנון', 5, 'inProgress', 9, 'קצין תכנון', 'magad'],
+        ['planning', 'תיקון תקלה בעמדה 4', 'תיקון תקלה בעמדה 4', 3, 'inProgress', 46, 'קצין תכנון', 'kAgam'],
+        ['planning', 'הכנת מצגת לביקור מפקד', 'הכנת מצגת תכנון', 2, 'backlog', 66, 'קצין תכנון', 'magad'],
+        ['spectrum', 'בדיקת הפרעות בספקטרום', 'בדיקת הפרעות בתדרי הקשר במרחב הצפוני', 3, 'backlog', 28, 'קצין ספקטרום', 'manlach'],
+        ['spectrum', 'דיווח מצב ספקטרום יומי', 'הכנת דיווח יומי על מצב הספקטרום', 2, 'done', -10, 'קצין ספקטרום', 'magad', 'instruction'],
+        ['operations', 'הפעלת מערך גיבוי', 'תרגול הפעלת מערך הגיבוי בחדר המצב', 4, 'backlog', 14, 'קצין הפעלה', 'magad'],
+        ['subordinateBrigades', 'דיווח כשירות תקשוב', 'דיווח כשירות ציוד התקשוב בחטיבה', 4, 'inProgress', 18, 'קשר"ח חטיבה', 'magad', 'demand', 100],
+        ['subordinateBrigades', 'בדיקת ציוד קשר', 'בדיקת תקינות ציוד הקשר בחטיבה', 2, 'backlog', 48, 'קשר"ח חטיבה', 'deputyMagad', 'demand', 200],
+        ['other', 'עדכון נהלי עבודה', 'עדכון נוהל העבודה של חדר התקשוב', 1, 'canceled', -5, 'קצין קשר', 'magad', 'instruction'],
+    ]],
+    [100, [
+        ['computing', 'עדכון תוכנת פיקוד', 'עדכון גרסת תוכנת הפיקוד במחשבי החטיבה', 3, 'inProgress', 12, 'קצין מחשוב', 'kashrah'],
+        ['infrastructure', 'תיקון קו תקשורת', 'תיקון קו תקשורת פגוע לגדוד', 4, 'blocked', 22, 'קצין תשתיות', 'kashrah'],
+        ['crypto', 'חידוש מפתחות צופן', 'חידוש מפתחות הצופן לתקופה הבאה', 5, 'backlog', 6, 'קצין צופן', 'kashrah'],
+        ['radio', 'כיול מערך רדיו', 'כיול מערך הרדיו בחפ"ק החטיבה', 2, 'done', -18, 'קצין רדיו', 'other'],
+        ['battalions', 'תיאום עם גדודים', 'תיאום מצב קשר עם הגדודים', 3, 'backlog', 34, 'קשר"ח חטיבה', 'kashrah'],
+        ['admin', 'חידוש ציוד', 'חידוש מלאי ציוד קשר', 1, 'backlog', 80, 'קצין מנהלות', 'other'],
+    ]],
+    [200, [
+        ['computing', 'התקנת עמדות חדשות', 'התקנת שלוש עמדות מחשב חדשות', 2, 'inProgress', 40, 'קצין מחשוב', 'kashrah'],
+        ['radio', 'בדיקת מכשירי קשר', 'בדיקת מכשירי הקשר בגדודים', 4, 'backlog', 4, 'קצין רדיו', 'kashrah'],
+        ['crypto', 'ביקורת צופן', 'ביקורת תקופתית על ניהול הצופן', 3, 'blocked', 56, 'קצין צופן', 'other'],
+    ]],
+    [400, [
+        ['infrastructure', 'הקמת עמדת קשר קדמית', 'הקמת עמדת קשר קדמית בגזרת הגדוד', 4, 'inProgress', 16, 'קצין תשתיות', 'kashrah'],
+        ['battalions', 'סנכרון נהלים עם הגדודים', 'סנכרון נוהלי תקשוב עם הגדודים', 2, 'backlog', 60, 'קשר"ח חטיבה', 'kashrah'],
+    ]],
+    [2000, [
+        ['agam', 'הכנת מצגת לאוגדה הדרומית', 'מצגת מצב כוחות לשבוע הקרוב', 2, 'backlog', 22, 'ק. אג"ם', 'magad'],
+        ['ictCenter', 'עדכון מערכת קשר בדרום', 'עדכון מערכת הקשר בעמדה המרכזית של האוגדה', 5, 'inProgress', 7, 'קצין קשר', 'magad'],
+        ['ictCenter', 'תקלת חשמל בחדר מצב', 'טיפול בתקלת חשמל בחדר המצב הדרומי', 4, 'blocked', 30, 'קמ"צ אוגדה', 'kAgam'],
+        ['area', 'כיסוי קשר בערבה', 'בדיקת כיסוי הקשר באזור הערבה', 3, 'inProgress', 38, 'קצין קשר', 'magad'],
+        ['control', 'תרגיל שליטה דרומי', 'תיאום תרגיל שליטה עם החטיבות', 3, 'backlog', 70, 'קצין שליטה', 'deputyMagad', 'instruction'],
+        ['capabilities', 'אימון קשר חטיבתי', 'תיאום אימון קשר לכל חטיבות האוגדה', 2, 'done', -36, 'קצין כשירויות', 'magad'],
+        ['spectrum', 'ניהול תדרים באזור הנגב', 'ניהול תדרים וחסימות באזור הנגב', 4, 'inProgress', 15, 'קצין ספקטרום', 'manlach'],
+        ['subordinateBrigades', 'דיווח מצב ציוד חטיבתי', 'דיווח מצב ציוד הקשר בחטיבה 2100', 3, 'backlog', 25, 'קשר"ח חטיבה', 'magad', 'demand', 2100],
+    ]],
+    [2100, [
+        ['computing', 'עדכון תוכנות בחטיבה', 'עדכון גרסאות תוכנה בעמדות החטיבה', 3, 'inProgress', 20, 'קצין מחשוב', 'kashrah'],
+        ['radio', 'החלפת אנטנות', 'החלפת אנטנות פגועות בחפ"ק החטיבה', 5, 'backlog', 8, 'קצין רדיו', 'kashrah'],
+    ]],
+];
+
+export function buildMockBumDemands(now: number): BumDemand[] {
+    const demands: BumDemand[] = [];
+    BUM_SEEDS_BY_UNIT.forEach(([unitCode, seeds]) => {
+        seeds.forEach(([category, title, description, severity, status, dueHours, executor, reportingAgent, type, assignedUnitCode], i) => {
+            const issuedAt = now - (24 + ((i * 7) % 48)) * BUM_HOUR;
+            demands.push({
+                id: `bum-${unitCode}-${i + 1}`,
+                unitCode,
+                assignedUnitCode,
+                createdByCell: 'control',
+                createdAt: new Date(issuedAt).toISOString(),
+                reportingAgent,
+                category,
+                title,
+                description,
+                type: type ?? 'demand',
+                executor,
+                severity,
+                status,
+                startAt: new Date(issuedAt).toISOString(),
+                dueAt: new Date(now + dueHours * BUM_HOUR).toISOString(),
+                reportingPlatform: ['Teams', 'Phone', 'Email', 'Radio'][i % 4],
+            });
+        });
+    });
+    return demands;
+}
+
+
+// ---- Bum Manager: דמ"צים (equipment & means requests) ----
+const parentCodeOf = (code: number): number | undefined => {
+    const parent = mockUnits.find(u => u.code === code)?.parentCode;
+    return parent === undefined ? undefined : Number(parent);
+};
+const childCodesOf = (code: number): number[] => mockUnits.filter(u => Number(u.parentCode) === code).map(u => u.code);
+
+// [fromUnit, title, description, equipment, quantity, severity, status, dueHours, hasFile]
+type DmatzSeed = [number, string, string, string, number, BumSeverity, BumDmatzStatus, number, boolean];
+
+export function buildMockBumDmatzim(now: number): BumDmatz[] {
+    const [battalionA, battalionB] = childCodesOf(400);
+    const seeds: DmatzSeed[] = [
+        [1000, 'מכשירי קשר דור 4 לכוחות העומק', 'השלמת מכשירי קשר לכוחות שנכנסים לפריסה מתקדמת', 'מכשירי קשר VHF נישאים', 40, 5, 'underReview', 72, true],
+        [1000, 'מערכות הצפנה לרשת המפקדים', 'החלפת ערכות הצפנה שפג תוקפן', 'ערכות הצפנה', 12, 4, 'approved', 120, false],
+        [1000, 'גנרטורים לאתרי קשר מבודדים', 'גיבוי חשמל לשלושה אתרי קשר', 'גנרטורים 5KVA', 3, 3, 'submitted', 240, true],
+        [100, 'סוללות חלופיות לציוד קשר', 'מלאי סוללות ירד מתחת לרף המינימום', 'סוללות ליתיום', 60, 4, 'submitted', 48, false],
+        [100, 'מגברי אות לרשת הגדודית', 'שיפור כיסוי בשטח הררי', 'מגברי אות', 6, 3, 'supplied', 24, false],
+        [200, 'אנטנות כיווניות', 'החלפת אנטנות שניזוקו', 'אנטנות כיווניות', 10, 2, 'underReview', 96, true],
+        [200, 'ציוד ניוח לחפ"קים', 'ערכות ניוח לשלושה חפ"קים חדשים', 'ערכות ניוח', 3, 3, 'rejected', 168, false],
+        [300, 'לוחות סולאריים לאתרים', 'טעינה עצמאית לאתרי קשר', 'לוחות סולאריים', 8, 2, 'approved', 200, false],
+        [400, 'מחשבים ניידים קשוחים', 'ציוד לצוותי ניטור בשטח', 'מחשבים קשוחים', 6, 4, 'underReview', 60, true],
+        [400, 'כבלי תקשורת ומחברים', 'השלמת כבלים למרכזיות שדה', 'ערכות כבלים', 20, 1, 'supplied', 12, false],
+        [500, 'רדיו לווייני לגיבוי', 'קשר גיבוי כשהרשת הראשית מושבתת', 'מקמ"ש לווייני', 4, 5, 'submitted', 36, true],
+        ...(battalionA !== undefined ? [
+            [battalionA, 'סוללות לציוד קשר גדודי', 'מחסור בסוללות', 'סוללות ליתיום', 30, 3, 'submitted', 30, false] as DmatzSeed,
+            [battalionA, 'מיקרופונים לקסדות', 'החלפת ציוד שבור', 'ערכות מיקרופון', 15, 2, 'approved', 90, false] as DmatzSeed,
+        ] : []),
+        ...(battalionB !== undefined ? [
+            [battalionB, 'מטענים לרכב', 'מטענים לציוד קשר ברכבי הגדוד', 'מטעני רכב', 12, 2, 'underReview', 80, false] as DmatzSeed,
+        ] : []),
+    ];
+    return seeds.flatMap(([fromUnitCode, title, description, equipment, quantity, severity, status, dueHours, hasFile], i) => {
+        const toUnitCode = parentCodeOf(fromUnitCode);
+        if (toUnitCode === undefined) return [];
+        return [{
+            id: `dmatz-${fromUnitCode}-${i + 1}`,
+            fromUnitCode,
+            toUnitCode,
+            createdAt: new Date(now - (6 + ((i * 5) % 40)) * BUM_HOUR).toISOString(),
+            title,
+            description,
+            equipment,
+            quantity,
+            severity,
+            status,
+            dueAt: new Date(now + dueHours * BUM_HOUR).toISOString(),
+            attachments: hasFile ? [{ id: `att-${fromUnitCode}-${i + 1}`, name: 'מפרט-טכני.pdf', size: 184_320, mimeType: 'application/pdf' }] : [],
+        } as BumDmatz];
+    });
+}
+
+// ---- Bum Manager: הנחיות מפקד (commander instructions) ----
+export function buildMockBumInstructions(now: number): BumCommanderInstruction[] {
+    const [battalionA, battalionB] = childCodesOf(400);
+    // [issuedByUnit, commander, text, targetUnit, hoursAgo]
+    const seeds: Array<[number, string, string, number | undefined, number]> = [
+        [5000, 'אלוף יואב מזרחי', 'חובה לבצע בדיקת כשירות לכל ציוד הקשר לפני כל כניסה לשטח.', 1000, 6],
+        [5000, 'אלוף יואב מזרחי', 'יש לעבור לרשת הגיבוי תוך 10 דקות מרגע תקלה ברשת הראשית ולדווח לחמ"ל.', 1000, 20],
+        [1000, 'אלוף אורי כהן', 'החלפת מפתחות הצפנה מתבצעת אחת ל-24 שעות, באחריות קשר"ח.', 1000, 30],
+        [1000, 'אלוף אורי כהן', 'כל תקלת קשר מעל 15 דקות מדווחת לחמ"ל האוגדתי.', 100, 44],
+        [1000, 'אלוף אורי כהן', 'ריכוז מצב ציוד קשר חטיבתי יוגש מדי יום עד השעה 18:00.', 200, 52],
+        [1000, 'אלוף אורי כהן', 'חטיבת האש תעבור לפריסה מוגברת של אתרי קשר באזור הצפוני.', 400, 60],
+        [400, 'אל"ם דורון לוי', 'כל גדוד יקיים תרגול מעבר לרשת גיבוי פעם בשבוע.', battalionA, 70],
+        [400, 'אל"ם דורון לוי', 'יש לוודא טעינת סוללות מלאה לכל חפ"ק לפני יציאה.', battalionB, 82],
+        [100, 'אל"ם רן שפירא', 'אסור להשתמש ברשת האזרחית לתקשורת מבצעית.', 100, 96],
+        [100, 'אל"ם רן שפירא', 'קשר"ג יעביר סיכום מצב קשר בסיום כל משמרת.', 100, 110],
+    ];
+    return seeds.flatMap(([issuedByUnitCode, commanderName, text, targetUnitCode, hoursAgo], i) =>
+        targetUnitCode === undefined ? [] : [{
+            id: `instr-${i + 1}`,
+            issuedAt: new Date(now - hoursAgo * BUM_HOUR).toISOString(),
+            issuedByUnitCode,
+            commanderName,
+            text,
+            targetUnitCode,
+        } as BumCommanderInstruction]);
+}

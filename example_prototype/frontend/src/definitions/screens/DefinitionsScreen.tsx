@@ -49,8 +49,8 @@ export const DefinitionsScreen: React.FC = () => {
                 <button
                     onClick={handleSave}
                     disabled={!isDirty}
-                    className={`flex items-center gap-2 px-4 py-2 text-white dark:text-zinc-900 rounded-xl font-medium transition-colors ${isDirty
-                        ? 'bg-primary-600 hover:bg-primary-700 bg-[#00A2C7] dark:bg-[#00A2C7] cursor-pointer'
+                    className={`flex items-center gap-2 px-4 py-2 text-white rounded-xl font-medium transition-colors ${isDirty
+                        ? 'bg-primary-600 hover:bg-primary-700 bg-[#186eff] dark:bg-[#186eff] cursor-pointer'
                         : 'bg-slate-300 dark:bg-zinc-600 opacity-50 cursor-not-allowed text-slate-500 dark:text-zinc-400'
                         }`}
                 >

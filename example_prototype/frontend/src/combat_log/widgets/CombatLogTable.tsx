@@ -14,11 +14,12 @@ interface CombatLogTableProps {
     allEvents: CombatLogEvent[]; // full set, so badges reflect ground truth regardless of filters
     onView: (id: string) => void;
     onEdit: (id: string) => void;
+    onRowContextMenu?: (e: React.MouseEvent, event: CombatLogEvent) => void;
 }
 
 type SortField = 'start' | 'type' | 'title' | 'status';
 
-export const CombatLogTable: React.FC<CombatLogTableProps> = ({ events, allEvents, onView, onEdit }) => {
+export const CombatLogTable: React.FC<CombatLogTableProps> = ({ events, allEvents, onView, onEdit, onRowContextMenu }) => {
     const { t } = useTranslation();
     const [sortField, setSortField] = useState<SortField>('start');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -82,6 +83,8 @@ export const CombatLogTable: React.FC<CombatLogTableProps> = ({ events, allEvent
                             <tr
                                 key={event.id}
                                 onDoubleClick={() => onView(event.id)}
+                                onContextMenu={onRowContextMenu ? (e) => onRowContextMenu(e, event) : undefined}
+                                data-combat-row={event.id}
                                 className="border-t border-slate-100 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/40 transition-colors cursor-pointer"
                             >
 

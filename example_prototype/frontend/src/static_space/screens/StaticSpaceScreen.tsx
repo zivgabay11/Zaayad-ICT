@@ -45,7 +45,7 @@ export const StaticSpaceScreen: React.FC = () => {
                 </div>
                 <button
                     onClick={openAddSitesModal}
-                    className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-primary text-white dark:text-zinc-900 hover:bg-primary/90 transition-colors font-semibold shadow-sm"
+                    className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors font-semibold shadow-sm"
                 >
                     <Plus className="w-4 h-4" /> {t('staticSpace.addSites')}
                 </button>
@@ -61,7 +61,7 @@ export const StaticSpaceScreen: React.FC = () => {
                         <p className="text-xs text-slate-500 dark:text-zinc-500 leading-relaxed max-w-[240px] mb-5">{t('staticSpace.emptyDescription')}</p>
                         <button
                             onClick={openAddSitesModal}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg bg-primary text-white dark:text-zinc-900 hover:bg-primary/90 transition-colors"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
                         >
                             <Plus className="w-3.5 h-3.5" /> {t('staticSpace.addSites')}
                         </button>

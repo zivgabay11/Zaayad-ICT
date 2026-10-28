@@ -58,8 +58,8 @@ interface CombatLogContextType {
     addAttachment: (id: string, fileName: string, fileType: CombatLogAttachment['fileType']) => void;
     // Personal Task Log integration (my addition): toggles whether a cell has this event
     // pushed to its Personal Task Log — the event itself stays the single shared record,
-    // this just tracks who it's currently assigned to.
-    toggleAssignedCell: (id: string, cell: Cell) => void;
+    // this just tracks who it's currently assigned to. Driven by the row right-click menus.
+    toggleAssignedCell: (id: string, cell: Cell, unitCode?: number) => void;
 }
 
 const STORAGE_KEY = 'horus_combat_log_events';
@@ -243,15 +243,21 @@ export const CombatLogProvider: React.FC<{ children: ReactNode }> = ({ children 
         ));
     };
 
-    const toggleAssignedCell = (id: string, cell: Cell) => {
+    const toggleAssignedCell = (id: string, cell: Cell, unitCode: number = homeUnitCode) => {
         const now = new Date().toISOString();
         persist(events.map(e => {
             if (e.id !== id) return e;
             const current = e.assignedToCells || [];
             const isAssigned = current.includes(cell);
+            const units = e.assignedUnitCodes || [];
+            // A non-reporter unit is remembered so its Personal Task Log can show the event.
+            const nextUnits = unitCode === e.reporterUnitCode ? units
+                : isAssigned ? units.filter(u => u !== unitCode)
+                : (units.includes(unitCode) ? units : [...units, unitCode]);
             return {
                 ...e,
                 assignedToCells: isAssigned ? current.filter(c => c !== cell) : [...current, cell],
+                assignedUnitCodes: nextUnits,
                 updatedAt: now,
             };
         }));

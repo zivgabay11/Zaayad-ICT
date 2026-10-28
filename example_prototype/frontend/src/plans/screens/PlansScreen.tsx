@@ -192,7 +192,7 @@ export const PlansScreen: React.FC<PlansScreenProps> = ({ session, onPlanSelect,
                 {/* New Plan button */}
                 <button
                     onClick={() => setIsCreating(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00A2C7] dark:bg-[#00A2C7] text-white dark:text-zinc-900 rounded-lg text-sm font-medium transition-colors hover:opacity-90"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#186eff] dark:bg-[#186eff] text-white rounded-lg text-sm font-medium transition-colors hover:opacity-90"
                 >
                     <Plus className="w-4 h-4" />
                     {t('plans.newPlanBtn')}
@@ -274,14 +274,14 @@ export const PlansScreen: React.FC<PlansScreenProps> = ({ session, onPlanSelect,
                         <input
                             type="text"
                             placeholder={t('plans.planNameLabel')}
-                            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00A2C7] dark:focus:ring-[#00A2C7]"
+                            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#186eff] dark:focus:ring-[#186eff]"
                             value={newPlanName}
                             onChange={(e) => setNewPlanName(e.target.value)}
                         />
                         <textarea
                             rows={2}
                             placeholder={t('plans.descriptionLabel')}
-                            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00A2C7] dark:focus:ring-[#00A2C7] resize-none"
+                            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#186eff] dark:focus:ring-[#186eff] resize-none"
                             value={newPlanDesc}
                             onChange={(e) => setNewPlanDesc(e.target.value)}
                         />
@@ -295,7 +295,7 @@ export const PlansScreen: React.FC<PlansScreenProps> = ({ session, onPlanSelect,
                             <button
                                 onClick={handleCreate}
                                 disabled={!newPlanName.trim()}
-                                className="px-4 py-2 rounded-lg bg-[#00A2C7] dark:bg-[#00A2C7] text-white dark:text-zinc-900 font-medium disabled:opacity-50 transition-colors"
+                                className="px-4 py-2 rounded-lg bg-[#186eff] dark:bg-[#186eff] text-white font-medium disabled:opacity-50 transition-colors"
                             >
                                 {t('plans.saveBtn')}
                             </button>

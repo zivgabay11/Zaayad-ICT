@@ -304,6 +304,9 @@ export interface CombatLogEvent {
     // viewer's unit), so editing status or adding a note from either screen updates this
     // same record.
     assignedToCells?: Cell[];
+    // Units whose Personal Task Log picked this event up through the row context menu, when
+    // that unit isn't the reporter (the reporter's own unit always sees it for its cells).
+    assignedUnitCodes?: number[];
     // Cross-log automation (see CombatLogContext.tsx): work_future_events only — the ICT
     // Faults this work item is going out to resolve. Completing the work auto-closes them.
     linkedFaultIds?: string[];
@@ -421,6 +424,29 @@ export interface MobileCommPlatform {
     createdAt: string; // ISO
 }
 
+// מפקדה (Headquarters) vs חפ"ק (forward Command Post) — placed in Link Planning
+// alongside cells/platforms, transferred into ניהו"ק's "מפקדות וחפ"קים" layer the same way.
+export type HeadquartersKind = 'headquarters' | 'commandPost';
+
+// The three echelons a headquarters/command post's unitCode may resolve to (see
+// SelectUnitModal's ASSIGNABLE_TYPES) — drives the small NATO-style size badge on its map
+// icon (see headquartersIcon.ts) and nothing else; not stored on the entity itself since
+// it's always derivable from unitCode via mockUnits.
+export type HeadquartersLevel = 'division' | 'brigade' | 'battalion';
+
+export interface HeadquartersEntity {
+    id: string;
+    kind: HeadquartersKind;
+    // FK into mockUnits (division/brigade/battalion only) — this is how the headquarters
+    // or command post is linked to its real place in the org hierarchy: the chosen unit's
+    // parentCode chain already encodes "this brigade is under that division", so no
+    // separate echelon/level field is needed here.
+    unitCode: number;
+    name: string;
+    position: GeoCoordinate;
+    createdAt: string; // ISO
+}
+
 export interface LinkCoverageCut {
     id: string;
     cellId: string; // FK into LinkCell
@@ -431,3 +457,100 @@ export interface LinkCoverageCut {
 }
 
 export type LinkCoverageTier = 'good' | 'medium' | 'low' | 'none';
+
+// ---- Bum Manager (בו"ם משימות) — commander demands & instructions tracker ----
+// PRD "Bum Manager": every demand/instruction a commander issues, tracked through a
+// lifecycle (ממתין → בביצוע → חסום → הושלם / בוטל) and viewed as dashboard / table / kanban /
+// category tiles. `category` is the handling cell (מסגרת); its allowed values depend on whether
+// the owning unit is a division or a brigade (see bum_manager/utilities/bum.ts).
+export type BumDemandStatus = 'backlog' | 'inProgress' | 'blocked' | 'done' | 'canceled';
+export type BumDemandType = 'demand' | 'instruction';
+export type BumSeverity = 1 | 2 | 3 | 4 | 5;
+
+export interface BumDemand {
+    id: string;
+    unitCode: number; // the unit that created the demand (FK into mockUnits)
+    assignedUnitCode?: number; // set when a division adds a demand for a subordinate brigade
+    createdByCell?: Cell;
+    createdAt: string; // ISO
+    reportingAgent: string; // גורם מורה — key into BUM_REPORTING_AGENTS
+    category: string; // מסגרת (handling cell) — key into the division/brigade category lists
+    title: string;
+    description: string;
+    type: BumDemandType;
+    executor: string; // מבצע — who carries it out
+    severity: BumSeverity;
+    status: BumDemandStatus;
+    startAt?: string; // ISO — when the commander issued it
+    dueAt?: string; // ISO — מועד יעד
+    reportingPlatform?: string; // פלטפורמת דיווח (meeting / phone / Teams / radio …)
+    notes?: string;
+}
+
+// ---- Bum Manager: דמ"צים — equipment & means requests raised to the superior unit ----
+// A unit raises a דמ"צ to the unit above it in the echelon tree; the superior sees it as a
+// received one and moves it through the lifecycle (הוגש → בבחינה → אושר → סופק / נדחה).
+// Files (e.g. a spec sheet) can be attached to a דמ"צ.
+export type BumDmatzStatus = 'submitted' | 'underReview' | 'approved' | 'supplied' | 'rejected';
+
+export interface BumAttachment {
+    id: string;
+    name: string;
+    size: number; // bytes
+    mimeType: string;
+    dataUrl?: string; // kept for files small enough to persist in localStorage (prototype)
+}
+
+export interface BumDmatz {
+    id: string;
+    fromUnitCode: number; // the unit that raised it
+    toUnitCode: number; // its superior (parent in the echelon tree)
+    createdAt: string; // ISO
+    title: string;
+    description: string;
+    equipment: string; // the equipment / means requested
+    quantity: number;
+    severity: BumSeverity;
+    status: BumDmatzStatus;
+    dueAt?: string; // ISO — needed-by date
+    attachments: BumAttachment[];
+    notes?: string;
+}
+
+// ---- Bum Manager: הנחיות מפקד — instructions commanders pushed down to the field ----
+// One row per instruction: who issued it, what it says and which unit it is relevant to (the
+// viewing unit itself, or a specific unit beneath it in the echelon tree).
+export interface BumCommanderInstruction {
+    id: string;
+    issuedAt: string; // ISO
+    issuedByUnitCode: number; // the unit whose commander issued it
+    commanderName: string;
+    text: string;
+    targetUnitCode: number; // the unit it is relevant to
+}
+
+// ---- System Views (תצוגות מערכת) — user-built dashboards ----
+// A user composes a dashboard out of the existing features of שליטה וניהול, ניטור and ספקטרום
+// (each one becomes a widget), saves it into their own repository and can switch between their
+// dashboards at any time. This is an addition to the fixed screens, not a replacement.
+export type DashboardFeatureId =
+    | 'combat_log' | 'combat_script' | 'personal_task_log' | 'bum_manager' | 'headquarters_overview'
+    | 'static_space' | 'tikshov_cop'
+    | 'spectrum_jamming' | 'spectrum_blocking';
+
+// A widget is just a feature in the dashboard's ordered list. There is no free placement: the
+// layout is computed from how many widgets there are, so together they always fill 100% of the
+// screen area (see computeTileLayout in system_views/utilities/dashboardFeatures.ts).
+export interface DashboardWidget {
+    id: string;
+    featureId: DashboardFeatureId;
+}
+
+export interface CustomDashboard {
+    id: string;
+    ownerUsername: string;
+    name: string;
+    widgets: DashboardWidget[];
+    createdAt: string; // ISO
+    updatedAt: string; // ISO
+}

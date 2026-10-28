@@ -12,27 +12,36 @@ interface UseLinkPlanningDrawingOptions {
     suppressRef: MutableRefObject<boolean>;
     onCellDrawn: (coordinates: GeoCoordinate[]) => void;
     onPlatformPlaced: (position: GeoCoordinate) => void;
-    // "Change location" flows (right-click → שנה מיקום on a cell/platform still under
-    // נוה"ק): reuse the exact same draw/click plumbing above, but route the result to an
-    // update call for a specific existing id instead of creating a new entity.
+    onHeadquartersPlaced: (position: GeoCoordinate) => void;
+    // "Change location" flows (right-click → שנה מיקום on a cell/platform/headquarters
+    // still under נוה"ק): reuse the exact same draw/click plumbing above, but route the
+    // result to an update call for a specific existing id instead of creating a new entity.
     onCellRedrawn: (cellId: string, coordinates: GeoCoordinate[]) => void;
     onPlatformMoved: (platformId: string, position: GeoCoordinate) => void;
+    onHeadquartersMoved: (entityId: string, position: GeoCoordinate) => void;
 }
 
-export function useLinkPlanningDrawing({ map, suppressRef, onCellDrawn, onPlatformPlaced, onCellRedrawn, onPlatformMoved }: UseLinkPlanningDrawingOptions) {
+export function useLinkPlanningDrawing({
+    map, suppressRef, onCellDrawn, onPlatformPlaced, onHeadquartersPlaced, onCellRedrawn, onPlatformMoved, onHeadquartersMoved,
+}: UseLinkPlanningDrawingOptions) {
     const onCellDrawnRef = useRef(onCellDrawn);
     onCellDrawnRef.current = onCellDrawn;
     const onPlatformPlacedRef = useRef(onPlatformPlaced);
     onPlatformPlacedRef.current = onPlatformPlaced;
+    const onHeadquartersPlacedRef = useRef(onHeadquartersPlaced);
+    onHeadquartersPlacedRef.current = onHeadquartersPlaced;
     const onCellRedrawnRef = useRef(onCellRedrawn);
     onCellRedrawnRef.current = onCellRedrawn;
     const onPlatformMovedRef = useRef(onPlatformMoved);
     onPlatformMovedRef.current = onPlatformMoved;
+    const onHeadquartersMovedRef = useRef(onHeadquartersMoved);
+    onHeadquartersMovedRef.current = onHeadquartersMoved;
 
     // Non-null while a redraw/move is in progress — identifies which existing entity the
     // next pm:create/click result belongs to. Cleared the moment that result is consumed.
     const redrawTargetCellIdRef = useRef<string | null>(null);
     const movePlatformTargetIdRef = useRef<string | null>(null);
+    const moveHeadquartersTargetIdRef = useRef<string | null>(null);
 
     useEffect(() => {
         if (!map) return;
@@ -84,5 +93,39 @@ export function useLinkPlanningDrawing({ map, suppressRef, onCellDrawn, onPlatfo
         enablePlacePlatform();
     }, [map, enablePlacePlatform]);
 
-    return { enableDrawCell, enablePlacePlatform, enableRedrawCell, enableMovePlatform };
+    // The pending one-shot click listener, kept so a place/move that's abandoned (Esc / banner
+    // cancel from the overview-driven flow) can be torn down instead of lingering on the map.
+    const headquartersClickHandlerRef = useRef<((e: L.LeafletMouseEvent) => void) | null>(null);
+
+    const cancelPlaceHeadquarters = useCallback(() => {
+        if (map && headquartersClickHandlerRef.current) map.off('click', headquartersClickHandlerRef.current);
+        headquartersClickHandlerRef.current = null;
+        moveHeadquartersTargetIdRef.current = null;
+    }, [map]);
+
+    const enablePlaceHeadquarters = useCallback(() => {
+        if (!map) return;
+        if (headquartersClickHandlerRef.current) map.off('click', headquartersClickHandlerRef.current);
+        const handler = (e: L.LeafletMouseEvent) => {
+            headquartersClickHandlerRef.current = null;
+            const targetEntityId = moveHeadquartersTargetIdRef.current;
+            moveHeadquartersTargetIdRef.current = null;
+            const position = { lat: e.latlng.lat, lng: e.latlng.lng };
+            if (targetEntityId) onHeadquartersMovedRef.current(targetEntityId, position);
+            else onHeadquartersPlacedRef.current(position);
+        };
+        headquartersClickHandlerRef.current = handler;
+        map.once('click', handler);
+    }, [map]);
+
+    const enableMoveHeadquarters = useCallback((entityId: string) => {
+        if (!map) return;
+        moveHeadquartersTargetIdRef.current = entityId;
+        enablePlaceHeadquarters();
+    }, [map, enablePlaceHeadquarters]);
+
+    return {
+        enableDrawCell, enablePlacePlatform, enableRedrawCell, enableMovePlatform,
+        enablePlaceHeadquarters, enableMoveHeadquarters, cancelPlaceHeadquarters,
+    };
 }

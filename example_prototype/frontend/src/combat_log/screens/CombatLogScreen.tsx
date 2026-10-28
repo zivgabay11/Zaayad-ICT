@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollText, Plus, Download } from 'lucide-react';
+import { ScrollText, Plus, Download, ListPlus, ListMinus } from 'lucide-react';
 import { useCombatLogContext } from '../../common/context/CombatLogContext';
-import { CombatLogType } from '../../common/utilities/types';
+import { usePersonalTaskLogContext } from '../../common/context/PersonalTaskLogContext';
+import { CombatLogEvent, CombatLogType } from '../../common/utilities/types';
+import { LINKABLE_COMBAT_LOG_TYPES } from '../../common/utilities/combatLog';
+import { RowContextMenu, RowContextMenuState } from '../../common/widgets/RowContextMenu';
 import { getUnitAndDescendantCodes } from '../../common/utilities/mockData';
 import { SituationPictureDashboard } from '../widgets/SituationPictureDashboard';
 import { CombatLogFilterBar, CombatLogFilters } from '../widgets/CombatLogFilterBar';
@@ -12,7 +15,6 @@ import { NewEventModal } from '../widgets/NewEventModal';
 import { EventEditModal } from '../widgets/EventEditModal';
 import { EventViewPanel } from '../widgets/EventViewPanel';
 import { ShareEventModal } from '../widgets/ShareEventModal';
-import { AssignRoleModal } from '../widgets/AssignRoleModal';
 import { exportCombatLogToCsv } from '../utilities/exportCsv';
 
 // Integrated Combat Log (יומן לחימה מתכלל) — full screen, reachable from the sidebar,
@@ -40,14 +42,15 @@ function readFiltersFromUrl(): CombatLogFilters {
 
 export const CombatLogScreen: React.FC = () => {
     const { t } = useTranslation();
-    const { events, homeUnitCode } = useCombatLogContext();
+    const { events, homeUnitCode, toggleAssignedCell } = useCombatLogContext();
+    const { myUnitCode, myCell } = usePersonalTaskLogContext();
     const [tab, setTab] = useState<Tab>('table');
     const [filters, setFilters] = useState<CombatLogFilters>(readFiltersFromUrl);
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [viewEventId, setViewEventId] = useState<string | null>(null);
     const [editEventId, setEditEventId] = useState<string | null>(null);
     const [shareEventId, setShareEventId] = useState<string | null>(null);
-    const [assignRoleEventId, setAssignRoleEventId] = useState<string | null>(null);
+    const [rowMenu, setRowMenu] = useState<RowContextMenuState | null>(null);
 
     // FR-21/AC-04.5 — active filters are reflected in the URL so the view is shareable.
     useEffect(() => {
@@ -85,7 +88,24 @@ export const CombatLogScreen: React.FC = () => {
     const viewEvent = events.find(e => e.id === viewEventId) || null;
     const editEvent = events.find(e => e.id === editEventId) || null;
     const shareEvent = events.find(e => e.id === shareEventId) || null;
-    const assignRoleEvent = events.find(e => e.id === assignRoleEventId) || null;
+
+    // Right-click a row → add it to (or take it off) MY Personal Task Log. The event stays the
+    // single shared record, so status/notes edited in either diary show up in both.
+    const openRowMenu = (e: React.MouseEvent, event: CombatLogEvent) => {
+        e.preventDefault();
+        const isLinkable = LINKABLE_COMBAT_LOG_TYPES.includes(event.type);
+        const inMyDiary = !!event.assignedToCells?.includes(myCell)
+            && (event.reporterUnitCode === myUnitCode || !!event.assignedUnitCodes?.includes(myUnitCode));
+        setRowMenu({
+            x: e.clientX,
+            y: e.clientY,
+            items: !isLinkable
+                ? [{ key: 'unsupported', label: t('combatLog.rowMenu.addToMyDiary'), icon: <ListPlus className="w-4 h-4 shrink-0" />, disabled: true, hint: t('combatLog.rowMenu.unsupported'), onSelect: () => undefined }]
+                : inMyDiary
+                    ? [{ key: 'remove-from-diary', label: t('combatLog.rowMenu.removeFromMyDiary'), icon: <ListMinus className="w-4 h-4 shrink-0" />, onSelect: () => toggleAssignedCell(event.id, myCell, myUnitCode) }]
+                    : [{ key: 'add-to-diary', label: t('combatLog.rowMenu.addToMyDiary'), icon: <ListPlus className="w-4 h-4 shrink-0" />, onSelect: () => toggleAssignedCell(event.id, myCell, myUnitCode) }],
+        });
+    };
 
     return (
         <div className="p-6 h-full flex flex-col w-full min-w-0 max-w-full overflow-hidden">
@@ -108,7 +128,7 @@ export const CombatLogScreen: React.FC = () => {
                     </button>
                     <button
                         onClick={() => setIsNewModalOpen(true)}
-                        className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-primary text-white dark:text-zinc-900 hover:bg-primary/90 transition-colors font-semibold shadow-sm"
+                        className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors font-semibold shadow-sm"
                     >
                         <Plus className="w-4 h-4" /> {t('combatLog.newEvent')}
                     </button>
@@ -141,6 +161,7 @@ export const CombatLogScreen: React.FC = () => {
                         allEvents={events}
                         onView={setViewEventId}
                         onEdit={setEditEventId}
+                        onRowContextMenu={openRowMenu}
                     />
                 )}
                 {tab === 'gantt' && <CombatLogGantt events={filteredEvents} onView={setViewEventId} />}
@@ -153,7 +174,6 @@ export const CombatLogScreen: React.FC = () => {
                 onClose={() => setViewEventId(null)}
                 onEdit={(id) => { setViewEventId(null); setEditEventId(id); }}
                 onShare={(id) => { setViewEventId(null); setShareEventId(id); }}
-                onAssignRole={(id) => { setViewEventId(null); setAssignRoleEventId(id); }}
                 viewingUnitCode={homeUnitCode}
             />
 
@@ -164,7 +184,7 @@ export const CombatLogScreen: React.FC = () => {
             />
 
             <ShareEventModal event={shareEvent} onClose={() => setShareEventId(null)} />
-            <AssignRoleModal event={assignRoleEvent} onClose={() => setAssignRoleEventId(null)} />
+            <RowContextMenu menu={rowMenu} onClose={() => setRowMenu(null)} />
         </div>
     );
 };

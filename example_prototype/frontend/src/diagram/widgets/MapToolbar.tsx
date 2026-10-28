@@ -8,6 +8,8 @@ import {
     Radar,
     Truck,
     Signal,
+    Building2,
+    Flag,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useMapContext, MapType } from '../../common/context/MapContext';
@@ -15,9 +17,11 @@ import { useAnalysisContext } from '../../common/context/AnalysisContext';
 import { usePlanContext } from '../../common/context/PlanContext';
 import { useLinkPlanningContext } from '../../common/context/LinkPlanningContext';
 import { LayerOrganizerPanel } from '../../common/widgets/LayerOrganizerPanel';
+import { SelectUnitModal } from '../../link_planning/widgets/SelectUnitModal';
 import { formatUnitName } from '../../common/utilities/formatting';
 import { mockUnits } from '../../common/utilities/mockData';
 import { getUnitColor } from '../../common/utilities/colors';
+import { HeadquartersKind } from '../../common/utilities/types';
 
 interface MapToolbarProps {
     onDrawPolygon: () => void;
@@ -31,6 +35,7 @@ interface MapToolbarProps {
     onZoomOut: () => void;
     onDrawLinkCell: () => void;
     onPlaceMobilePlatform: () => void;
+    onPlaceHeadquarters: (kind: HeadquartersKind, unitCode: number) => void;
 }
 
 interface TooltipButtonProps {
@@ -74,6 +79,7 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
     onZoomOut,
     onDrawLinkCell,
     onPlaceMobilePlatform,
+    onPlaceHeadquarters,
 }) => {
     const { t, i18n } = useTranslation();
     const { activeMapType, setActiveMapType, opacity, setOpacity, activePhaseId, setActivePhaseId, activeUnitCode, setActiveUnitCode, closeMap, currentSection } = useMapContext();
@@ -83,6 +89,7 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
     const [showPhasesDropdown, setShowPhasesDropdown] = useState(false);
     const [showUnitsDropdown, setShowUnitsDropdown] = useState(false);
     const [showOpacity, setShowOpacity] = useState(false);
+    const [unitPickerKind, setUnitPickerKind] = useState<HeadquartersKind | null>(null);
     const { isPanelOpen, setPanelOpen, anyResults } = useAnalysisContext();
 
     const mapTypes: { key: MapType; label: string }[] = [
@@ -256,6 +263,18 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
                                 label={t('linkPlanning.addPlatform')}
                                 className="flex items-center justify-center w-9 h-9 rounded-lg transition-colors text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
                             />
+                            <TooltipButton
+                                onClick={() => setUnitPickerKind('headquarters')}
+                                icon={<Building2 className="w-4 h-4" />}
+                                label={t('linkPlanning.addHeadquarters')}
+                                className="flex items-center justify-center w-9 h-9 rounded-lg transition-colors text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                            />
+                            <TooltipButton
+                                onClick={() => setUnitPickerKind('commandPost')}
+                                icon={<Flag className="w-4 h-4" />}
+                                label={t('linkPlanning.addCommandPost')}
+                                className="flex items-center justify-center w-9 h-9 rounded-lg transition-colors text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                            />
                             <button
                                 onClick={openComputeCutModal}
                                 title={t('linkPlanning.computeCut')}
@@ -347,6 +366,13 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
                     </div>
                 </div>
             </div>
+
+            <SelectUnitModal
+                isOpen={unitPickerKind !== null}
+                kind={unitPickerKind}
+                onClose={() => setUnitPickerKind(null)}
+                onPick={(unitCode) => { if (unitPickerKind) onPlaceHeadquarters(unitPickerKind, unitCode); }}
+            />
         </>
     );
 };

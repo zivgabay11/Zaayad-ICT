@@ -27,7 +27,7 @@ export const TikshovWatchedUnitsPanel: React.FC = () => {
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-white dark:text-zinc-900 hover:bg-primary/90 transition-colors shrink-0"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors shrink-0"
                 >
                     <Plus className="w-3.5 h-3.5" /> {t('tikshovCop.addWatchedUnit')}
                 </button>

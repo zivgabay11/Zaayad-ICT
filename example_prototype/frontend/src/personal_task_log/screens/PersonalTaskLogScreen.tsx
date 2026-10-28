@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ListChecks, Plus } from 'lucide-react';
+import { ListChecks, Plus, ListMinus } from 'lucide-react';
 import { usePersonalTaskLogContext } from '../../common/context/PersonalTaskLogContext';
 import { useCombatLogContext } from '../../common/context/CombatLogContext';
-import { PersonalTask, PersonalTaskStatus } from '../../common/utilities/types';
-import { LINKABLE_COMBAT_LOG_TYPES } from '../../common/utilities/combatLog';
+import { CombatLogType, PersonalTask, PersonalTaskStatus } from '../../common/utilities/types';
+import { LINKABLE_COMBAT_LOG_TYPES, COMBAT_LOG_TYPE_COLORS } from '../../common/utilities/combatLog';
+import { RowContextMenu, RowContextMenuState } from '../../common/widgets/RowContextMenu';
 import {
     PERSONAL_TASK_STATUS_ORDER,
     computeTaskStats,
@@ -19,7 +20,6 @@ import { TaskViewPanel } from '../widgets/TaskViewPanel';
 import { EventViewPanel } from '../../combat_log/widgets/EventViewPanel';
 import { EventEditModal } from '../../combat_log/widgets/EventEditModal';
 import { ShareEventModal } from '../../combat_log/widgets/ShareEventModal';
-import { AssignRoleModal } from '../../combat_log/widgets/AssignRoleModal';
 
 // Personal Task Log (יומן משימות אישי) — per-unit-and-cell task manager, scoped to the
 // combination currently selected in the User Settings modal (see PersonalTaskLogContext's
@@ -30,7 +30,7 @@ import { AssignRoleModal } from '../../combat_log/widgets/AssignRoleModal';
 export const PersonalTaskLogScreen: React.FC = () => {
     const { t } = useTranslation();
     const { tasks, myUnitCode, myCell, deleteTask, updateTask } = usePersonalTaskLogContext();
-    const { events: combatLogEvents, homeUnitCode, updateEvent, toggleAssignedCell } = useCombatLogContext();
+    const { events: combatLogEvents, homeUnitCode, createEvent, updateEvent, toggleAssignedCell } = useCombatLogContext();
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<PersonalTask | null>(null);
@@ -38,12 +38,11 @@ export const PersonalTaskLogScreen: React.FC = () => {
     const [viewingTaskId, setViewingTaskId] = useState<string | null>(null);
     const [viewingEventId, setViewingEventId] = useState<string | null>(null);
     const [shareEventId, setShareEventId] = useState<string | null>(null);
-    const [assignRoleEventId, setAssignRoleEventId] = useState<string | null>(null);
+    const [rowMenu, setRowMenu] = useState<RowContextMenuState | null>(null);
     const editingEvent = combatLogEvents.find(e => e.id === editingEventId) || null;
     const viewingTask = tasks.find(t => t.id === viewingTaskId) || null;
     const viewingEvent = combatLogEvents.find(e => e.id === viewingEventId) || null;
     const shareEvent = combatLogEvents.find(e => e.id === shareEventId) || null;
-    const assignRoleEvent = combatLogEvents.find(e => e.id === assignRoleEventId) || null;
 
     const items: TaskLogItem[] = useMemo(() => {
         const manual: TaskLogItem[] = tasks
@@ -52,7 +51,7 @@ export const PersonalTaskLogScreen: React.FC = () => {
 
         const linked: TaskLogItem[] = combatLogEvents
             .filter(event => LINKABLE_COMBAT_LOG_TYPES.includes(event.type)
-                && event.reporterUnitCode === myUnitCode
+                && (event.reporterUnitCode === myUnitCode || event.assignedUnitCodes?.includes(myUnitCode))
                 && event.assignedToCells?.includes(myCell))
             .map(event => ({ kind: 'linked', id: event.id, status: mapCombatLogStatusToPersonal(event), event }));
 
@@ -90,6 +89,48 @@ export const PersonalTaskLogScreen: React.FC = () => {
         }
     };
 
+    // Right-click a row. Manual task → pick a Combat Log type; it is turned into that event
+    // (the single shared record, assigned back to my cell — no duplicate stays behind, and
+    // its status/severity/dates carry over). Linked row → take it off my diary again; the
+    // event itself stays in the Combat Log.
+    const moveTaskToCombatLog = (task: PersonalTask, type: CombatLogType) => {
+        createEvent({
+            type,
+            title: task.title,
+            description: task.description,
+            start: task.start,
+            end: task.end,
+            status: PERSONAL_STATUS_TO_COMBAT_LOG[type]?.[task.status],
+            severity: type === 'ict_faults' && task.severity !== 'unknown' ? task.severity : undefined,
+            assignedToCells: [myCell],
+        });
+        deleteTask(task.id);
+    };
+
+    const openRowMenu = (e: React.MouseEvent, item: TaskLogItem) => {
+        e.preventDefault();
+        setRowMenu({
+            x: e.clientX,
+            y: e.clientY,
+            items: item.kind === 'manual'
+                ? [
+                    { kind: 'header', key: 'h', label: t('personalTaskLog.rowMenu.addToCombatLog') },
+                    ...LINKABLE_COMBAT_LOG_TYPES.map(type => ({
+                        key: `to-${type}`,
+                        label: t(`combatLog.logTypes.${type}`),
+                        color: COMBAT_LOG_TYPE_COLORS[type],
+                        onSelect: () => moveTaskToCombatLog(item.task, type),
+                    })),
+                ]
+                : [{
+                    key: 'remove-from-diary',
+                    label: t('personalTaskLog.rowMenu.removeFromMyDiary'),
+                    icon: <ListMinus className="w-4 h-4 shrink-0" />,
+                    onSelect: () => toggleAssignedCell(item.event.id, myCell, myUnitCode),
+                }],
+        });
+    };
+
     const handleDropItem = (itemId: string, status: PersonalTaskStatus) => {
         const item = items.find(i => i.id === itemId);
         if (!item || item.status === status) return;
@@ -118,7 +159,7 @@ export const PersonalTaskLogScreen: React.FC = () => {
                 </div>
                 <button
                     onClick={openCreate}
-                    className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-primary text-white dark:text-zinc-900 hover:bg-primary/90 transition-colors font-semibold shadow-sm"
+                    className="inline-flex items-center gap-1.5 text-sm h-8 px-3 rounded-md bg-primary text-white hover:bg-primary/90 transition-colors font-semibold shadow-sm"
                 >
                     <Plus className="w-4 h-4" /> {t('personalTaskLog.newTask')}
                 </button>
@@ -138,6 +179,7 @@ export const PersonalTaskLogScreen: React.FC = () => {
                             onView={handleView}
                             onEdit={handleEdit}
                             onRemove={handleRemove}
+                            onContextMenu={openRowMenu}
                             onDropItem={handleDropItem}
                         />
                     ))}
@@ -150,7 +192,6 @@ export const PersonalTaskLogScreen: React.FC = () => {
                 ownerUnitCode={myUnitCode}
                 ownerCell={myCell}
                 task={editingTask}
-                onLinked={(eventId) => { closeForm(); setViewingEventId(eventId); }}
             />
 
             <TaskViewPanel
@@ -164,7 +205,6 @@ export const PersonalTaskLogScreen: React.FC = () => {
                 onClose={() => setViewingEventId(null)}
                 onEdit={(id) => { setViewingEventId(null); setEditingEventId(id); }}
                 onShare={(id) => { setViewingEventId(null); setShareEventId(id); }}
-                onAssignRole={(id) => { setViewingEventId(null); setAssignRoleEventId(id); }}
                 viewingUnitCode={homeUnitCode}
                 viewingCell={myCell}
             />
@@ -177,7 +217,7 @@ export const PersonalTaskLogScreen: React.FC = () => {
             />
 
             <ShareEventModal event={shareEvent} onClose={() => setShareEventId(null)} />
-            <AssignRoleModal event={assignRoleEvent} onClose={() => setAssignRoleEventId(null)} />
+            <RowContextMenu menu={rowMenu} onClose={() => setRowMenu(null)} />
         </div>
     );
 };

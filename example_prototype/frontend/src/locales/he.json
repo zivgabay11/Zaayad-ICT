@@ -27,6 +27,8 @@
         "static_space": "כינון מרחב נייח",
         "tikshov_cop": "תמ\"כ תקשוב",
         "link_planning": "תכנון קשר",
+        "bum_manager": "בו\"ם משימות",
+        "headquarters_overview": "מפקדות וחפ\"קים",
         "control": "שליטה וניהול",
         "management": "ניהול",
         "radio": "רדיו",
@@ -681,7 +683,7 @@
             "other": "אחר"
         },
         "columns": { "startTime": "זמן התחלה", "logType": "סוג יומן", "title": "כותרת", "status": "סטטוס" },
-        "actions": { "view": "צפייה", "edit": "עריכה", "share": "שיתוף", "assignRole": "שיוך לתא", "close": "סגירה", "save": "שמירה", "cancel": "ביטול" },
+        "actions": { "view": "צפייה", "edit": "עריכה", "share": "שיתוף", "close": "סגירה", "save": "שמירה", "cancel": "ביטול" },
         "fields": {
             "type": "סוג יומן",
             "title": "כותרת",
@@ -730,7 +732,6 @@
             "linkedFaultsHint": "בחר את התקלות הפתוחות שהעבודה הזו יוצאת לטפל בהן — הן ייסגרו אוטומטית עם סיום העבודה",
             "relatedCommSiteHint": "תיוג התקלה לאתר קשר יציג אותה בהיסטוריית התקלות של אותו אתר (נוכחיות + עבר)",
             "noOpenFaults": "אין תקלות פתוחות לקישור",
-            "assignRoleHint": "בחר תא אחד או יותר שיקבלו את האירוע הזה ביומן המשימות האישי שלהם (אופציונלי)",
             "requiredError": "שדה חובה"
         },
         "editModal": {
@@ -754,12 +755,9 @@
             "searchPlaceholder": "חיפוש יחידה..."
         },
         "assignRoleModal": {
-            "title": "שיוך לתא",
-            "subtitle": "בחר תא אחד או יותר שיקבלו את האירוע הזה ביומן המשימות האישי שלהם",
-            "assigned": "משויך",
-            "notAssigned": "לא משויך",
             "assignedRolesLabel": "משויך לתאים"
         },
+        "rowMenu": { "addToMyDiary": "הוסף ליומן המשימות האישי שלי", "removeFromMyDiary": "הסר מיומן המשימות האישי שלי", "unsupported": "סוג אירוע זה אינו נתמך ביומן המשימות האישי" },
         "badges": {
             "recurring": "חוזרת ({{count}})",
             "handledBy": "מטופל במסגרת: {{title}}",
@@ -777,6 +775,7 @@
         "taskCount": "{{count}} משימות",
         "empty": "אין משימות בסטטוס זה",
         "confirmDelete": "למחוק את המשימה?",
+        "rowMenu": { "addToCombatLog": "הוסף ליומן הלחימה כ…", "removeFromMyDiary": "הסר מיומן המשימות האישי שלי" },
         "confirmUnassign": "להסיר את השיוך של המשימה הזו מהתא שלך?",
         "stats": {
             "total": "סה\"כ משימות"
@@ -824,10 +823,7 @@
             "notes": "הערות",
             "isPeriodic": "משימה תקופתית (חוזרת)",
             "frequency": "תדירות",
-            "recurrenceEndDate": "תאריך סיום חזרה",
-            "linkToCombatLog": "שיוך ליומן לחימה",
-            "linkToCombatLogHint": "בחר סוג אירוע (אופציונלי) — בלחיצה על שמירת שינויים המשימה תהפוך לאירוע ביומן הלחימה המתכלל, משויך לתא שלך, וכל עדכון בה יופיע בשני המקומות",
-            "linkToCombatLogSelected": "בשמירה, משימה זו תהפוך לאירוע ביומן הלחימה"
+            "recurrenceEndDate": "תאריך סיום חזרה"
         },
         "form": {
             "createTitle": "הוספת משימה",
@@ -963,10 +959,392 @@
         "renameTitle": "שינוי שם",
         "changeLocation": "שנה מיקום",
         "deleteCell": "מחק תא שטח",
-        "deletePlatform": "מחק פלטפורמה"
+        "deletePlatform": "מחק פלטפורמה",
+        "addHeadquarters": "הוספת מפקדה",
+        "addCommandPost": "הוספת חפ\"ק",
+        "selectUnitForHeadquartersTitle": "בחר יחידה למפקדה",
+        "selectUnitForCommandPostTitle": "בחר יחידה לחפ\"ק",
+        "selectUnitSubtitle": "המפקדה/החפ\"ק יקושרו ליחידה זו ולהיררכיה שמעליה",
+        "searchUnitPlaceholder": "חיפוש יחידה...",
+        "noUnitsFound": "לא נמצאו יחידות",
+        "nameHeadquartersTitle": "שם המפקדה",
+        "nameCommandPostTitle": "שם החפ\"ק",
+        "headquartersNamePlaceholder": "לדוגמה: מפקדת חטיבת האש",
+        "headquarters": "מפקדה",
+        "commandPost": "חפ\"ק",
+        "deleteHeadquartersEntity": "מחק"
     },
     "mobileSpace": {
         "layerName": "כינון מרחב נייד"
+    },
+    "bumManager": {
+        "title": "בו\"ם משימות",
+        "tabs": {
+            "dashboard": "דשבורד",
+            "table": "טבלה",
+            "kanban": "חלוקה",
+            "categories": "קטגוריות"
+        },
+        "toolbar": {
+            "newDemand": "דרישה חדשה",
+            "search": "חיפוש...",
+            "closeSearch": "סגור חיפוש",
+            "filter": "סינון",
+            "excel": "ייצוא ל-Excel",
+            "severity": "דחיפות",
+            "categories": "מסגרות",
+            "clearFilters": "נקה סינון",
+            "horizonLabel": "טווח זמן",
+            "horizon": {
+                "hour": "שעה",
+                "day": "יום",
+                "week": "שבוע",
+                "all": "הכל"
+            }
+        },
+        "status": {
+            "backlog": "ממתין",
+            "inProgress": "בביצוע",
+            "blocked": "חסום",
+            "done": "הושלם",
+            "canceled": "בוטל"
+        },
+        "severity": "דחיפות {{n}}",
+        "severityLevels": {
+            "1": "רוטיני",
+            "2": "נמוכה",
+            "3": "בינונית",
+            "4": "גבוהה",
+            "5": "דחוף מאוד"
+        },
+        "type": {
+            "demand": "דרישה",
+            "instruction": "הנחיה"
+        },
+        "due": "יעד: {{date}}",
+        "categories": {
+            "agam": "אג\"ם",
+            "ictCenter": "מרכז תקשוב",
+            "area": "מרחב",
+            "shob": "שו\"ב",
+            "control": "שליטה",
+            "capabilities": "כשירויות",
+            "continuity": "רציפות התפקוד",
+            "nob": "נו\"ב",
+            "palsam": "פלס\"ם",
+            "radio": "רדיו",
+            "planning": "תכנון",
+            "spectrum": "ספקטרום",
+            "operations": "הפעלה",
+            "subordinateBrigades": "חטיבות כפופות",
+            "other": "אחר",
+            "computing": "מחשוב",
+            "infrastructure": "תשתיות",
+            "crypto": "צופן",
+            "admin": "מנהלות",
+            "battalions": "גדודים"
+        },
+        "agents": {
+            "magad": "מג\"ד",
+            "deputyMagad": "סמג\"ד",
+            "kAgam": "ק. אג\"ם",
+            "manlach": "מנל\"ח",
+            "kashrah": "קשר\"ח",
+            "other": "אחר"
+        },
+        "scope": {
+            "all": "כל המשימות",
+            "open": "משימות פתוחות",
+            "overdue": "משימות באיחור",
+            "done": "משימות שהושלמו",
+            "canceled": "משימות שבוטלו"
+        },
+        "menu": {
+            "actions": "פעולות",
+            "edit": "עריכה",
+            "delete": "מחיקה"
+        },
+        "dashboard": {
+            "categories": "קטגוריות",
+            "taskDistribution": "חלוקת משימות",
+            "taskStatus": "סטטוס משימות",
+            "columnsView": "תצוגת טורים",
+            "tableView": "תצוגת טבלה",
+            "expand": "הרחב",
+            "totalTasks": "סה\"כ משימות",
+            "openTasks": "משימות פתוחות",
+            "maxSeverity": "דחיפות מקס'",
+            "executor": "מבצע",
+            "gauges": {
+                "all": "כלל המשימות",
+                "done": "משימות שהסתיימו",
+                "overdue": "משימות באיחור",
+                "notStarted": "משימות שלא בוצעו"
+            }
+        },
+        "kanban": {
+            "tasksCount": "({{count}} משימות)",
+            "empty": "אין משימות"
+        },
+        "categoriesView": {
+            "empty": "אין משימות פעילות"
+        },
+        "table": {
+            "title": "טבלת משימות ({{count}} ישויות)",
+            "selected": "{{count}} נבחרו",
+            "exportSelected": "ייצוא נבחרים",
+            "deleteSelected": "מחיקת נבחרים",
+            "clearSelection": "נקה בחירה",
+            "selectAll": "בחר הכל",
+            "selectRow": "בחר שורה",
+            "noRows": "אין משימות להצגה",
+            "cols": {
+                "num": "מס\"ד",
+                "createdAt": "זמן יצירה",
+                "title": "כותרת",
+                "description": "תיאור",
+                "reporter": "מדווח",
+                "severity": "רמת חומרה",
+                "type": "דרישה/הנחיה",
+                "category": "מסגרת",
+                "executor": "גורם אחראי",
+                "status": "סטטוס",
+                "dueAt": "תאריך גמר ביצוע",
+                "notes": "הערות"
+            }
+        },
+        "form": {
+            "newTitle": "דרישה חדשה",
+            "editTitle": "עריכת דרישה",
+            "reportingAgent": "גורם מורה",
+            "category": "מסגרת",
+            "title": "כותרת",
+            "titlePlaceholder": "תיאור קצר של הדרישה",
+            "titleRequired": "יש להזין כותרת",
+            "description": "תיאור מפורט",
+            "descriptionPlaceholder": "תיאור מפורט של הדרישה...",
+            "executor": "מבצע",
+            "severity": "דחיפות",
+            "dueAt": "מועד יעד",
+            "reportingPlatform": "פלטפורמת דיווח",
+            "type": "סוג",
+            "status": "סטטוס",
+            "assignToBrigade": "הקצאה לחטיבה (אופציונלי)",
+            "noAssignment": "ללא הקצאה",
+            "notes": "הערות",
+            "create": "צור דרישה",
+            "save": "שמור שינויים",
+            "cancel": "ביטול"
+        },
+        "delete": {
+            "titleOne": "מחיקת דרישה",
+            "titleMany": "מחיקת דרישות",
+            "descriptionOne": "\"{{name}}\" תימחק לצמיתות מכל התצוגות. לא ניתן לשחזר.",
+            "descriptionMany": "{{count}} דרישות יימחקו לצמיתות מכל התצוגות. לא ניתן לשחזר."
+        },
+        "exportHeaders": {
+            "#": "#",
+            "createdAt": "זמן יצירה",
+            "title": "כותרת",
+            "description": "תיאור",
+            "type": "סוג",
+            "category": "מסגרת",
+            "severity": "דחיפות",
+            "status": "סטטוס",
+            "executor": "מבצע",
+            "dueAt": "מועד יעד",
+            "reportingPlatform": "פלטפורמת דיווח",
+            "notes": "הערות"
+        },
+        "sections": {
+            "demands": "דרישות מפקד",
+            "dmatz": "דמ\"צים",
+            "instructions": "הנחיות מפקד"
+        },
+        "groupBy": {
+            "label": "קיבוץ הקטגוריות",
+            "requester": "גורם דורש",
+            "receiver": "גורם מקבל"
+        },
+        "dmatz": {
+            "subtitle": "דרישות לציוד ואמצעים שמועלות לרמה הממונה",
+            "newDmatz": "דמ\"צ חדש",
+            "distribution": "חלוקת דמ\"צים",
+            "itemsCount": "({{count}} דמ\"צים)",
+            "empty": "אין דמ\"צים",
+            "attachmentsCount": "{{count}} קבצים מצורפים",
+            "toUnit": "אל: {{unit}}",
+            "fromUnit": "מאת: {{unit}}",
+            "menu": {
+                "open": "פתיחה"
+            },
+            "status": {
+                "submitted": "הוגש",
+                "underReview": "בבחינה",
+                "approved": "אושר",
+                "supplied": "סופק",
+                "rejected": "נדחה"
+            },
+            "directions": {
+                "raised": "דמ\"צים שהועלו",
+                "raisedHint": "שהעליתי לרמה הממונה",
+                "received": "דמ\"צים שהתקבלו",
+                "receivedHint": "שהתקבלו מהיחידות הכפופות"
+            },
+            "form": {
+                "newTitle": "דמ\"צ חדש",
+                "editTitle": "עריכת דמ\"צ",
+                "receivedTitle": "דמ\"צ שהתקבל",
+                "from": "מאת",
+                "to": "אל (רמה ממונה)",
+                "noSuperior": "ליחידה זו אין רמה ממונה — לא ניתן להעלות דמ\"צ.",
+                "titlePlaceholder": "תיאור קצר של הדרישה",
+                "equipment": "ציוד / אמצעי",
+                "equipmentPlaceholder": "לדוגמה: מכשירי קשר VHF",
+                "quantity": "כמות",
+                "descriptionPlaceholder": "פירוט הדרישה והצורך המבצעי...",
+                "neededBy": "נדרש עד",
+                "attachments": "קבצים מצורפים",
+                "addFile": "הוסף קובץ",
+                "noFiles": "לא צורפו קבצים",
+                "download": "הורדה",
+                "removeFile": "הסר קובץ",
+                "tooLarge": "הקבצים {{names}} גדולים מדי לשמירה בדמו — נשמר רק שמם.",
+                "raise": "העלה דמ\"צ"
+            },
+            "delete": {
+                "titleOne": "מחיקת דמ\"צ",
+                "titleMany": "מחיקת דמ\"צים",
+                "descriptionOne": "\"{{name}}\" יימחק לצמיתות. לא ניתן לשחזר.",
+                "descriptionMany": "{{count}} דמ\"צים יימחקו לצמיתות. לא ניתן לשחזר."
+            }
+        },
+        "instructions": {
+            "subtitle": "ההנחיות שהמפקדים הורידו לשטח",
+            "newInstruction": "הנחיה חדשה",
+            "tableTitle": "הנחיות ({{count}})",
+            "unitsTitle": "יחידות בעץ הציוות",
+            "myUnit": "היחידה שלי ({{unit}})",
+            "empty": "אין הנחיות להצגה",
+            "cols": {
+                "num": "מס\"ד",
+                "issuedAt": "תאריך",
+                "commander": "המפקד שהוריד",
+                "text": "ההנחיה",
+                "relevance": "רלוונטי ל"
+            },
+            "roles": {
+                "command": "מפקד הפיקוד",
+                "division": "מפקד האוגדה",
+                "brigade": "מפקד החטיבה",
+                "battalion": "מפקד הגדוד",
+                "company": "מפקד הפלוגה",
+                "platoon": "מפקד המחלקה",
+                "unit": "מפקד היחידה"
+            },
+            "form": {
+                "newTitle": "הנחיה חדשה",
+                "editTitle": "עריכת הנחיה",
+                "commander": "המפקד שהוריד את ההנחיה",
+                "commanderPlaceholder": "דרגה ושם",
+                "text": "ההנחיה",
+                "textPlaceholder": "מה ההנחיה...",
+                "relevantTo": "רלוונטי ל",
+                "required": "יש להזין את שם המפקד ואת נוסח ההנחיה",
+                "create": "הוסף הנחיה"
+            },
+            "delete": {
+                "titleOne": "מחיקת הנחיה",
+                "titleMany": "מחיקת הנחיות",
+                "descriptionOne": "ההנחיה \"{{name}}\" תימחק לצמיתות. לא ניתן לשחזר.",
+                "descriptionMany": "{{count}} הנחיות יימחקו לצמיתות. לא ניתן לשחזר."
+            }
+        }
+    },
+    "systemViews": {
+        "button": "תצוגות מערכת",
+        "openHint": "מאגר התצוגות שלי ויצירת תצוגה חדשה",
+        "title": "תצוגות מערכת",
+        "repositorySubtitle": "מאגר התצוגות שבניתי - בחר תצוגה לפתיחה או צור חדשה",
+        "close": "סגור",
+        "newView": "תצוגה חדשה",
+        "repository": "מאגר תצוגות",
+        "edit": "עריכה",
+        "duplicate": "שכפול",
+        "delete": "מחיקה",
+        "noneYet": "עדיין לא יצרת תצוגות",
+        "noneYetHint": "הרכב מסך מותאם אישית מהפיצ'רים של שליטה וניהול, ניטור וספקטרום, ושמור אותו כאן.",
+        "chooseOne": "בחר תצוגה מהמאגר כדי להציג אותה",
+        "cardMeta": "{{count}} אלמנטים · עודכן {{date}}",
+        "deleteTitle": "מחיקת תצוגה",
+        "deleteDescription": "התצוגה \"{{name}}\" תימחק מהמאגר. לא ניתן לשחזר.",
+        "builder": {
+            "newTitle": "יצירת תצוגה חדשה",
+            "editTitle": "עריכת תצוגה",
+            "nameLabel": "שם תצוגה",
+            "namePlaceholder": "לדוגמה: מבט יומי של החמ\"ל",
+            "nameRequired": "יש להזין שם לתצוגה",
+            "widgetsRequired": "יש להוסיף לפחות אלמנט אחד לתצוגה",
+            "emptyCanvas": "גרור אלמנטים ליצירת תצוגה חדשה",
+            "add": "הוספה",
+            "cancel": "ביטול",
+            "save": "שמור",
+            "remove": "הסר אלמנט",
+            "alreadyAdded": "האלמנט כבר נמצא בתצוגה",
+            "dragToReorder": "גרור כדי להחליף מקום",
+            "autoHint": "האלמנטים מתפרסים אוטומטית על כל המסך. גרור אלמנט על אלמנט כדי להחליף ביניהם."
+        }
+    },
+    "headquartersOverview": {
+        "title": "מפקדות וחפ\"קים",
+        "subtitle": "כלל המפקדות והחפ\"קים שהועברו לניהו\"ק, לפי היררכיה - {{unit}} ומה שתחתיה",
+        "columns": {
+            "unit": "יחידה",
+            "headquarters": "מפקדה",
+            "commandPost": "חפ\"ק"
+        },
+        "noHeadquarters": "אין מפקדה בניהו\"ק",
+        "noCommandPost": "אין חפ\"ק בניהו\"ק",
+        "expandAll": "פתח הכל",
+        "collapseAll": "כווץ הכל",
+        "expandUnit": "פתח את היחידות שתחת היחידה",
+        "collapseUnit": "כווץ את היחידות שתחת היחידה",
+        "emptyScope": "אין יחידות להצגה ברמת הפיקוד של היחידה שנבחרה",
+        "stats": {
+            "headquarters": "מפקדות",
+            "commandPosts": "חפ\"קים",
+            "unitsWithNone": "יחידות ללא מפקדה וחפ\"ק"
+        },
+        "kind": {
+            "headquarters": "מפקדה",
+            "commandPost": "חפ\"ק"
+        },
+        "addHeadquarters": "הוסף מפקדה",
+        "addCommandPost": "הוסף חפ\"ק",
+        "actions": {
+            "rename": "ערוך שם",
+            "move": "הזז במפה",
+            "delete": "מחק",
+            "save": "שמור",
+            "cancel": "ביטול"
+        },
+        "deleteTitleHeadquarters": "מחיקת מפקדה",
+        "deleteTitleCommandPost": "מחיקת חפ\"ק",
+        "deleteDescription": "\"{{name}}\" יימחק לצמיתות, גם מהמפה וגם מהשכבה. לא ניתן לשחזר.",
+        "map": {
+            "placeHeadquarters": "לחץ על המפה כדי למקם את המפקדה של {{unit}}",
+            "placeCommandPost": "לחץ על המפה כדי למקם את החפ\"ק של {{unit}}",
+            "moveEntity": "לחץ על המפה כדי להזיז את \"{{name}}\" למיקום החדש",
+            "cancel": "ביטול (Esc)"
+        },
+        "details": {
+            "name": "שם",
+            "unit": "יחידה",
+            "kind": "סוג",
+            "level": "רמה",
+            "location": "מיקום",
+            "created": "נוצר"
+        }
     },
     "layerOrganizer": {
         "transferToNihuk": "העבר לניהו\"ק",
@@ -982,9 +1360,13 @@
             "administration": "מנהלה",
             "comms": "תקשוב",
             "cutsFolder": "תיק חתכים",
+            "headquartersCop": "מפקדות וחפ\"קים",
             "otherUnitsNihuk": "ניהו\"ק יחידות אחרות",
             "battlePlanning": "תכנון קרב"
         },
+        "headquartersFilter": "מפקדות",
+        "commandPostsFilter": "חפ\"קים",
+        "myUnitsOnlyFilter": "היחידות שלי",
         "combatItems": {
             "ourForces": "כוחותינו",
             "detectionsEvents": "איתורים ואירועים",

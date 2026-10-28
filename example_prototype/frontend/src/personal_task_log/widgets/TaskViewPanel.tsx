@@ -74,7 +74,7 @@ export const TaskViewPanel: React.FC<TaskViewPanelProps> = ({ task, onClose, onE
                 </div>
 
                 <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-200 dark:border-zinc-800 shrink-0">
-                    <button onClick={() => onEdit(task.id)} className="inline-flex items-center gap-1.5 text-sm px-4 py-2 bg-primary hover:bg-primary/90 text-white dark:text-zinc-900 rounded-lg transition-colors font-medium shadow-sm">
+                    <button onClick={() => onEdit(task.id)} className="inline-flex items-center gap-1.5 text-sm px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors font-medium shadow-sm">
                         <Pencil className="w-3.5 h-3.5" /> {t('personalTaskLog.actions.edit')}
                     </button>
                 </div>

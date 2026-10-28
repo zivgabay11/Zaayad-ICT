@@ -27,6 +27,8 @@
         "static_space": "Static Space Establishment",
         "tikshov_cop": "Tikshov Common Operational Picture",
         "link_planning": "Link Planning",
+        "bum_manager": "Bum Manager",
+        "headquarters_overview": "Headquarters & Command Posts",
         "control": "Command & Control",
         "management": "Management",
         "radio": "Radio",
@@ -681,7 +683,7 @@
             "other": "Other"
         },
         "columns": { "startTime": "Start Time", "logType": "Log Type", "title": "Title", "status": "Status" },
-        "actions": { "view": "View", "edit": "Edit", "share": "Share", "assignRole": "Assign to Cell", "close": "Close", "save": "Save", "cancel": "Cancel" },
+        "actions": { "view": "View", "edit": "Edit", "share": "Share", "close": "Close", "save": "Save", "cancel": "Cancel" },
         "fields": {
             "type": "Log Type",
             "title": "Title",
@@ -730,7 +732,6 @@
             "linkedFaultsHint": "Pick the open faults this work is going out to resolve — they'll auto-close when the work is marked done",
             "relatedCommSiteHint": "Tag this fault to a Comm Site to show it in that site's own fault history (current + past)",
             "noOpenFaults": "No open faults to link",
-            "assignRoleHint": "Pick one or more cells to receive this event in their Personal Task Log (optional)",
             "requiredError": "Required field"
         },
         "editModal": {
@@ -754,12 +755,9 @@
             "searchPlaceholder": "Search unit..."
         },
         "assignRoleModal": {
-            "title": "Assign to Cell",
-            "subtitle": "Pick one or more cells to receive this event in their Personal Task Log",
-            "assigned": "Assigned",
-            "notAssigned": "Not assigned",
             "assignedRolesLabel": "Assigned to cells"
         },
+        "rowMenu": { "addToMyDiary": "Add to my Personal Task Log", "removeFromMyDiary": "Remove from my Personal Task Log", "unsupported": "This event type is not supported in the Personal Task Log" },
         "badges": {
             "recurring": "Recurring ({{count}})",
             "handledBy": "Handled under: {{title}}",
@@ -777,6 +775,7 @@
         "taskCount": "{{count}} tasks",
         "empty": "No tasks in this status",
         "confirmDelete": "Delete this task?",
+        "rowMenu": { "addToCombatLog": "Add to Combat Log as…", "removeFromMyDiary": "Remove from my Personal Task Log" },
         "confirmUnassign": "Remove this task's assignment from your cell?",
         "stats": {
             "total": "Total Tasks"
@@ -824,10 +823,7 @@
             "notes": "Notes",
             "isPeriodic": "Recurring task",
             "frequency": "Frequency",
-            "recurrenceEndDate": "Recurrence End Date",
-            "linkToCombatLog": "Link to Combat Log",
-            "linkToCombatLogHint": "Pick an event type (optional) — pressing Save Changes will turn this task into an event in the Combat Log, assigned to your cell, and any update to it will show up in both places",
-            "linkToCombatLogSelected": "On save, this task will become an event in the Combat Log"
+            "recurrenceEndDate": "Recurrence End Date"
         },
         "form": {
             "createTitle": "Add Task",
@@ -963,10 +959,392 @@
         "renameTitle": "Rename",
         "changeLocation": "Change location",
         "deleteCell": "Delete terrain cell",
-        "deletePlatform": "Delete platform"
+        "deletePlatform": "Delete platform",
+        "addHeadquarters": "Add Headquarters",
+        "addCommandPost": "Add Command Post",
+        "selectUnitForHeadquartersTitle": "Select unit for headquarters",
+        "selectUnitForCommandPostTitle": "Select unit for command post",
+        "selectUnitSubtitle": "The headquarters/command post will be linked to this unit and its chain of command",
+        "searchUnitPlaceholder": "Search unit...",
+        "noUnitsFound": "No units found",
+        "nameHeadquartersTitle": "Name the headquarters",
+        "nameCommandPostTitle": "Name the command post",
+        "headquartersNamePlaceholder": "e.g. Fire Brigade HQ",
+        "headquarters": "Headquarters",
+        "commandPost": "Command Post",
+        "deleteHeadquartersEntity": "Delete"
     },
     "mobileSpace": {
         "layerName": "Mobile Space Establishment"
+    },
+    "bumManager": {
+        "title": "Bum Manager",
+        "tabs": {
+            "dashboard": "Dashboard",
+            "table": "Table",
+            "kanban": "Kanban",
+            "categories": "Categories"
+        },
+        "toolbar": {
+            "newDemand": "New demand",
+            "search": "Search...",
+            "closeSearch": "Close search",
+            "filter": "Filter",
+            "excel": "Export to Excel",
+            "severity": "Severity",
+            "categories": "Categories",
+            "clearFilters": "Clear filters",
+            "horizonLabel": "Time phase",
+            "horizon": {
+                "hour": "Hour",
+                "day": "Day",
+                "week": "Week",
+                "all": "All"
+            }
+        },
+        "status": {
+            "backlog": "Backlog",
+            "inProgress": "In progress",
+            "blocked": "Blocked",
+            "done": "Done",
+            "canceled": "Canceled"
+        },
+        "severity": "Severity {{n}}",
+        "severityLevels": {
+            "1": "Routine",
+            "2": "Low",
+            "3": "Medium",
+            "4": "High",
+            "5": "Critical"
+        },
+        "type": {
+            "demand": "Demand",
+            "instruction": "Instruction"
+        },
+        "due": "Due: {{date}}",
+        "categories": {
+            "agam": "Agam (Ops)",
+            "ictCenter": "ICT center",
+            "area": "Area",
+            "shob": "C2 (Shob)",
+            "control": "Control",
+            "capabilities": "Capabilities",
+            "continuity": "Continuity",
+            "nob": "Nob",
+            "palsam": "Palsam",
+            "radio": "Radio",
+            "planning": "Planning",
+            "spectrum": "Spectrum",
+            "operations": "Operations",
+            "subordinateBrigades": "Subordinate brigades",
+            "other": "Other",
+            "computing": "Computing",
+            "infrastructure": "Infrastructure",
+            "crypto": "Crypto",
+            "admin": "Administration",
+            "battalions": "Battalions"
+        },
+        "agents": {
+            "magad": "Magad",
+            "deputyMagad": "Deputy Magad",
+            "kAgam": "Agam officer",
+            "manlach": "Manlach",
+            "kashrah": "Signals officer",
+            "other": "Other"
+        },
+        "scope": {
+            "all": "All tasks",
+            "open": "Open tasks",
+            "overdue": "Overdue tasks",
+            "done": "Completed tasks",
+            "canceled": "Canceled tasks"
+        },
+        "menu": {
+            "actions": "Actions",
+            "edit": "Edit",
+            "delete": "Delete"
+        },
+        "dashboard": {
+            "categories": "Categories",
+            "taskDistribution": "Task distribution",
+            "taskStatus": "Task status",
+            "columnsView": "Columns view",
+            "tableView": "Table view",
+            "expand": "Expand",
+            "totalTasks": "Total tasks",
+            "openTasks": "Open tasks",
+            "maxSeverity": "Max severity",
+            "executor": "Executor",
+            "gauges": {
+                "all": "All tasks",
+                "done": "Completed",
+                "overdue": "Overdue",
+                "notStarted": "Not started"
+            }
+        },
+        "kanban": {
+            "tasksCount": "({{count}} tasks)",
+            "empty": "No tasks"
+        },
+        "categoriesView": {
+            "empty": "No active tasks"
+        },
+        "table": {
+            "title": "Tasks table ({{count}} items)",
+            "selected": "{{count}} selected",
+            "exportSelected": "Export selected",
+            "deleteSelected": "Delete selected",
+            "clearSelection": "Clear selection",
+            "selectAll": "Select all",
+            "selectRow": "Select row",
+            "noRows": "No tasks to show",
+            "cols": {
+                "num": "#",
+                "createdAt": "Created",
+                "title": "Title",
+                "description": "Description",
+                "reporter": "Reported by",
+                "severity": "Severity",
+                "type": "Demand/Instruction",
+                "category": "Category",
+                "executor": "Executor",
+                "status": "Status",
+                "dueAt": "Due date",
+                "notes": "Notes"
+            }
+        },
+        "form": {
+            "newTitle": "New demand",
+            "editTitle": "Edit demand",
+            "reportingAgent": "Issued by",
+            "category": "Category",
+            "title": "Title",
+            "titlePlaceholder": "Short description of the demand",
+            "titleRequired": "A title is required",
+            "description": "Detailed description",
+            "descriptionPlaceholder": "Detailed description of the demand...",
+            "executor": "Executor",
+            "severity": "Severity",
+            "dueAt": "Due date",
+            "reportingPlatform": "Reporting platform",
+            "type": "Type",
+            "status": "Status",
+            "assignToBrigade": "Assign to a brigade (optional)",
+            "noAssignment": "No assignment",
+            "notes": "Notes",
+            "create": "Create demand",
+            "save": "Save changes",
+            "cancel": "Cancel"
+        },
+        "delete": {
+            "titleOne": "Delete demand",
+            "titleMany": "Delete demands",
+            "descriptionOne": "\"{{name}}\" will be permanently deleted from every view. This cannot be undone.",
+            "descriptionMany": "{{count}} demands will be permanently deleted from every view. This cannot be undone."
+        },
+        "exportHeaders": {
+            "#": "#",
+            "createdAt": "Created",
+            "title": "Title",
+            "description": "Description",
+            "type": "Type",
+            "category": "Category",
+            "severity": "Severity",
+            "status": "Status",
+            "executor": "Executor",
+            "dueAt": "Due date",
+            "reportingPlatform": "Reporting platform",
+            "notes": "Notes"
+        },
+        "sections": {
+            "demands": "Commander demands",
+            "dmatz": "Equipment requests (DMATZ)",
+            "instructions": "Commander instructions"
+        },
+        "groupBy": {
+            "label": "Group the categories by",
+            "requester": "Demanding party",
+            "receiver": "Receiving party"
+        },
+        "dmatz": {
+            "subtitle": "Equipment & means requests raised to the superior unit",
+            "newDmatz": "New request",
+            "distribution": "Request distribution",
+            "itemsCount": "({{count}} requests)",
+            "empty": "No requests",
+            "attachmentsCount": "{{count}} attached files",
+            "toUnit": "To: {{unit}}",
+            "fromUnit": "From: {{unit}}",
+            "menu": {
+                "open": "Open"
+            },
+            "status": {
+                "submitted": "Submitted",
+                "underReview": "Under review",
+                "approved": "Approved",
+                "supplied": "Supplied",
+                "rejected": "Rejected"
+            },
+            "directions": {
+                "raised": "Raised",
+                "raisedHint": "raised by me to the superior",
+                "received": "Received",
+                "receivedHint": "received from subordinate units"
+            },
+            "form": {
+                "newTitle": "New equipment request",
+                "editTitle": "Edit equipment request",
+                "receivedTitle": "Received equipment request",
+                "from": "From",
+                "to": "To (superior)",
+                "noSuperior": "This unit has no superior unit — a request cannot be raised.",
+                "titlePlaceholder": "Short description of the need",
+                "equipment": "Equipment / means",
+                "equipmentPlaceholder": "e.g. VHF radios",
+                "quantity": "Quantity",
+                "descriptionPlaceholder": "Details of the request and the operational need...",
+                "neededBy": "Needed by",
+                "attachments": "Attached files",
+                "addFile": "Add file",
+                "noFiles": "No files attached",
+                "download": "Download",
+                "removeFile": "Remove file",
+                "tooLarge": "{{names}} too large to keep in the demo — only the name is kept.",
+                "raise": "Raise request"
+            },
+            "delete": {
+                "titleOne": "Delete request",
+                "titleMany": "Delete requests",
+                "descriptionOne": "\"{{name}}\" will be permanently deleted. This cannot be undone.",
+                "descriptionMany": "{{count}} requests will be permanently deleted. This cannot be undone."
+            }
+        },
+        "instructions": {
+            "subtitle": "The instructions commanders pushed down to the field",
+            "newInstruction": "New instruction",
+            "tableTitle": "Instructions ({{count}})",
+            "unitsTitle": "Units in the echelon tree",
+            "myUnit": "My unit ({{unit}})",
+            "empty": "No instructions to show",
+            "cols": {
+                "num": "#",
+                "issuedAt": "Date",
+                "commander": "Issued by",
+                "text": "Instruction",
+                "relevance": "Relevant to"
+            },
+            "roles": {
+                "command": "Command commander",
+                "division": "Division commander",
+                "brigade": "Brigade commander",
+                "battalion": "Battalion commander",
+                "company": "Company commander",
+                "platoon": "Platoon commander",
+                "unit": "Unit commander"
+            },
+            "form": {
+                "newTitle": "New instruction",
+                "editTitle": "Edit instruction",
+                "commander": "Commander who issued it",
+                "commanderPlaceholder": "Rank and name",
+                "text": "Instruction",
+                "textPlaceholder": "What is the instruction...",
+                "relevantTo": "Relevant to",
+                "required": "Enter the commander's name and the instruction text",
+                "create": "Add instruction"
+            },
+            "delete": {
+                "titleOne": "Delete instruction",
+                "titleMany": "Delete instructions",
+                "descriptionOne": "The instruction \"{{name}}\" will be permanently deleted. This cannot be undone.",
+                "descriptionMany": "{{count}} instructions will be permanently deleted. This cannot be undone."
+            }
+        }
+    },
+    "systemViews": {
+        "button": "System views",
+        "openHint": "My views and creating a new view",
+        "title": "System views",
+        "repositorySubtitle": "The views I built - pick one to open or create a new one",
+        "close": "Close",
+        "newView": "New view",
+        "repository": "Views repository",
+        "edit": "Edit",
+        "duplicate": "Duplicate",
+        "delete": "Delete",
+        "noneYet": "You have not created any views yet",
+        "noneYetHint": "Build a custom screen from the features of Control & Management, Monitoring and Spectrum, and save it here.",
+        "chooseOne": "Choose a view from the repository to show it",
+        "cardMeta": "{{count}} elements · updated {{date}}",
+        "deleteTitle": "Delete view",
+        "deleteDescription": "The view \"{{name}}\" will be deleted from the repository. This cannot be undone.",
+        "builder": {
+            "newTitle": "Create a new view",
+            "editTitle": "Edit view",
+            "nameLabel": "View name",
+            "namePlaceholder": "For example: daily command-post overview",
+            "nameRequired": "A view name is required",
+            "widgetsRequired": "Add at least one element to the view",
+            "emptyCanvas": "Drag elements to create a new view",
+            "add": "Add",
+            "cancel": "Cancel",
+            "save": "Save",
+            "remove": "Remove element",
+            "alreadyAdded": "This element is already in the view",
+            "dragToReorder": "Drag to swap places",
+            "autoHint": "Elements fill the whole screen automatically. Drag one onto another to swap them."
+        }
+    },
+    "headquartersOverview": {
+        "title": "Headquarters & Command Posts",
+        "subtitle": "Every headquarters and command post transferred to Battle Management, by hierarchy - {{unit}} and everything beneath it",
+        "columns": {
+            "unit": "Unit",
+            "headquarters": "Headquarters",
+            "commandPost": "Command Post"
+        },
+        "noHeadquarters": "No headquarters in Battle Management",
+        "noCommandPost": "No command post in Battle Management",
+        "expandAll": "Expand all",
+        "collapseAll": "Collapse all",
+        "expandUnit": "Expand the units under this unit",
+        "collapseUnit": "Collapse the units under this unit",
+        "emptyScope": "No units to show at the selected unit's level",
+        "stats": {
+            "headquarters": "Headquarters",
+            "commandPosts": "Command posts",
+            "unitsWithNone": "Units with no headquarters or command post"
+        },
+        "kind": {
+            "headquarters": "Headquarters",
+            "commandPost": "Command post"
+        },
+        "addHeadquarters": "Add headquarters",
+        "addCommandPost": "Add command post",
+        "actions": {
+            "rename": "Rename",
+            "move": "Move on map",
+            "delete": "Delete",
+            "save": "Save",
+            "cancel": "Cancel"
+        },
+        "deleteTitleHeadquarters": "Delete headquarters",
+        "deleteTitleCommandPost": "Delete command post",
+        "deleteDescription": "\"{{name}}\" will be permanently deleted from both the map and the layer. This can't be undone.",
+        "map": {
+            "placeHeadquarters": "Click the map to place the headquarters of {{unit}}",
+            "placeCommandPost": "Click the map to place the command post of {{unit}}",
+            "moveEntity": "Click the map to move \"{{name}}\" to its new location",
+            "cancel": "Cancel (Esc)"
+        },
+        "details": {
+            "name": "Name",
+            "unit": "Unit",
+            "kind": "Type",
+            "level": "Level",
+            "location": "Location",
+            "created": "Created"
+        }
     },
     "layerOrganizer": {
         "transferToNihuk": "Transfer to NIHUK",
@@ -982,9 +1360,13 @@
             "administration": "Administration",
             "comms": "Communications",
             "cutsFolder": "Cuts Folder",
+            "headquartersCop": "Headquarters & Command Posts",
             "otherUnitsNihuk": "Other Units' NIHUK",
             "battlePlanning": "Battle Planning"
         },
+        "headquartersFilter": "Headquarters",
+        "commandPostsFilter": "Command Posts",
+        "myUnitsOnlyFilter": "My Units Only",
         "combatItems": {
             "ourForces": "Our Forces",
             "detectionsEvents": "Detections & Events",

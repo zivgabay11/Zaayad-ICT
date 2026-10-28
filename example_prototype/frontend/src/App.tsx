@@ -4,10 +4,11 @@ import {
     Map, Calendar as CalendarIcon, Target, CheckSquare, Crosshair, Flag, Globe, Lightbulb,
     SlidersHorizontal, TriangleAlert, X, PenTool, Sparkles, ScrollText, Swords,
     ChevronDown, ChevronUp, LayoutGrid, Grid3x3, Home, Library, Shield, Radio, Waves, Eye,
-    RadioTower, Radar, Ban, ListChecks, Signal
+    RadioTower, Radar, Ban, ListChecks, Signal, Building2, ClipboardCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavItem } from './common/widgets/NavItem';
+import { FigmaIcon } from './common/widgets/FigmaIcon';
 import { LoginScreen } from './auth/screens/LoginScreen';
 import { DefinitionsScreen } from './definitions/screens/DefinitionsScreen';
 import { ChatPanel } from './common/chat/widgets/ChatPanel';
@@ -31,11 +32,21 @@ import { MobileSpaceProvider } from './common/context/MobileSpaceContext';
 import { TikshovProvider } from './common/context/TikshovContext';
 import { SpectrumProvider } from './common/context/SpectrumContext';
 import { LinkPlanningProvider } from './common/context/LinkPlanningContext';
+import { HeadquartersLayerProvider } from './common/context/HeadquartersLayerContext';
+import { HeadquartersMapRequestProvider } from './common/context/HeadquartersMapRequestContext';
 import { TikshovCopScreen } from './tikshov_cop/screens/TikshovCopScreen';
 import { CombatLogProvider } from './common/context/CombatLogContext';
 import { CombatLogScreen } from './combat_log/screens/CombatLogScreen';
 import { PersonalTaskLogProvider } from './common/context/PersonalTaskLogContext';
 import { PersonalTaskLogScreen } from './personal_task_log/screens/PersonalTaskLogScreen';
+import { HeadquartersOverviewScreen } from './headquarters_overview/screens/HeadquartersOverviewScreen';
+import { BumManagerScreen } from './bum_manager/screens/BumManagerScreen';
+import { BumProvider } from './common/context/BumContext';
+import { DashboardsProvider } from './common/context/DashboardsContext';
+import { CustomDashboardScreen } from './system_views/screens/CustomDashboardScreen';
+import { SystemViewsButton } from './system_views/widgets/SystemViewsButton';
+import { DashboardRepositoryModal } from './system_views/widgets/DashboardRepositoryModal';
+import { DashboardBuilderModal } from './system_views/widgets/DashboardBuilderModal';
 import { MapPanel } from './common/widgets/MapPanel';
 import { MapEdgeHandle } from './common/widgets/MapEdgeHandle';
 import { DocPanel } from './common/widgets/DocPanel';
@@ -103,6 +114,12 @@ const ContentArea: React.FC<ContentAreaProps> = ({ currentSection, chatKey, acti
                         <CombatLogScreen />
                     ) : currentSection === 'personal_task_log' ? (
                         <PersonalTaskLogScreen />
+                    ) : currentSection === 'custom_dashboard' ? (
+                        <CustomDashboardScreen sessionUnitCode={session?.unit?.code} sessionCell={session?.cell} />
+                    ) : currentSection === 'bum_manager' ? (
+                        <BumManagerScreen sessionUnitCode={session?.unit?.code} sessionCell={session?.cell} />
+                    ) : currentSection === 'headquarters_overview' ? (
+                        <HeadquartersOverviewScreen sessionUnitCode={session?.unit?.code} />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-400 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-slate-200 dark:border-zinc-800">
                             {(currentSection as string).charAt(0).toUpperCase() + (currentSection as string).slice(1).replace('-', ' ')}
@@ -253,14 +270,14 @@ export default function App() {
     // a time: opening one closes any other, same as switching between them directly.
     const [openPanel, setOpenPanel] = useState<'planning' | 'control' | 'monitoring' | 'spectrum' | 'management' | null>(null);
     const closePanel = () => setOpenPanel(null);
-    const [currentSection, setCurrentSection] = useState<'main' | 'plans' | 'definitions' | 'calendar' | 'general' | 'intelligence' | 'objective' | 'mission' | 'tasks' | 'method' | 'diagram' | 'combat_script' | 'telecom_journal' | 'telecom_deployment' | 'personal_task_log' | 'tikshov_cop' | 'static_space' | 'radio' | 'spectrum_jamming' | 'spectrum_blocking' | 'sync_efforts' | 'order' | 'link_planning'>('main');
+    const [currentSection, setCurrentSection] = useState<'main' | 'plans' | 'definitions' | 'calendar' | 'general' | 'intelligence' | 'objective' | 'mission' | 'tasks' | 'method' | 'diagram' | 'combat_script' | 'telecom_journal' | 'telecom_deployment' | 'personal_task_log' | 'tikshov_cop' | 'static_space' | 'radio' | 'spectrum_jamming' | 'spectrum_blocking' | 'sync_efforts' | 'order' | 'link_planning' | 'headquarters_overview' | 'bum_manager' | 'custom_dashboard'>('main');
 
     // Group of sections that belong to "תכנון" (Planning)
     const orderSections = ['general', 'intelligence', 'objective', 'mission', 'method', 'tasks', 'diagram', 'calendar'];
     const isOrderSectionActive = orderSections.includes(currentSection);
 
     // Group of sections that belong to "שליטה וניהול" (Command & Control)
-    const controlSections = ['telecom_journal', 'combat_script', 'personal_task_log'];
+    const controlSections = ['telecom_journal', 'combat_script', 'personal_task_log', 'bum_manager', 'headquarters_overview'];
     const isControlSectionActive = controlSections.includes(currentSection);
 
     // Group of sections that belong to "ניטור" (Monitoring)
@@ -347,15 +364,25 @@ export default function App() {
                 <TikshovProvider>
                 <SpectrumProvider>
                 <LinkPlanningProvider>
+                <HeadquartersLayerProvider>
+                <HeadquartersMapRequestProvider
+                    onStart={() => setCurrentSection('main')}
+                    onEnd={() => { setOpenPanel('control'); setCurrentSection('headquarters_overview'); }}
+                >
+                <BumProvider>
+                <DashboardsProvider
+                    ownerUsername={session?.user?.username ?? ''}
+                    onOpenDashboard={() => { setOpenPanel(null); setCurrentSection('custom_dashboard'); }}
+                >
                 <CombatLogProvider>
                 <PersonalTaskLogProvider>
                     {/* Top Header */}
-                    <header className="flex items-center justify-between px-2 py-2 bg-white dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-800 z-20 transition-colors duration-200 relative">
+                    <header className="flex items-center justify-between px-3 h-14 shrink-0 bg-white dark:bg-[#14151a] border-b border-slate-200 dark:border-transparent z-20 transition-colors duration-200 relative">
                         {/* End section (right in RTL): Toggle sidebar + Operations dropdown + placeholder icons */}
                         <div className="flex items-center gap-2">
                             {/* Toggle Main Sidebar */}
                             <button
-                                className="flex items-center gap-1.5 p-1 h-9 rounded-lg bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors"
+                                className="flex items-center gap-1.5 p-1 h-[38px] rounded-lg bg-slate-100 dark:bg-[#3b3c3f] hover:bg-slate-200 dark:hover:bg-[#4a4c50] transition-colors"
                                 onClick={() => setIsSidebarVisible(prev => !prev)}
                                 title={t('nav.collapse_sidebar')}
                             >
@@ -370,12 +397,12 @@ export default function App() {
                             <div className="relative">
                                 <button
                                     onClick={() => setIsCizudDropdownOpen(prev => !prev)}
-                                    className="flex items-center gap-2 p-1 ps-2 h-9 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+                                    className="flex items-center gap-2 p-1 ps-2 h-[38px] bg-slate-100 dark:bg-[#3b3c3f] hover:bg-slate-200 dark:hover:bg-[#4a4c50] rounded-lg transition-colors"
                                 >
                                     <div className="flex items-center justify-center w-7 h-7 rounded-md bg-white dark:bg-zinc-700 shadow-sm border border-slate-200 dark:border-zinc-600">
                                         <img src="/icon_agam.svg" alt="" className="w-4 h-4 object-contain brightness-0 dark:brightness-200" />
                                     </div>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-zinc-200">
+                                    <span className="text-base font-semibold text-slate-700 dark:text-white">
                                         {CIZUD_OPTIONS.find(o => o.key === decorativeCizud)?.label}
                                     </span>
                                     <ChevronDown className={`w-3.5 h-3.5 text-slate-500 dark:text-zinc-400 transition-transform ${isCizudDropdownOpen ? 'rotate-180' : ''}`} />
@@ -405,20 +432,20 @@ export default function App() {
                         </div>
 
                         {/* Center section: plan info + ecosystem symbol + session info */}
-                        <div className="invisible h-9 w-0"></div>
+                        <div className="invisible h-[38px] w-0"></div>
                         <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none z-30">
                             <div
                                 onClick={() => setIsUserSettingsOpen(prev => !prev)}
                                 title={t('userSettings.openHint')}
-                                className="flex items-stretch pointer-events-auto bg-slate-100 dark:bg-[#303134] rounded-lg shadow-sm border border-slate-300 dark:border-zinc-700/70 h-9 cursor-pointer hover:border-primary/50 transition-colors"
+                                className="flex items-stretch pointer-events-auto bg-slate-100 dark:bg-[#3b3c3e] rounded-lg shadow-sm border border-slate-300 dark:border-zinc-700/70 h-[38px] cursor-pointer hover:border-primary/50 transition-colors"
                             >
 
                                 {/* Start block: Reality & "all permissions" (role no longer gates anything) */}
                                 <div className="flex flex-col items-center justify-center px-4 min-w-[140px]">
-                                    <span className="text-[13px] font-bold text-slate-800 dark:text-white leading-none mb-0.5">
+                                    <span className="text-base font-semibold text-slate-800 dark:text-[#e6f5ff] leading-[17px]">
                                         {session?.reality === 'drill' ? t('header.drillReality') : t('header.operational_reality', 'מציאות מבצעית')}
                                     </span>
-                                    <span className="text-[11px] text-slate-500 dark:text-slate-300 leading-none">
+                                    <span className="text-base font-normal text-slate-500 dark:text-[#a9c3ce] leading-[17px]">
                                         {session ? getCellLabel(t, session.cell) : ''}
                                     </span>
                                 </div>
@@ -435,7 +462,7 @@ export default function App() {
                                 {/* End block: Folder + Plan Name & Unit Name + Dropdown */}
                                 <div className="flex items-stretch">
                                     <div className="flex flex-col items-center justify-center px-3 min-w-[140px]">
-                                        <span className="text-[13px] font-bold text-slate-800 dark:text-white leading-none mb-0.5">
+                                        <span className="text-base font-semibold text-slate-800 dark:text-[#e6f5ff] leading-[17px]">
                                             {(() => {
                                                 if (!activePlan) return '---';
                                                 const planName = activePlan.name?.[i18n.language] || activePlan.name?.['en'];
@@ -444,13 +471,13 @@ export default function App() {
                                                 return folderName ? `${folderName}, ${planName}` : planName;
                                             })()}
                                         </span>
-                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 leading-none">
+                                        <span className="text-base font-normal text-slate-500 dark:text-[#a9c3ce] leading-[17px]">
                                             {session ? formatUnitName(session.unit, t, i18n.language) : '---'}
                                         </span>
                                     </div>
 
                                     <div className="flex items-center pe-1.5 ps-0.5">
-                                        <div className="flex items-center justify-center p-1 rounded-md bg-slate-200 dark:bg-[#4a4d51] hover:bg-slate-300 dark:hover:bg-[#5a5d61] transition-colors">
+                                        <div className="flex items-center justify-center p-1 rounded-md bg-slate-200 dark:bg-[#56585d] hover:bg-slate-300 dark:hover:bg-[#65686d] transition-colors">
                                             <ChevronUp className="w-4 h-4 text-slate-600 dark:text-slate-300" />
                                         </div>
                                     </div>
@@ -460,11 +487,12 @@ export default function App() {
                         </div>
 
                         {/* Start section (left in RTL): utility icons */}
-                        <div className="flex items-center gap-3 text-slate-500 dark:text-zinc-400">
-                            <Eraser className="w-4 h-4 cursor-pointer hover:text-slate-800 dark:hover:text-zinc-200 transition-colors" onClick={handleResetChat} />
-                            <RefreshCw className="w-4 h-4 cursor-pointer hover:text-slate-800 dark:hover:text-zinc-200 transition-colors" onClick={handleResetDataClick} />
-                            <Settings className="w-4 h-4 cursor-pointer hover:text-slate-800 dark:hover:text-zinc-200 transition-colors" />
-                            <HelpCircle className="w-4 h-4 cursor-pointer hover:text-slate-800 dark:hover:text-zinc-200 transition-colors" />
+                        <div className="flex items-center gap-0 text-slate-500 dark:text-zinc-300">
+                            <Eraser className="w-8 h-8 p-2 rounded cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white transition-colors" onClick={handleResetChat} />
+                            <RefreshCw className="w-8 h-8 p-2 rounded cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white transition-colors" onClick={handleResetDataClick} />
+                            <Settings className="w-8 h-8 p-2 rounded cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white transition-colors" />
+                            <HelpCircle className="w-8 h-8 p-2 rounded cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-white transition-colors" />
+                            <SystemViewsButton />
                         </div>
                     </header>
 
@@ -474,26 +502,31 @@ export default function App() {
                             {isSidebarVisible && (
                                 <motion.aside
                                     initial={{ width: 0, opacity: 0 }}
-                                    animate={{ width: 64, opacity: 1 }}
+                                    animate={{ width: 59, opacity: 1 }}
                                     exit={{ width: 0, opacity: 0 }}
                                     transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                                    className="flex flex-col bg-white dark:bg-zinc-900 border-e border-slate-200 dark:border-zinc-800 overflow-x-hidden overflow-y-auto py-1 justify-between shrink-0"
+                                    className="flex flex-col bg-white dark:bg-[#2a2e37] border-e border-slate-200 dark:border-e-0 overflow-x-hidden overflow-y-auto py-3 justify-between shrink-0"
                                 >
-                                    <div className="w-16 flex flex-col min-h-full justify-between shrink-0">
-                                        <div className="space-y-0.5 px-1">
+                                    <div className="w-[59px] flex flex-col min-h-full justify-between shrink-0">
+                                        {/* Order, icons and sizes follow the Figma "side menu 01" (ניהול, שליטה, רדיו,
+                                            ספקטרום, ניטור, פריסת תקשוב). תכנון has no Figma counterpart yet and is kept
+                                            (with its existing icon) right after ניהול. */}
+                                        <div className="space-y-3 px-0">
                                             <NavItem
-                                                icon={<Map className="w-5 h-5" />}
-                                                label={t('nav.main')}
-                                                active={currentSection === 'main'}
+                                                icon={<FigmaIcon name="side-layout-dashboard" size={18} />}
+                                                label={t('nav.management')}
+                                                active={openPanel === 'management' || isManagementSectionActive}
                                                 onClick={() => {
-                                                    setCurrentSection('main');
-                                                    closePanel();
+                                                    if (!isManagementSectionActive) {
+                                                        setCurrentSection('plans');
+                                                    }
+                                                    setOpenPanel('management');
                                                 }}
                                                 isDarkMode={isDarkMode}
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem
-                                                icon={<ScrollText className="w-5 h-5" />}
+                                                icon={<ScrollText className="w-[18px] h-[18px]" />}
                                                 label={t('header.planning')}
                                                 active={openPanel === 'planning' || isOrderSectionActive}
                                                 onClick={() => {
@@ -506,7 +539,7 @@ export default function App() {
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem
-                                                icon={<Shield className="w-5 h-5" />}
+                                                icon={<FigmaIcon name="side-book-text" size={18} />}
                                                 label={t('nav.control')}
                                                 active={openPanel === 'control' || isControlSectionActive}
                                                 onClick={() => {
@@ -519,7 +552,7 @@ export default function App() {
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem
-                                                icon={<Radio className="w-5 h-5" />}
+                                                icon={<FigmaIcon name="side-kanban" size={18} />}
                                                 label={t('nav.radio')}
                                                 active={currentSection === 'radio'}
                                                 onClick={() => {
@@ -530,7 +563,7 @@ export default function App() {
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem
-                                                icon={<Waves className="w-5 h-5" />}
+                                                icon={<FigmaIcon name="side-radio" size={18} />}
                                                 label={t('spectrum.layerName')}
                                                 active={openPanel === 'spectrum' || isSpectrumSectionActive}
                                                 onClick={() => {
@@ -543,7 +576,7 @@ export default function App() {
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem
-                                                icon={<Eye className="w-5 h-5" />}
+                                                icon={<FigmaIcon name="side-sliders-horizontal" size={18} />}
                                                 label={t('nav.monitoring')}
                                                 active={openPanel === 'monitoring' || isMonitoringSectionActive}
                                                 onClick={() => {
@@ -556,32 +589,30 @@ export default function App() {
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem
-                                                icon={<Settings className="w-5 h-5" />}
-                                                label={t('nav.management')}
-                                                active={openPanel === 'management' || isManagementSectionActive}
+                                                icon={<FigmaIcon name="side-map" size={18} />}
+                                                label={t('nav.main')}
+                                                active={currentSection === 'main'}
                                                 onClick={() => {
-                                                    if (!isManagementSectionActive) {
-                                                        setCurrentSection('plans');
-                                                    }
-                                                    setOpenPanel('management');
+                                                    setCurrentSection('main');
+                                                    closePanel();
                                                 }}
                                                 isDarkMode={isDarkMode}
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                         </div>
 
-                                        <div className="space-y-0.5 px-1">
-                                            <div className="my-1 border-t border-slate-100 dark:border-zinc-800"></div>
+                                        <div className="space-y-3 px-0">
+                                            <div className="mx-2 border-t border-slate-200 dark:border-zinc-700"></div>
                                             <NavItem
-                                                icon={<Globe className="w-5 h-5" />}
+                                                icon={<Globe className="w-[18px] h-[18px]" />}
                                                 label={i18n.language === 'en' ? 'עברית' : 'English'}
                                                 onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'he' : 'en')}
                                                 isDarkMode={isDarkMode}
                                                 isCollapsed={isSidebarCollapsed}
                                             />
-                                            <NavItem icon={<Palette className="w-5 h-5" />} label={t('nav.switch_theme')} onClick={toggleTheme} isDarkMode={isDarkMode} isCollapsed={isSidebarCollapsed} />
-                                            <div className="my-1 border-t border-slate-100 dark:border-zinc-800"></div>
-                                            <NavItem icon={<LogOut className="w-5 h-5" />} label={t('nav.sign_out')} onClick={handleSignOut} isDarkMode={isDarkMode} isCollapsed={isSidebarCollapsed} />
+                                            <NavItem icon={<Palette className="w-[18px] h-[18px]" />} label={t('nav.switch_theme')} onClick={toggleTheme} isDarkMode={isDarkMode} isCollapsed={isSidebarCollapsed} />
+                                            <div className="mx-2 border-t border-slate-200 dark:border-zinc-700"></div>
+                                            <NavItem icon={<LogOut className="w-[18px] h-[18px]" />} label={t('nav.sign_out')} onClick={handleSignOut} isDarkMode={isDarkMode} isCollapsed={isSidebarCollapsed} />
 
                                             <div className="flex justify-center mt-6 mb-2">
                                                 <button
@@ -609,8 +640,10 @@ export default function App() {
                                 layout — it just shows whichever category's buttons are
                                 relevant, or stays empty for categories with none (radio /
                                 spectrum). */}
-                            {currentSection !== 'main' && (
-                            <div className="flex items-center gap-1 min-h-[52px] bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 overflow-x-auto overflow-y-hidden shrink-0 shadow-sm z-10 px-3 py-2">
+                            {/* A custom dashboard (תצוגות מערכת) has its own strip and uses the whole screen,
+                                so the (then empty) category bar is not shown for it. */}
+                            {currentSection !== 'main' && currentSection !== 'custom_dashboard' && (
+                            <div className="flex items-center gap-0 h-10 min-h-10 bg-white dark:bg-zinc-950 border-b border-slate-200 dark:border-[rgba(214,235,253,0.19)] overflow-x-auto overflow-y-hidden shrink-0 z-10 px-2">
                                 {openPanel === 'planning' && (() => {
                                             const planningItems = session?.cell === 'communications' ? [
                                                 { id: 'telecom_journal', icon: <ScrollText className="w-4 h-4" />, label: t('nav.telecom_journal') },
@@ -634,12 +667,12 @@ export default function App() {
                                                             <button
                                                                 key={item.id}
                                                                 onClick={() => setCurrentSection(item.id as any)}
-                                                                className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
-                                                                    ? 'bg-primary/10 text-primary'
-                                                                    : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
+                                                                className={`relative flex flex-row items-center gap-1 h-10 px-4 whitespace-nowrap transition-colors duration-200 text-sm leading-5 shrink-0 ${currentSection === item.id
+                                                                    ? 'font-semibold text-slate-900 dark:text-white after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-primary'
+                                                                    : 'font-normal text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
                                                                     }`}
                                                             >
-                                                                <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>{item.icon}</div>
+                                                                <div className="shrink-0">{item.icon}</div>
                                                                 <span className="leading-none">{item.label}</span>
                                                             </button>
                                                         ))}
@@ -652,19 +685,21 @@ export default function App() {
                                             <>
                                                 <div className="flex items-center gap-1">
                                                     {([
-                                                        { id: 'telecom_journal', icon: <ScrollText className="w-4 h-4" />, label: t('nav.telecom_journal') },
+                                                        { id: 'telecom_journal', icon: <FigmaIcon name="tab-book-text" />, label: t('nav.telecom_journal') },
                                                         { id: 'combat_script', icon: <Swords className="w-4 h-4" />, label: t('nav.combat_script') },
-                                                        { id: 'personal_task_log', icon: <ListChecks className="w-4 h-4" />, label: t('nav.personal_task_log') },
+                                                        { id: 'personal_task_log', icon: <FigmaIcon name="tab-layout-list" />, label: t('nav.personal_task_log') },
+                                                        { id: 'bum_manager', icon: <FigmaIcon name="tab-table" />, label: t('nav.bum_manager') },
+                                                        { id: 'headquarters_overview', icon: <FigmaIcon name="tab-map-pin" />, label: t('nav.headquarters_overview') },
                                                     ] as const).map((item) => (
                                                         <button
                                                             key={item.id}
                                                             onClick={() => setCurrentSection(item.id as any)}
-                                                            className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
-                                                                ? 'bg-primary/10 text-primary'
-                                                                : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
-                                                                }`}
+                                                            className={`relative flex flex-row items-center gap-1 h-10 px-4 whitespace-nowrap transition-colors duration-200 text-sm leading-5 shrink-0 ${currentSection === item.id
+                                                                    ? 'font-semibold text-slate-900 dark:text-white after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-primary'
+                                                                    : 'font-normal text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
+                                                                    }`}
                                                         >
-                                                            <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>{item.icon}</div>
+                                                            <div className="shrink-0">{item.icon}</div>
                                                             <span className="leading-none">{item.label}</span>
                                                         </button>
                                                     ))}
@@ -681,12 +716,12 @@ export default function App() {
                                                     <button
                                                         key={item.id}
                                                         onClick={() => setCurrentSection(item.id as any)}
-                                                        className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
-                                                            ? 'bg-primary/10 text-primary'
-                                                            : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
-                                                            }`}
+                                                        className={`relative flex flex-row items-center gap-1 h-10 px-4 whitespace-nowrap transition-colors duration-200 text-sm leading-5 shrink-0 ${currentSection === item.id
+                                                                    ? 'font-semibold text-slate-900 dark:text-white after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-primary'
+                                                                    : 'font-normal text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
+                                                                    }`}
                                                     >
-                                                        <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>{item.icon}</div>
+                                                        <div className="shrink-0">{item.icon}</div>
                                                         <span className="leading-none">{item.label}</span>
                                                     </button>
                                                 ))}
@@ -702,12 +737,12 @@ export default function App() {
                                                     <button
                                                         key={item.id}
                                                         onClick={() => setCurrentSection(item.id as any)}
-                                                        className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
-                                                            ? 'bg-primary/10 text-primary'
-                                                            : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
-                                                            }`}
+                                                        className={`relative flex flex-row items-center gap-1 h-10 px-4 whitespace-nowrap transition-colors duration-200 text-sm leading-5 shrink-0 ${currentSection === item.id
+                                                                    ? 'font-semibold text-slate-900 dark:text-white after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-primary'
+                                                                    : 'font-normal text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
+                                                                    }`}
                                                     >
-                                                        <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>{item.icon}</div>
+                                                        <div className="shrink-0">{item.icon}</div>
                                                         <span className="leading-none">{item.label}</span>
                                                     </button>
                                                 ))}
@@ -726,12 +761,12 @@ export default function App() {
                                                         <button
                                                             key={item.id}
                                                             onClick={() => setCurrentSection(item.id as any)}
-                                                            className={`flex flex-row items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 text-sm font-medium shrink-0 ${currentSection === item.id
-                                                                ? 'bg-primary/10 text-primary'
-                                                                : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
-                                                                }`}
+                                                            className={`relative flex flex-row items-center gap-1 h-10 px-4 whitespace-nowrap transition-colors duration-200 text-sm leading-5 shrink-0 ${currentSection === item.id
+                                                                    ? 'font-semibold text-slate-900 dark:text-white after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-primary'
+                                                                    : 'font-normal text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
+                                                                    }`}
                                                         >
-                                                            <div className={`shrink-0 ${currentSection === item.id ? 'text-primary' : ''}`}>{item.icon}</div>
+                                                            <div className="shrink-0">{item.icon}</div>
                                                             <span className="leading-none">{item.label}</span>
                                                         </button>
                                                     ))}
@@ -765,6 +800,8 @@ export default function App() {
                                         <AddCommSitesModal />
                                         <CommSiteDetailPage />
                                         <ComputeCoverageCutModal />
+                                        <DashboardRepositoryModal />
+                                        <DashboardBuilderModal />
                                         {session && (
                                             <UserSettingsModal
                                                 isOpen={isUserSettingsOpen}
@@ -781,6 +818,10 @@ export default function App() {
                     </div>
                 </PersonalTaskLogProvider>
                 </CombatLogProvider>
+                </DashboardsProvider>
+                </BumProvider>
+                </HeadquartersMapRequestProvider>
+                </HeadquartersLayerProvider>
                 </LinkPlanningProvider>
                 </SpectrumProvider>
                 </TikshovProvider>

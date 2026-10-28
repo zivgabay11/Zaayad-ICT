@@ -1,26 +1,69 @@
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: "Rubik", ui-sans-serif, system-ui, sans-serif;
-    /* --color-primary: #5D6532; */
-    --color-primary: #00A2C7;
-    /* --color-primary-dark: #00A2C7; */
-    --color-primary-dark: #00A2C7;
+    /* Horus Tikshuv Figma: "Typography/Font family/text" = Assistant */
+    --font-sans: "Assistant", ui-sans-serif, system-ui, sans-serif;
+    /* Figma "Colors/Accent/Accent/9" */
+    --color-primary: #186eff;
+    --color-primary-dark: #186eff;
+}
+
+/* ------------------------------------------------------------------------------------------
+   Design tokens taken from the Figma file "הורוס תקשוב" (file key TGp0Bb7hK7FHDHiYkgL6w3).
+   Names follow the Figma variable names so a value can be traced back to the design.
+   ------------------------------------------------------------------------------------------ */
+:root {
+    --figma-header-bg: #14151a;                        /* header strip */
+    --figma-page-bg: #25272e;                          /* Colors/Neutral/Neutral/2 (page background) */
+    --figma-neutral-3: #2a2e37;                        /* Colors/Neutral/Neutral/3  (side menu, modal) */
+    --figma-neutral-4: #343944;                        /* Colors/Neutral/Neutral/4  (icon button) */
+    --figma-neutral-5: #3d424f;                        /* Colors/Neutral/Neutral/5  */
+    --figma-neutral-6: #585f6f;                        /* Colors/Neutral/Neutral/6  */
+    --figma-neutral-7: #656b7b;                        /* Colors/Neutral/Neutral/7  */
+    --figma-neutral-9: #989ca6;                        /* Colors/Neutral/Neutral/9  */
+    --figma-neutral-10: #b5bac6;                       /* Colors/Neutral/Neutral/10 (secondary text) */
+    --figma-neutral-11: #e6e8ec;                       /* Colors/Neutral/Neutral/11 (text) */
+    --figma-white: #ffffff;                            /* Tokens/Colors/text */
+    --figma-accent-9: #186eff;                         /* Colors/Accent/Accent/9 */
+    --figma-accent-11: #a6ceff;                        /* Colors/Accent/Accent/11 */
+    --figma-accent-border: #5a78ff;                    /* border of the active side-menu button */
+    --figma-text-secondary: #a9c3ce;                   /* header sub-title */
+    --figma-border-subtle: rgba(214, 235, 253, 0.19);  /* Colors/Neutral/Neutral Alpha/6 */
+    --figma-panel-bg: rgba(255, 255, 255, 0.04);       /* Colors/Gray Alpha/2 */
+    --figma-card-bg: rgba(255, 255, 255, 0.07);        /* Colors/Gray Alpha/3 */
+    --figma-card-border: rgba(217, 237, 255, 0.25);    /* Colors/Neutral/Neutral Alpha/7 */
+    --figma-icon-btn-bg: rgba(255, 255, 255, 0.05);    /* Overlays/White Alpha/1 */
+    --figma-shadow-0: 0 1px 4px rgba(0, 0, 0, 0.25);   /* shadow-0 */
+    --figma-radius-1: 3px;                             /* Radius/1 */
+    --figma-radius-2: 4px;                             /* Radius/2-max */
+    --figma-radius-3: 6px;                             /* Radius/3 */
+    --figma-radius-4: 8px;                             /* Radius/4 */
 }
 
 @layer base {
     :root {
-        /* --color-primary: #5D6532; */
-        --color-primary: #00A2C7;
+        --color-primary: #186eff;
     }
 
+    /* Dark theme = the Figma dark palette. Components in this app are written against Tailwind's
+       zinc scale (dark:bg-zinc-800, dark:text-zinc-400 …); remapping the scale here re-skins every
+       one of them to the Figma neutrals without touching any component or layout. */
     .dark {
-        /* --color-primary: #00A2C7; */
-        --color-primary: #00A2C7;
+        --color-primary: #186eff;
+        --color-zinc-950: #25272e;   /* page background (Colors/Neutral/Neutral/2) */
+        --color-zinc-900: #2a2e37;   /* surface: side menu, modals, panels (Colors/Neutral/Neutral/3) */
+        --color-zinc-800: #343944;
+        --color-zinc-700: #3d424f;
+        --color-zinc-600: #585f6f;
+        --color-zinc-500: #989ca6;
+        --color-zinc-400: #b5bac6;
+        --color-zinc-300: #e6e8ec;
+        --color-zinc-200: #e6e8ec;
+        --color-zinc-100: #ffffff;
     }
 }
 
@@ -160,4 +203,17 @@
 @keyframes tikshov-flap-pulse {
     0%, 100% { box-shadow: 0 3px 10px rgba(0, 0, 0, .5), 0 0 0 0 rgba(240, 180, 41, .55); }
     50% { box-shadow: 0 3px 10px rgba(0, 0, 0, .5), 0 0 0 5px rgba(240, 180, 41, 0); }
+}
+
+/* Bum Manager: slim, theme-matched scrollbars for the tiles / columns / table that scroll
+   inside the screen (the default chunky light bars look out of place on the dark theme). */
+.bum-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+}
+
+/* System Views: a feature inside a dashboard widget is zoomed to the widget's size (see
+   ScaledFeature.tsx). Its fixed-position dialogs would be zoomed with it, so cancel that. */
+.dash-scaled .fixed {
+    zoom: var(--dash-inv-zoom, 1);
 }

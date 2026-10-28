@@ -11,7 +11,7 @@ import { MapToolbar } from '../../diagram/widgets/MapToolbar';
 import { AnalysisLegend } from '../../diagram/widgets/AnalysisLegend';
 import { MapAiToolsPanel } from '../../diagram/widgets/MapAiToolsPanel';
 import { useGeoman } from '../../diagram/hooks/useGeoman';
-import { DiagramElement, GeoCoordinate, SystemUnit } from '../utilities/types';
+import { DiagramElement, GeoCoordinate, HeadquartersKind, SystemUnit } from '../utilities/types';
 import { ElementAssignPopover } from '../../diagram/widgets/ElementAssignPopover';
 import { MapContextMenu } from '../../diagram/widgets/MapContextMenu';
 import { StaticSpaceMapLayer } from './StaticSpaceMapLayer';
@@ -19,11 +19,16 @@ import { TikshovCopMapLayer } from './TikshovCopMapLayer';
 import { SpectrumMapLayer } from './SpectrumMapLayer';
 import { LinkCoverageMapLayer } from './LinkCoverageMapLayer';
 import { MobileSpaceMapLayer } from './MobileSpaceMapLayer';
+import { HeadquartersMapLayer } from './HeadquartersMapLayer';
 import { useLinkPlanningContext } from '../context/LinkPlanningContext';
 import { useLinkPlanningDrawing } from '../../link_planning/hooks/useLinkPlanningDrawing';
 import { NamePromptPopover } from '../../link_planning/widgets/NamePromptPopover';
 import { MobilePlatformContextMenu } from '../../link_planning/widgets/MobilePlatformContextMenu';
 import { LinkCellContextMenu } from '../../link_planning/widgets/LinkCellContextMenu';
+import { HeadquartersContextMenu } from '../../link_planning/widgets/HeadquartersContextMenu';
+import { useHeadquartersLayerContext } from '../context/HeadquartersLayerContext';
+import { useHeadquartersMapRequestContext } from '../context/HeadquartersMapRequestContext';
+import { HeadquartersMapRequestBanner } from '../../headquarters_overview/widgets/HeadquartersMapRequestBanner';
 
 // Fix Leaflet's default icon path issue with Vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -76,19 +81,28 @@ export const MapPanel: React.FC = () => {
     const { activePlan, updatePlan } = usePlanContext();
     const { setMapInstance: setAnalysisMapInstance } = useAnalysisContext();
     const {
-        linkCells, mobilePlatforms, addLinkCell, addMobilePlatform,
+        linkCells, mobilePlatforms, headquartersEntities, addLinkCell, addMobilePlatform, addHeadquartersEntity,
         renameLinkCell, updateLinkCellCoordinates, renameMobilePlatform, updateMobilePlatformPosition,
+        renameHeadquartersEntity, updateHeadquartersEntityPosition,
         removeLinkCell,
     } = useLinkPlanningContext();
+    const { addEntity: addEntityToHeadquartersLayer, ensureVisible: ensureHeadquartersVisible } = useHeadquartersLayerContext();
+    const { request: headquartersRequest, completeRequest, cancelRequest, dropRequest } = useHeadquartersMapRequestContext();
     const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
     const [activeDrawingTool, setActiveDrawingTool] = useState<string | null>(null);
     const [pendingElement, setPendingElement] = useState<DiagramElement | null>(null);
     const [pendingCellCoords, setPendingCellCoords] = useState<GeoCoordinate[] | null>(null);
     const [pendingPlatformPos, setPendingPlatformPos] = useState<GeoCoordinate | null>(null);
+    // viaRequest: placed on behalf of the "מפקדות וחפ"קים" overview — goes straight into ניהו"ק.
+    const [pendingHeadquarters, setPendingHeadquarters] = useState<{ kind: HeadquartersKind; unitCode: number; position: GeoCoordinate; viaRequest?: boolean } | null>(null);
     const [platformContextMenu, setPlatformContextMenu] = useState<{ platformId: string; x: number; y: number } | null>(null);
     const [linkCellContextMenu, setLinkCellContextMenu] = useState<{ cellId: string; x: number; y: number } | null>(null);
-    const [pendingRename, setPendingRename] = useState<{ kind: 'cell' | 'platform'; id: string; currentName: string } | null>(null);
+    const [headquartersContextMenu, setHeadquartersContextMenu] = useState<{ entityId: string; x: number; y: number } | null>(null);
+    const [pendingRename, setPendingRename] = useState<{ kind: 'cell' | 'platform' | 'headquarters'; id: string; currentName: string } | null>(null);
     const linkPlanningSuppressRef = React.useRef(false);
+    // Holds the chosen kind+unit between SelectUnitModal's pick and the map click that
+    // actually places the marker (enablePlaceHeadquarters only reports a position).
+    const pendingHeadquartersPickRef = React.useRef<{ kind: HeadquartersKind; unitCode: number; viaRequest?: boolean } | null>(null);
 
     const diagramElements = activePlan?.diagramElements || [];
     const planUnitCodes = useMemo(() => (activePlan?.units || []).map(u => u.code), [activePlan?.units]);
@@ -146,14 +160,74 @@ export const MapPanel: React.FC = () => {
         externalDrawSuppressRef: linkPlanningSuppressRef,
     });
 
-    const { enableDrawCell, enablePlacePlatform, enableRedrawCell, enableMovePlatform } = useLinkPlanningDrawing({
+    const {
+        enableDrawCell, enablePlacePlatform, enableRedrawCell, enableMovePlatform,
+        enablePlaceHeadquarters, enableMoveHeadquarters, cancelPlaceHeadquarters,
+    } = useLinkPlanningDrawing({
         map: mapInstance,
         suppressRef: linkPlanningSuppressRef,
         onCellDrawn: setPendingCellCoords,
         onPlatformPlaced: setPendingPlatformPos,
+        onHeadquartersPlaced: (position) => {
+            const pick = pendingHeadquartersPickRef.current;
+            pendingHeadquartersPickRef.current = null;
+            if (pick) setPendingHeadquarters({ ...pick, position });
+        },
         onCellRedrawn: updateLinkCellCoordinates,
         onPlatformMoved: updateMobilePlatformPosition,
+        onHeadquartersMoved: (entityId, position) => {
+            updateHeadquartersEntityPosition(entityId, position);
+            // Moved on behalf of the overview: make sure it's drawn, then go back to the table.
+            if (headquartersRequest?.type === 'move' && headquartersRequest.entityId === entityId) {
+                const moved = headquartersEntities.find(e => e.id === entityId);
+                if (moved) ensureHeadquartersVisible(moved.kind);
+                completeRequest();
+            }
+        },
     });
+
+    const handlePlaceHeadquarters = useCallback((kind: HeadquartersKind, unitCode: number, viaRequest = false) => {
+        pendingHeadquartersPickRef.current = { kind, unitCode, viaRequest };
+        enablePlaceHeadquarters();
+    }, [enablePlaceHeadquarters]);
+
+    // Fulfil a request coming from the "מפקדות וחפ"קים" overview once we're on the map with a
+    // live Leaflet instance: either wait for a click to place a new headquarters/command post
+    // for the chosen unit, or for a click to move an existing one. Each request is armed once.
+    const armedRequestRef = React.useRef<typeof headquartersRequest>(null);
+    useEffect(() => {
+        if (!headquartersRequest) { armedRequestRef.current = null; return; }
+        // The map is only mounted while the panel is open, so right after navigating here
+        // mapInstance can still be the previous (destroyed) Leaflet map for a render or two —
+        // wait until its container is the live one in the DOM before arming a click on it.
+        if (!mapInstance || !mapInstance.getContainer().isConnected || currentSection !== 'main' || armedRequestRef.current === headquartersRequest) return;
+        armedRequestRef.current = headquartersRequest;
+        if (headquartersRequest.type === 'add') handlePlaceHeadquarters(headquartersRequest.kind, headquartersRequest.unitCode, true);
+        else enableMoveHeadquarters(headquartersRequest.entityId);
+    }, [headquartersRequest, mapInstance, currentSection, handlePlaceHeadquarters, enableMoveHeadquarters]);
+
+    // Leaving the map by any other route while a request is armed abandons it quietly.
+    useEffect(() => {
+        if (headquartersRequest && armedRequestRef.current === headquartersRequest && currentSection !== 'main') {
+            cancelPlaceHeadquarters();
+            pendingHeadquartersPickRef.current = null;
+            dropRequest();
+        }
+    }, [headquartersRequest, currentSection, cancelPlaceHeadquarters, dropRequest]);
+
+    const handleAbortHeadquartersRequest = useCallback(() => {
+        cancelPlaceHeadquarters();
+        pendingHeadquartersPickRef.current = null;
+        setPendingHeadquarters(null);
+        cancelRequest();
+    }, [cancelPlaceHeadquarters, cancelRequest]);
+
+    useEffect(() => {
+        if (!headquartersRequest) return;
+        const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') handleAbortHeadquartersRequest(); };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [headquartersRequest, handleAbortHeadquartersRequest]);
 
     const handleDrawPolygon = useCallback(() => {
         setActiveDrawingTool(prev => prev === 'polygon' ? null : 'polygon');
@@ -276,6 +350,7 @@ export const MapPanel: React.FC = () => {
                             activeDrawingTool={activeDrawingTool}
                             onDrawLinkCell={enableDrawCell}
                             onPlaceMobilePlatform={enablePlacePlatform}
+                            onPlaceHeadquarters={handlePlaceHeadquarters}
                             onFitBounds={() => {
                                 if (!mapInstance || diagramElements.length === 0) return;
                                 const boundsPoints: [number, number][] = [];
@@ -338,9 +413,11 @@ export const MapPanel: React.FC = () => {
                                 <MobileSpaceMapLayer onPlatformContextMenu={(platformId, x, y) => setPlatformContextMenu({ platformId, x, y })} />
                                 <TikshovCopMapLayer />
                                 <SpectrumMapLayer />
+                                <HeadquartersMapLayer onEntityContextMenu={(entityId, x, y) => setHeadquartersContextMenu({ entityId, x, y })} />
                                 <LinkCoverageMapLayer
                                     onPlatformContextMenu={(platformId, x, y) => setPlatformContextMenu({ platformId, x, y })}
                                     onCellContextMenu={(cellId, x, y) => setLinkCellContextMenu({ cellId, x, y })}
+                                    onHeadquartersContextMenu={(entityId, x, y) => setHeadquartersContextMenu({ entityId, x, y })}
                                 />
                             </MapContainer>
                         </div>
@@ -378,6 +455,10 @@ export const MapPanel: React.FC = () => {
                             />
                         )}
 
+                        {headquartersRequest && !pendingHeadquarters && (
+                            <HeadquartersMapRequestBanner request={headquartersRequest} onCancel={handleAbortHeadquartersRequest} />
+                        )}
+
                         {/* Link Planning: name a just-drawn cell or just-placed platform */}
                         {pendingCellCoords && (
                             <NamePromptPopover
@@ -395,14 +476,35 @@ export const MapPanel: React.FC = () => {
                                 onCancel={() => setPendingPlatformPos(null)}
                             />
                         )}
+                        {pendingHeadquarters && (
+                            <NamePromptPopover
+                                title={t(pendingHeadquarters.kind === 'headquarters' ? 'linkPlanning.nameHeadquartersTitle' : 'linkPlanning.nameCommandPostTitle')}
+                                placeholder={t('linkPlanning.headquartersNamePlaceholder')}
+                                onConfirm={(name) => {
+                                    const newId = addHeadquartersEntity(pendingHeadquarters.kind, pendingHeadquarters.unitCode, name, pendingHeadquarters.position);
+                                    if (pendingHeadquarters.viaRequest) {
+                                        // Added from the overview: straight into ניהו"ק, no נוה"ק stop.
+                                        addEntityToHeadquartersLayer(newId);
+                                        ensureHeadquartersVisible(pendingHeadquarters.kind);
+                                        completeRequest();
+                                    }
+                                    setPendingHeadquarters(null);
+                                }}
+                                onCancel={() => {
+                                    if (pendingHeadquarters.viaRequest) cancelRequest();
+                                    setPendingHeadquarters(null);
+                                }}
+                            />
+                        )}
                         {pendingRename && (
                             <NamePromptPopover
                                 title={t('linkPlanning.renameTitle')}
-                                placeholder={pendingRename.kind === 'cell' ? t('linkPlanning.cellNamePlaceholder') : t('linkPlanning.platformNamePlaceholder')}
+                                placeholder={pendingRename.kind === 'cell' ? t('linkPlanning.cellNamePlaceholder') : pendingRename.kind === 'platform' ? t('linkPlanning.platformNamePlaceholder') : t('linkPlanning.headquartersNamePlaceholder')}
                                 initialValue={pendingRename.currentName}
                                 onConfirm={(name) => {
                                     if (pendingRename.kind === 'cell') renameLinkCell(pendingRename.id, name);
-                                    else renameMobilePlatform(pendingRename.id, name);
+                                    else if (pendingRename.kind === 'platform') renameMobilePlatform(pendingRename.id, name);
+                                    else renameHeadquartersEntity(pendingRename.id, name);
                                     setPendingRename(null);
                                 }}
                                 onCancel={() => setPendingRename(null)}
@@ -433,6 +535,19 @@ export const MapPanel: React.FC = () => {
                                 onChangeLocation={() => enableRedrawCell(linkCellContextMenu.cellId)}
                                 onDelete={() => removeLinkCell(linkCellContextMenu.cellId)}
                                 onClose={() => setLinkCellContextMenu(null)}
+                            />
+                        )}
+                        {headquartersContextMenu && (
+                            <HeadquartersContextMenu
+                                entityId={headquartersContextMenu.entityId}
+                                x={headquartersContextMenu.x}
+                                y={headquartersContextMenu.y}
+                                onRename={() => {
+                                    const entity = headquartersEntities.find(e => e.id === headquartersContextMenu.entityId);
+                                    if (entity) setPendingRename({ kind: 'headquarters', id: entity.id, currentName: entity.name });
+                                }}
+                                onChangeLocation={() => enableMoveHeadquarters(headquartersContextMenu.entityId)}
+                                onClose={() => setHeadquartersContextMenu(null)}
                             />
                         )}
 

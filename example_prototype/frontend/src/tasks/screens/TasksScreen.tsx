@@ -52,7 +52,7 @@ export const TasksScreen: React.FC = () => {
                             setDialogDefaults({});
                             setIsDialogOpen(true);
                         }}
-                        className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary-light hover:bg-[#4a5128] dark:bg-primary-dark dark:hover:bg-[#b0c25a] text-white dark:text-zinc-900 rounded-lg transition-colors font-semibold"
+                        className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary hover:bg-primary/90 dark:bg-primary-dark dark:hover:bg-primary/90 text-white rounded-lg transition-colors font-semibold"
                     >
                         <Plus size={16} />
                         {t('New Task')}

@@ -169,7 +169,7 @@ export const EventEditModal: React.FC<EventEditModalProps> = ({ event, onClose, 
                         {t('combatLog.actions.cancel')}
                     </button>
                     {canEditFields && (
-                        <button onClick={handleSave} className="text-sm px-4 py-2 bg-primary hover:bg-primary/90 text-white dark:text-zinc-900 rounded-lg transition-colors font-medium shadow-sm">
+                        <button onClick={handleSave} className="text-sm px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors font-medium shadow-sm">
                             {t('combatLog.actions.save')}
                         </button>
                     )}

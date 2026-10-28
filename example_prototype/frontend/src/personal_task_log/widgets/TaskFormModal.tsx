@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Link2 } from 'lucide-react';
+import { X } from 'lucide-react';
 import { usePersonalTaskLogContext } from '../../common/context/PersonalTaskLogContext';
-import { useCombatLogContext } from '../../common/context/CombatLogContext';
-import { PersonalTask, PersonalTaskSeverity, PersonalTaskFrequency, PersonalTaskStatus, Cell, CombatLogType, CombatLogSeverity } from '../../common/utilities/types';
-import { LINKABLE_COMBAT_LOG_TYPES, COMBAT_LOG_TYPE_COLORS } from '../../common/utilities/combatLog';
+import { PersonalTask, PersonalTaskSeverity, PersonalTaskFrequency, PersonalTaskStatus, Cell } from '../../common/utilities/types';
 import { PERSONAL_TASK_SEVERITY_ORDER, PERSONAL_TASK_SEVERITY_DOT_COLOR, PERSONAL_TASK_STATUS_ORDER } from '../utilities/personalTaskLog';
 
 interface TaskFormModalProps {
@@ -13,7 +11,6 @@ interface TaskFormModalProps {
     ownerUnitCode: number;
     ownerCell: Cell;
     task?: PersonalTask | null; // when set, the modal edits this task instead of creating one
-    onLinked?: (eventId: string) => void; // called instead of onClose after "link to combat log" succeeds, so the caller can open the resulting item
 }
 
 function toDatetimeLocal(iso?: string): string {
@@ -23,18 +20,12 @@ function toDatetimeLocal(iso?: string): string {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// Only 'high'/'medium'/'low' carry over directly — 'unknown' has no Combat Log equivalent.
-function toCombatLogSeverity(severity: PersonalTaskSeverity): CombatLogSeverity | undefined {
-    return severity === 'unknown' ? undefined : severity;
-}
-
 const inputClass = "w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 outline-none focus:border-primary transition-colors";
 const labelClass = "text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block";
 
-export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, ownerUnitCode, ownerCell, task, onLinked }) => {
+export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, ownerUnitCode, ownerCell, task }) => {
     const { t } = useTranslation();
     const { createTask, updateTask, deleteTask } = usePersonalTaskLogContext();
-    const { createEvent } = useCombatLogContext();
 
     const isEdit = !!task;
 
@@ -49,9 +40,6 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
     const [frequency, setFrequency] = useState<PersonalTaskFrequency>('weekly');
     const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
-    // Which Combat Log type this task should become, if any — just a selected form field
-    // like severity; nothing is created/converted until the main Save button is pressed.
-    const [linkedType, setLinkedType] = useState<CombatLogType | null>(null);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -66,7 +54,6 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
         setFrequency(task?.recurrenceRule?.frequency || 'weekly');
         setRecurrenceEndDate(task?.recurrenceRule?.endDate?.slice(0, 10) || new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10));
         setErrors({});
-        setLinkedType(null);
     }, [isOpen, task]);
 
     const validate = (): boolean => {
@@ -81,28 +68,6 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
 
     const handleSave = () => {
         if (!validate()) return;
-
-        // Linked to a Combat Log type → this single Save press both creates the shared
-        // event (assigned back to this role) and, if converting an existing manual task,
-        // removes the old manual row — one atomic action, not two separate steps.
-        // assignedToCells is set in this same createEvent call rather than a follow-up
-        // toggleAssignedCell call, since two context mutations chained in one handler would
-        // each close over the pre-update array and the second would overwrite the first.
-        if (linkedType) {
-            const newEvent = createEvent({
-                type: linkedType,
-                title: title.trim(),
-                description: description.trim(),
-                start: start ? new Date(start).toISOString() : undefined,
-                end: end ? new Date(end).toISOString() : undefined,
-                severity: linkedType === 'ict_faults' ? toCombatLogSeverity(severity) : undefined,
-                assignedToCells: [ownerCell],
-            });
-            if (isEdit && task) deleteTask(task.id);
-            if (onLinked) onLinked(newEvent.id);
-            else handleClose();
-            return;
-        }
 
         const payload = {
             title: title.trim(),
@@ -220,34 +185,6 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
                             </div>
                         )}
                     </div>
-
-                    <div className="rounded-lg border border-dashed border-slate-300 dark:border-zinc-700 p-3 space-y-2">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-zinc-400">
-                            <Link2 className="w-3.5 h-3.5" /> {t('personalTaskLog.fields.linkToCombatLog')}
-                        </span>
-                        <p className="text-[11px] text-slate-400 dark:text-zinc-500">{t('personalTaskLog.fields.linkToCombatLogHint')}</p>
-                        <div className="flex flex-wrap gap-1.5">
-                            {LINKABLE_COMBAT_LOG_TYPES.map(logType => {
-                                const color = COMBAT_LOG_TYPE_COLORS[logType];
-                                const active = linkedType === logType;
-                                return (
-                                    <button
-                                        key={logType}
-                                        type="button"
-                                        onClick={() => setLinkedType(prev => (prev === logType ? null : logType))}
-                                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full border transition-colors"
-                                        style={active ? { background: `${color}1f`, color, borderColor: `${color}55` } : { borderColor: '#e2e8f0' }}
-                                    >
-                                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
-                                        {t(`combatLog.logTypes.${logType}`)}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        {linkedType && (
-                            <p className="text-[11px] text-primary font-medium">{t('personalTaskLog.fields.linkToCombatLogSelected')}</p>
-                        )}
-                    </div>
                 </div>
 
                 <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-200 dark:border-zinc-800 shrink-0">
@@ -256,7 +193,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
                     </button>
                     <button
                         onClick={handleSave}
-                        className="text-sm px-4 py-2 bg-primary hover:bg-primary/90 text-white dark:text-zinc-900 rounded-lg transition-colors font-medium shadow-sm"
+                        className="text-sm px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors font-medium shadow-sm"
                     >
                         {t('personalTaskLog.actions.save')}
                     </button>
