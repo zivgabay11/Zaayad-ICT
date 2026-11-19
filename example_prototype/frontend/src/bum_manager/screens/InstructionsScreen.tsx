@@ -11,7 +11,7 @@ import { getCommanderRoleKey, getUnitTree } from '../utilities/instructions';
 import { Tile } from '../widgets/BumTile';
 import { NeutralBadge } from '../widgets/BumBadges';
 import { BumFilterRows } from '../widgets/BumFilterRows';
-import { DeleteDemandModal } from '../widgets/DemandModals';
+import { ConfirmDeleteModal } from '../../common/widgets/ConfirmDeleteModal';
 
 // הנחיות מפקד — the third sub-section of Bum Manager: ONLY rows of the instructions commanders
 // pushed down to the field. Each row says which commander issued it, what it says and whether it
@@ -169,7 +169,7 @@ export const InstructionsScreen: React.FC<Props> = ({ sessionUnitCode = 1000 }) 
                     closeForm();
                 }}
             />
-            <DeleteDemandModal
+            <ConfirmDeleteModal
                 demands={deleting.map(i => ({ title: i.text }))}
                 onConfirm={confirmDelete}
                 onCancel={() => setDeleting([])}
@@ -243,12 +243,12 @@ const InstructionFormModal: React.FC<FormProps> = ({ isOpen, sessionUnitCode, in
                     </div>
                     {error && <p className="text-[11px] text-red-500">{t('bumManager.instructions.form.required')}</p>}
                 </div>
-                <div className="px-5 py-4 border-t border-slate-200 dark:border-zinc-800 shrink-0 flex items-center gap-2">
-                    <button onClick={submit} data-submit-instruction className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
-                        {t(instruction ? 'bumManager.form.save' : 'bumManager.instructions.form.create')}
-                    </button>
+                <div className="px-5 py-4 border-t border-slate-200 dark:border-zinc-800 shrink-0 flex items-center justify-end gap-2">
                     <button onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 text-sm font-medium text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
                         {t('bumManager.form.cancel')}
+                    </button>
+                    <button onClick={submit} data-submit-instruction className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
+                        {t(instruction ? 'bumManager.form.save' : 'bumManager.instructions.form.create')}
                     </button>
                 </div>
             </div>

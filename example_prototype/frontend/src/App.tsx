@@ -505,13 +505,24 @@ export default function App() {
                                     animate={{ width: 59, opacity: 1 }}
                                     exit={{ width: 0, opacity: 0 }}
                                     transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                                    className="flex flex-col bg-white dark:bg-[#2a2e37] border-e border-slate-200 dark:border-e-0 overflow-x-hidden overflow-y-auto py-3 justify-between shrink-0"
+                                    className="flex flex-col bg-white dark:bg-[var(--figma-sidebar-bg)] border-e border-slate-200 dark:border-e-0 overflow-x-hidden overflow-y-auto py-3 justify-between shrink-0"
                                 >
                                     <div className="w-[59px] flex flex-col min-h-full justify-between shrink-0">
                                         {/* Order, icons and sizes follow the Figma "side menu 01" (ניהול, שליטה, רדיו,
                                             ספקטרום, ניטור, פריסת תקשוב). תכנון has no Figma counterpart yet and is kept
                                             (with its existing icon) right after ניהול. */}
                                         <div className="space-y-3 px-0">
+                                            <NavItem
+                                                icon={<FigmaIcon name="side-map" size={18} />}
+                                                label={t('nav.main')}
+                                                active={currentSection === 'main'}
+                                                onClick={() => {
+                                                    setCurrentSection('main');
+                                                    closePanel();
+                                                }}
+                                                isDarkMode={isDarkMode}
+                                                isCollapsed={isSidebarCollapsed}
+                                            />
                                             <NavItem
                                                 icon={<FigmaIcon name="side-layout-dashboard" size={18} />}
                                                 label={t('nav.management')}
@@ -588,21 +599,10 @@ export default function App() {
                                                 isDarkMode={isDarkMode}
                                                 isCollapsed={isSidebarCollapsed}
                                             />
-                                            <NavItem
-                                                icon={<FigmaIcon name="side-map" size={18} />}
-                                                label={t('nav.main')}
-                                                active={currentSection === 'main'}
-                                                onClick={() => {
-                                                    setCurrentSection('main');
-                                                    closePanel();
-                                                }}
-                                                isDarkMode={isDarkMode}
-                                                isCollapsed={isSidebarCollapsed}
-                                            />
                                         </div>
 
                                         <div className="space-y-3 px-0">
-                                            <div className="mx-2 border-t border-slate-200 dark:border-zinc-700"></div>
+                                            <div className="mx-2 border-t border-slate-200 dark:border-[var(--figma-sidebar-divider)]"></div>
                                             <NavItem
                                                 icon={<Globe className="w-[18px] h-[18px]" />}
                                                 label={i18n.language === 'en' ? 'עברית' : 'English'}
@@ -611,7 +611,7 @@ export default function App() {
                                                 isCollapsed={isSidebarCollapsed}
                                             />
                                             <NavItem icon={<Palette className="w-[18px] h-[18px]" />} label={t('nav.switch_theme')} onClick={toggleTheme} isDarkMode={isDarkMode} isCollapsed={isSidebarCollapsed} />
-                                            <div className="mx-2 border-t border-slate-200 dark:border-zinc-700"></div>
+                                            <div className="mx-2 border-t border-slate-200 dark:border-[var(--figma-sidebar-divider)]"></div>
                                             <NavItem icon={<LogOut className="w-[18px] h-[18px]" />} label={t('nav.sign_out')} onClick={handleSignOut} isDarkMode={isDarkMode} isCollapsed={isSidebarCollapsed} />
 
                                             <div className="flex justify-center mt-6 mb-2">
@@ -668,7 +668,7 @@ export default function App() {
                                                                 key={item.id}
                                                                 onClick={() => setCurrentSection(item.id as any)}
                                                                 className={`relative flex flex-row items-center gap-1 h-10 px-4 whitespace-nowrap transition-colors duration-200 text-sm leading-5 shrink-0 ${currentSection === item.id
-                                                                    ? 'font-semibold text-slate-900 dark:text-white after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-primary'
+                                                                    ? 'font-semibold text-slate-900 dark:text-[var(--figma-tab-active)] after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:bg-primary dark:after:bg-[var(--figma-tab-active)]'
                                                                     : 'font-normal text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
                                                                     }`}
                                                             >
@@ -695,7 +695,7 @@ export default function App() {
                                                             key={item.id}
                                                             onClick={() => setCurrentSection(item.id as any)}
                                                             className={`relative flex flex-row items-center gap-1 h-10 px-4 whitespace-nowrap transition-colors duration-200 text-sm leading-5 shrink-0 ${currentSection === item.id
-                                                                    ? 'font-semibold text-slate-900 dark:text-white after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-primary'
+                                                                    ? 'font-semibold text-slate-900 dark:text-[var(--figma-tab-active)] after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:bg-primary dark:after:bg-[var(--figma-tab-active)]'
                                                                     : 'font-normal text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
                                                                     }`}
                                                         >
@@ -717,7 +717,7 @@ export default function App() {
                                                         key={item.id}
                                                         onClick={() => setCurrentSection(item.id as any)}
                                                         className={`relative flex flex-row items-center gap-1 h-10 px-4 whitespace-nowrap transition-colors duration-200 text-sm leading-5 shrink-0 ${currentSection === item.id
-                                                                    ? 'font-semibold text-slate-900 dark:text-white after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-primary'
+                                                                    ? 'font-semibold text-slate-900 dark:text-[var(--figma-tab-active)] after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:bg-primary dark:after:bg-[var(--figma-tab-active)]'
                                                                     : 'font-normal text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
                                                                     }`}
                                                     >
@@ -738,7 +738,7 @@ export default function App() {
                                                         key={item.id}
                                                         onClick={() => setCurrentSection(item.id as any)}
                                                         className={`relative flex flex-row items-center gap-1 h-10 px-4 whitespace-nowrap transition-colors duration-200 text-sm leading-5 shrink-0 ${currentSection === item.id
-                                                                    ? 'font-semibold text-slate-900 dark:text-white after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-primary'
+                                                                    ? 'font-semibold text-slate-900 dark:text-[var(--figma-tab-active)] after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:bg-primary dark:after:bg-[var(--figma-tab-active)]'
                                                                     : 'font-normal text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
                                                                     }`}
                                                     >
@@ -762,7 +762,7 @@ export default function App() {
                                                             key={item.id}
                                                             onClick={() => setCurrentSection(item.id as any)}
                                                             className={`relative flex flex-row items-center gap-1 h-10 px-4 whitespace-nowrap transition-colors duration-200 text-sm leading-5 shrink-0 ${currentSection === item.id
-                                                                    ? 'font-semibold text-slate-900 dark:text-white after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-primary'
+                                                                    ? 'font-semibold text-slate-900 dark:text-[var(--figma-tab-active)] after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:bg-primary dark:after:bg-[var(--figma-tab-active)]'
                                                                     : 'font-normal text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
                                                                     }`}
                                                         >

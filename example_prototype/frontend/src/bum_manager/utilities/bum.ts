@@ -1,6 +1,7 @@
 import { BumDemand, BumDemandStatus, BumSeverity } from '../../common/utilities/types';
 import { mockUnits } from '../../common/utilities/mockData';
 import { downloadCsv } from '../../common/utilities/csvExport';
+import type { FigmaBadgeTone } from '../../common/widgets/FigmaBadge';
 
 // Domain constants + pure helpers for Bum Manager (בו"ם משימות). See the PRD "Bum Manager"
 // (Categories & Cells, Demand interface, Lifecycle of Demand) for the source-of-truth tables
@@ -16,6 +17,23 @@ export const BUM_STATUS_STRIPE: Record<BumDemandStatus, string> = {
     blocked: '#ef4444',
     done: '#2b9a66',
     canceled: '#64748b',
+};
+
+// Figma badge tone per status / severity (see index.css .figma-badge--<tone>).
+export const BUM_STATUS_TONE: Record<BumDemandStatus, FigmaBadgeTone> = {
+    backlog: 'info',
+    inProgress: 'success',
+    blocked: 'error',
+    done: 'neutral',
+    canceled: 'neutral',
+};
+
+export const BUM_SEVERITY_TONE: Record<BumSeverity, FigmaBadgeTone> = {
+    5: 'error',
+    4: 'error',
+    3: 'warning',
+    2: 'info',
+    1: 'neutral',
 };
 
 export const BUM_SEVERITIES: BumSeverity[] = [1, 2, 3, 4, 5];

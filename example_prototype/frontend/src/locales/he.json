@@ -115,6 +115,8 @@
         "logout": "התנתק",
         "keep": "שמור",
         "undo": "בטל",
+        "cancel": "ביטול",
+        "delete": "מחיקה",
         "time": {
             "start": "התחלה",
             "end": "סיום",
@@ -773,10 +775,23 @@
         "screenSubtitle": "ניהול המשימות האישיות עבור התפקיד הנבחר",
         "newTask": "הוספת משימה",
         "taskCount": "{{count}} משימות",
+        "addNewTask": "הוספת משימה חדשה",
+        "markDone": "סימון כבוצע",
+        "filterTitle": "סינון לפי סטטוס",
+        "sectionTitles": { "open": "משימות פתוחות", "inProgress": "משימות בביצוע", "done": "משימות שבוצעו", "blocked": "משימות חסומות", "cancelled": "משימות שבוטלו" },
+        "filterLabels": { "open": "פתוחות", "inProgress": "בביצוע", "done": "בוצע", "blocked": "חסום", "cancelled": "בוטל" },
         "empty": "אין משימות בסטטוס זה",
         "confirmDelete": "למחוק את המשימה?",
         "rowMenu": { "addToCombatLog": "הוסף ליומן הלחימה כ…", "removeFromMyDiary": "הסר מיומן המשימות האישי שלי" },
         "confirmUnassign": "להסיר את השיוך של המשימה הזו מהתא שלך?",
+        "delete": {
+            "titleOne": "מחיקת משימה",
+            "descriptionOne": "\"{{name}}\" תימחק לצמיתות. לא ניתן לשחזר."
+        },
+        "unassign": {
+            "titleOne": "הסרת שיוך",
+            "descriptionOne": "\"{{name}}\" תוסר מהתא שלך ביומן המשימות האישי. האירוע עצמו יישאר ביומן הלחימה."
+        },
         "stats": {
             "total": "סה\"כ משימות"
         },
@@ -1331,6 +1346,14 @@
         "deleteTitleHeadquarters": "מחיקת מפקדה",
         "deleteTitleCommandPost": "מחיקת חפ\"ק",
         "deleteDescription": "\"{{name}}\" יימחק לצמיתות, גם מהמפה וגם מהשכבה. לא ניתן לשחזר.",
+        "deleteHeadquarters": {
+            "titleOne": "מחיקת מפקדה",
+            "descriptionOne": "\"{{name}}\" יימחק לצמיתות, גם מהמפה וגם מהשכבה. לא ניתן לשחזר."
+        },
+        "deleteCommandPost": {
+            "titleOne": "מחיקת חפ\"ק",
+            "descriptionOne": "\"{{name}}\" יימחק לצמיתות, גם מהמפה וגם מהשכבה. לא ניתן לשחזר."
+        },
         "map": {
             "placeHeadquarters": "לחץ על המפה כדי למקם את המפקדה של {{unit}}",
             "placeCommandPost": "לחץ על המפה כדי למקם את החפ\"ק של {{unit}}",

@@ -24,7 +24,7 @@ export function BumSegmented<K extends string>({ options, value, onChange, ariaL
             role="tablist"
             aria-label={ariaLabel}
             data-segmented={testId}
-            className={`inline-flex rounded-md bg-slate-100 dark:bg-white/10 p-0.5 font-medium ${size === 'md' ? 'text-sm' : 'text-xs'}`}
+            className={`inline-flex rounded-md bg-slate-100 dark:bg-[var(--figma-segment-bg)] p-0.5 font-medium ${size === 'md' ? 'text-sm' : 'text-xs'}`}
         >
             {options.map(option => (
                 <button
@@ -34,7 +34,7 @@ export function BumSegmented<K extends string>({ options, value, onChange, ariaL
                     data-segment={option.key}
                     onClick={() => onChange(option.key)}
                     className={`rounded transition-colors whitespace-nowrap ${size === 'md' ? 'px-4 py-1.5' : 'px-3 py-1'} ${value === option.key
-                        ? 'bg-primary text-white font-semibold'
+                        ? 'bg-primary dark:bg-[var(--figma-segment-active)] text-white font-semibold'
                         : 'text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'}`}
                 >
                     {option.label}

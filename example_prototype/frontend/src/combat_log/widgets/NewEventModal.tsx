@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Paperclip, X } from 'lucide-react';
 import { useCombatLogContext } from '../../common/context/CombatLogContext';
 import { CombatLogEvent, CombatLogType, CombatLogSeverity } from '../../common/utilities/types';
-import { COMBAT_LOG_TYPES, COMBAT_LOG_STATUS_OPTIONS, COMBAT_LOG_END_TIME_DEFAULT_MINUTES, COMBAT_LOG_TYPE_COLORS, isTerminalStatus } from '../../common/utilities/combatLog';
+import { COMBAT_LOG_TYPES, COMBAT_LOG_STATUS_OPTIONS, COMBAT_LOG_END_TIME_DEFAULT_MINUTES, COMBAT_LOG_TYPE_COLORS, COMBAT_LOG_SEVERITY_COLOR, isTerminalStatus } from '../../common/utilities/combatLog';
 import { mockCommSites } from '../../common/utilities/mockData';
+import { SeverityPills } from '../../common/widgets/SeverityPills';
 
 // New Event creation dialog (PRD 6.1/US-01): log type first, then the common fields plus
 // whatever fields that type needs — including the work→faults linking picker that powers
@@ -182,12 +183,12 @@ export const NewEventModal: React.FC<NewEventModalProps> = ({ isOpen, onClose, a
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <label className={labelClass}>{t('combatLog.fields.severity')}</label>
-                                        <select value={severity} onChange={e => setSeverity(e.target.value as CombatLogSeverity)} className={inputClass}>
-                                            <option value="">—</option>
-                                            {(['critical', 'high', 'medium', 'low'] as CombatLogSeverity[]).map(s => (
-                                                <option key={s} value={s}>{t(`combatLog.severity.${s}`)}</option>
-                                            ))}
-                                        </select>
+                                        <SeverityPills<CombatLogSeverity | ''>
+                                            value={severity}
+                                            onChange={setSeverity}
+                                            name="severity"
+                                            options={(['critical', 'high', 'medium', 'low'] as CombatLogSeverity[]).map(s => ({ key: s, label: t(`combatLog.severity.${s}`), color: COMBAT_LOG_SEVERITY_COLOR[s] }))}
+                                        />
                                         {errors.severity && <p className="text-[11px] text-red-500 mt-1">{errors.severity}</p>}
                                     </div>
                                     <div>

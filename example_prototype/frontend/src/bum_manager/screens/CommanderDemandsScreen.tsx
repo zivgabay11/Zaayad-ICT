@@ -15,7 +15,8 @@ import { BumKanbanBoard } from '../widgets/BumKanbanBoard';
 import { BumTable } from '../widgets/BumTable';
 import { BumCategoryList, BumCategoryTiles } from '../widgets/BumCategoryViews';
 import { BumStatusGauges } from '../widgets/BumStatusGauges';
-import { DemandFormModal, DeleteDemandModal } from '../widgets/DemandModals';
+import { DemandFormModal } from '../widgets/DemandModals';
+import { ConfirmDeleteModal } from '../../common/widgets/ConfirmDeleteModal';
 
 // Commander demands (דרישות מפקד) — the first sub-section of Bum Manager (בו"ם משימות, שליטה וניהול):
 // the commander demands & instructions tracker from
@@ -187,8 +188,8 @@ export const CommanderDemandsScreen: React.FC<Props> = ({ sessionUnitCode = 1000
                             aria-selected={tab === id}
                             onClick={() => setTab(id)}
                             data-bum-tab={id}
-                            className={`flex items-center gap-1 px-4 py-2.5 text-sm leading-5 border-b-[3px] -mb-px transition-colors ${tab === id
-                                ? 'font-bold border-primary text-primary dark:border-[#7ce2fe] dark:text-[#7ce2fe]'
+                            className={`flex items-center gap-1 px-4 py-2.5 text-sm leading-5 border-b-2 -mb-px transition-colors ${tab === id
+                                ? 'font-bold border-primary text-primary dark:border-[var(--figma-tab-active)] dark:text-[var(--figma-tab-active)]'
                                 : 'font-normal border-transparent text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'}`}
                         >
                             {icon} {t(`bumManager.tabs.${id}`)}
@@ -262,7 +263,7 @@ export const CommanderDemandsScreen: React.FC<Props> = ({ sessionUnitCode = 1000
                 onSubmit={handleSubmit}
                 onDelete={d => requestDelete([d])}
             />
-            <DeleteDemandModal demands={deleting} onConfirm={confirmDelete} onCancel={() => setDeleting([])} />
+            <ConfirmDeleteModal demands={deleting} onConfirm={confirmDelete} onCancel={() => setDeleting([])} prefix="bumManager.delete" />
         </div>
     );
 };

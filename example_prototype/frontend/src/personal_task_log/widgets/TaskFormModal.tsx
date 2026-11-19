@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { usePersonalTaskLogContext } from '../../common/context/PersonalTaskLogContext';
 import { PersonalTask, PersonalTaskSeverity, PersonalTaskFrequency, PersonalTaskStatus, Cell } from '../../common/utilities/types';
 import { PERSONAL_TASK_SEVERITY_ORDER, PERSONAL_TASK_SEVERITY_DOT_COLOR, PERSONAL_TASK_STATUS_ORDER } from '../utilities/personalTaskLog';
+import { SeverityPills } from '../../common/widgets/SeverityPills';
 
 interface TaskFormModalProps {
     isOpen: boolean;
@@ -137,24 +138,12 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({ isOpen, onClose, o
 
                     <div>
                         <label className={labelClass}>{t('personalTaskLog.fields.severity')}</label>
-                        <div className="flex flex-wrap gap-1.5">
-                            {PERSONAL_TASK_SEVERITY_ORDER.map(s => {
-                                const color = PERSONAL_TASK_SEVERITY_DOT_COLOR[s];
-                                const active = severity === s;
-                                return (
-                                    <button
-                                        key={s}
-                                        type="button"
-                                        onClick={() => setSeverity(s)}
-                                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full border transition-colors"
-                                        style={active ? { background: `${color}1f`, color, borderColor: `${color}55` } : { borderColor: '#e2e8f0' }}
-                                    >
-                                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
-                                        {t(`personalTaskLog.severity.${s}`)}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        <SeverityPills<PersonalTaskSeverity>
+                            value={severity}
+                            onChange={setSeverity}
+                            name="severity"
+                            options={PERSONAL_TASK_SEVERITY_ORDER.map(s => ({ key: s, label: t(`personalTaskLog.severity.${s}`), color: PERSONAL_TASK_SEVERITY_DOT_COLOR[s] }))}
+                        />
                     </div>
 
                     <div>

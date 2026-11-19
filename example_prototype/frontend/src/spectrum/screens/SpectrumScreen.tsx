@@ -2,6 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Radio, Ban } from 'lucide-react';
 import { mockSpectrumZones } from '../../common/utilities/mockData';
+import { FigmaBadge, FigmaBadgeTone } from '../../common/widgets/FigmaBadge';
+
+const JAMMING_TONE: Record<string, FigmaBadgeTone> = { ended: 'neutral', active: 'success', future: 'info' };
 import { JammingStatus, BlockingBand, BlockingStatus } from '../../common/utilities/types';
 import {
     JAMMING_STATUSES, BLOCKING_BANDS, BLOCKING_STATUSES,
@@ -97,10 +100,7 @@ export const SpectrumScreen: React.FC<SpectrumScreenProps> = ({ tab }) => {
                                             <td className="px-3 py-2 text-xs text-slate-600 dark:text-zinc-300 whitespace-nowrap">{zone.startAt ? new Date(zone.startAt).toLocaleString() : '—'}</td>
                                             <td className="px-3 py-2 text-xs text-slate-600 dark:text-zinc-300 whitespace-nowrap">{zone.endAt ? new Date(zone.endAt).toLocaleString() : '—'}</td>
                                             <td className="px-3 py-2 whitespace-nowrap">
-                                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: `${color}1f`, color }}>
-                                                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: color }} />
-                                                    {t(`spectrum.jammingStatus.${status}`)}
-                                                </span>
+                                                <FigmaBadge tone={JAMMING_TONE[status]}>{t(`spectrum.jammingStatus.${status}`)}</FigmaBadge>
                                             </td>
                                         </tr>
                                     );
@@ -162,20 +162,14 @@ export const SpectrumScreen: React.FC<SpectrumScreenProps> = ({ tab }) => {
                                             <td className="px-3 py-2 font-semibold text-slate-900 dark:text-white">{zone.name[i18n.language] || zone.name.en}</td>
                                             <td className="px-3 py-2 whitespace-nowrap">
                                                 {zone.band && (
-                                                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: `${bandColor}1f`, color: bandColor }}>
-                                                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: bandColor }} />
-                                                        {t(`spectrum.blockingBands.${zone.band}`)}
-                                                    </span>
+                                                    <FigmaBadge tone="warning">{t(`spectrum.blockingBands.${zone.band}`)}</FigmaBadge>
                                                 )}
                                             </td>
                                             <td className="px-3 py-2 text-xs text-slate-600 dark:text-zinc-300 whitespace-nowrap" dir="ltr">{zone.freqRangeMhz.from}–{zone.freqRangeMhz.to} MHz</td>
                                             <td className="px-3 py-2 text-xs text-slate-600 dark:text-zinc-300 whitespace-nowrap" dir="ltr">{zone.heightRangeM ? `${zone.heightRangeM.from}–${zone.heightRangeM.to} ${t('spectrum.metersAbbrev')}` : '—'}</td>
                                             <td className="px-3 py-2 text-xs text-slate-600 dark:text-zinc-300 whitespace-nowrap">{zone.endAt ? new Date(zone.endAt).toLocaleString() : '—'}</td>
                                             <td className="px-3 py-2 whitespace-nowrap">
-                                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: `${statusColor}1f`, color: statusColor }}>
-                                                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: statusColor }} />
-                                                    {t(`spectrum.jammingStatus.${status}`)}
-                                                </span>
+                                                <FigmaBadge tone={JAMMING_TONE[status]}>{t(`spectrum.jammingStatus.${status}`)}</FigmaBadge>
                                             </td>
                                         </tr>
                                     );

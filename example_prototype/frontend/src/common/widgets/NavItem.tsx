@@ -22,13 +22,13 @@ export function NavItem({ icon, label, active, disabled, onClick, isDarkMode, is
             className={`group w-full flex flex-col items-center gap-0.5 ${disabled ? 'opacity-40 cursor-default' : ''}`}>
             <span
                 className={`flex items-center justify-center w-10 h-10 rounded-md border transition-colors ${active
-                    ? 'bg-primary border-[#5a78ff] text-white shadow-[0_1px_4px_rgba(0,0,0,0.25)]'
-                    : `border-transparent bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300 ${disabled ? '' : 'group-hover:bg-slate-200 dark:group-hover:bg-zinc-700'}`
+                    ? 'bg-primary border-[#5a78ff] dark:bg-[var(--figma-nav-active-bg)] dark:border-[var(--figma-nav-active-border)] text-white shadow-[0_1px_4px_rgba(0,0,0,0.25)]'
+                    : `border-transparent bg-slate-100 text-slate-600 dark:bg-[var(--figma-nav-btn-bg)] dark:text-[var(--figma-nav-label)] ${disabled ? '' : 'group-hover:bg-slate-200 dark:group-hover:bg-[var(--figma-nav-btn-hover)]'}`
                     }`}>
                 {icon}
             </span>
             <span
-                className={`text-xs leading-4 tracking-[0.04px] text-center max-w-full px-1 break-words text-slate-700 dark:text-zinc-300 ${active ? 'font-bold' : 'font-semibold'}`}>
+                className={`text-xs leading-4 tracking-[0.04px] text-center max-w-full px-1 break-words text-slate-700 ${active ? 'font-bold dark:text-white' : 'font-semibold dark:text-[var(--figma-nav-label)]'}`}>
                 {label}
             </span>
         </button>

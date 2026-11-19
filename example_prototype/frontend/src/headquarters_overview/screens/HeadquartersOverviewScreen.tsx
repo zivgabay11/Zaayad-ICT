@@ -23,8 +23,8 @@ interface Props {
 }
 
 const StatTile: React.FC<{ icon: React.ReactNode; label: string; value: number }> = ({ icon, label, value }) => (
-    <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-4 py-2.5 shadow-sm">
-        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 shrink-0">{icon}</span>
+    <div className="flex items-center gap-3 bg-white dark:bg-[var(--figma-ptl-card-bg)] border border-slate-200 dark:border-[var(--figma-ptl-card-border)] rounded-[6px] px-4 py-2.5">
+        <span className="flex items-center justify-center w-8 h-8 rounded-[6px] bg-sky-50 dark:bg-[var(--figma-info-bg)] text-sky-600 dark:text-[var(--figma-info-text)] shrink-0">{icon}</span>
         <div>
             <div className="text-lg font-bold leading-none text-slate-900 dark:text-white">{value}</div>
             <div className="text-xs text-slate-500 dark:text-zinc-500 mt-1">{label}</div>
@@ -65,7 +65,7 @@ export const HeadquartersOverviewScreen: React.FC<Props> = ({ sessionUnitCode = 
         const isDivision = node.level === 'division';
         return (
             <React.Fragment key={node.unitCode}>
-                <div className={`${GRID} items-start px-4 py-3 border-b border-slate-100 dark:border-zinc-800 ${isDivision ? 'bg-slate-50/80 dark:bg-zinc-800/40' : ''}`}>
+                <div className={`${GRID} items-start px-4 py-3 border-b border-slate-100 dark:border-[var(--figma-table-row-border)] ${isDivision ? 'bg-slate-50/80 dark:bg-[var(--figma-table-row-even)]' : ''}`}>
                     <div className="flex items-center gap-2 min-w-0 pt-1" style={{ paddingInlineStart: depth * 22 }}>
                         {hasChildren ? (
                             <button
@@ -112,13 +112,13 @@ export const HeadquartersOverviewScreen: React.FC<Props> = ({ sessionUnitCode = 
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => setCollapsed(new Set())}
-                        className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors font-medium"
+                        className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-[var(--figma-ptl-card-border)] text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors font-medium"
                     >
                         <ChevronsDown className="w-4 h-4" /> {t('headquartersOverview.expandAll')}
                     </button>
                     <button
                         onClick={() => setCollapsed(new Set(expandableCodes))}
-                        className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors font-medium"
+                        className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-[var(--figma-ptl-card-border)] text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors font-medium"
                     >
                         <ChevronsUp className="w-4 h-4" /> {t('headquartersOverview.collapseAll')}
                     </button>
@@ -131,14 +131,14 @@ export const HeadquartersOverviewScreen: React.FC<Props> = ({ sessionUnitCode = 
                 <StatTile icon={<Network className="w-4 h-4" />} label={t('headquartersOverview.stats.unitsWithNone')} value={unitsWithNone} />
             </div>
 
-            <div className="flex-1 min-h-0 overflow-auto bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-sm">
+            <div className="flex-1 min-h-0 overflow-auto bg-white dark:bg-[var(--figma-table-row-odd)] border border-slate-200 dark:border-[var(--figma-table-row-border)] rounded-lg">
                 {tree.length === 0 ? (
                     <div className="h-full flex items-center justify-center p-10 text-sm text-slate-400 dark:text-zinc-600">
                         {t('headquartersOverview.emptyScope')}
                     </div>
                 ) : (
                     <div className="min-w-[760px]">
-                        <div className={`${GRID} sticky top-0 z-10 px-4 py-2.5 bg-slate-50 dark:bg-zinc-800 border-b border-slate-200 dark:border-zinc-700 text-xs font-semibold text-slate-500 dark:text-zinc-400`}>
+                        <div className={`${GRID} sticky top-0 z-10 px-4 py-2 bg-slate-50 dark:bg-[var(--figma-table-header-bg)] border-b border-slate-200 dark:border-[var(--figma-table-row-border)] text-sm font-semibold text-slate-600 dark:text-white`}>
                             <div>{t('headquartersOverview.columns.unit')}</div>
                             <div className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" /> {t('headquartersOverview.columns.headquarters')}</div>
                             <div className="flex items-center gap-1.5"><Flag className="w-3.5 h-3.5" /> {t('headquartersOverview.columns.commandPost')}</div>

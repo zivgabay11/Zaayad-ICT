@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TriangleAlert } from 'lucide-react';
 import { FigmaIcon } from '../../common/widgets/FigmaIcon';
 import { BumDemand, BumDemandStatus, BumDemandType, BumSeverity, Cell } from '../../common/utilities/types';
 import { mockUnits } from '../../common/utilities/mockData';
 import { formatUnitName } from '../../common/utilities/formatting';
-import { BUM_REPORTING_AGENTS, BUM_SEVERITIES, BUM_STATUS_ORDER, BumCategory, getBumEchelon } from '../utilities/bum';
+import { BUM_REPORTING_AGENTS, BUM_SEVERITIES, BUM_SEVERITY_COLOR, BUM_STATUS_ORDER, BumCategory, getBumEchelon } from '../utilities/bum';
 import { NewBumDemand } from '../../common/context/BumContext';
+import { SeverityPills } from '../../common/widgets/SeverityPills';
 
 // Add / edit a demand (PRD stories 8–9; fields from the Figma "דרישה חדשה" form: issuing
 // authority, category, title, description, executor, severity, due date, reporting platform —
 // plus type, status, notes and, for a division, an optional subordinate brigade to assign it
-// to) and the delete confirmation (story 10: never a one-click delete).
+// to). The delete confirmation (story 10: never a one-click delete) is the shared
+// ConfirmDeleteModal in common/widgets — see CommanderDemandsScreen.tsx.
 
 const inputClass = 'w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 outline-none focus:border-primary transition-colors';
 const labelClass = 'text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block';
@@ -131,21 +132,25 @@ export const DemandFormModal: React.FC<FormProps> = ({ isOpen, unitCode, cell, c
                         <textarea rows={4} maxLength={1080} value={description} onChange={e => setDescription(e.target.value)} placeholder={t('bumManager.form.descriptionPlaceholder')} className={inputClass} name="description" />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className={labelClass}>{t('bumManager.form.executor')}</label>
                             <input type="text" value={executor} onChange={e => setExecutor(e.target.value)} className={inputClass} name="executor" />
                         </div>
                         <div>
-                            <label className={labelClass}>{t('bumManager.form.severity')}</label>
-                            <select value={severity} onChange={e => setSeverity(Number(e.target.value) as BumSeverity)} className={inputClass} name="severity">
-                                {BUM_SEVERITIES.map(s => <option key={s} value={s}>{s} - {t(`bumManager.severityLevels.${s}`)}</option>)}
-                            </select>
-                        </div>
-                        <div>
                             <label className={labelClass}>{t('bumManager.form.dueAt')}</label>
                             <input type="datetime-local" value={dueAt} onChange={e => setDueAt(e.target.value)} className={inputClass} name="dueAt" />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className={labelClass}>{t('bumManager.form.severity')}</label>
+                        <SeverityPills<BumSeverity>
+                            value={severity}
+                            onChange={setSeverity}
+                            name="severity"
+                            options={BUM_SEVERITIES.map(s => ({ key: s, label: t(`bumManager.severityLevels.${s}`), color: BUM_SEVERITY_COLOR[s] }))}
+                        />
                     </div>
 
                     <div>
@@ -194,49 +199,19 @@ export const DemandFormModal: React.FC<FormProps> = ({ isOpen, unitCode, cell, c
                     </div>
                 </div>
 
-                <div className="px-5 py-4 border-t border-slate-200 dark:border-zinc-800 shrink-0 flex items-center gap-2">
-                    <button onClick={submit} data-submit-demand className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
-                        {t(demand ? 'bumManager.form.save' : 'bumManager.form.create')}
-                    </button>
-                    <button onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 text-sm font-medium text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
-                        {t('bumManager.form.cancel')}
-                    </button>
-                    {demand && onDelete && (
-                        <button onClick={() => onDelete(demand)} className="ms-auto inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <div className="px-5 py-4 border-t border-slate-200 dark:border-zinc-800 shrink-0 flex items-center justify-between gap-2">
+                    {demand && onDelete ? (
+                        <button onClick={() => onDelete(demand)} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                             <FigmaIcon name="tool-trash-2" /> {t('bumManager.menu.delete')}
                         </button>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-interface DeleteProps {
-    demands: Array<{ title: string }>;
-    onConfirm: () => void;
-    onCancel: () => void;
-    // i18n namespace holding titleOne / titleMany / descriptionOne / descriptionMany
-    prefix?: string;
-}
-
-export const DeleteDemandModal: React.FC<DeleteProps> = ({ demands, onConfirm, onCancel, prefix = 'bumManager.delete' }) => {
-    const { t } = useTranslation();
-    if (demands.length === 0) return null;
-    return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-zinc-800 animate-in zoom-in-95 duration-200" role="alertdialog" aria-modal="true">
-                <div className="p-6">
-                    <div className="flex items-center gap-3 mb-3 text-red-600 dark:text-red-500">
-                        <TriangleAlert className="w-5 h-5 shrink-0" />
-                        <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t(demands.length === 1 ? `${prefix}.titleOne` : `${prefix}.titleMany`)}</h3>
-                    </div>
-                    <p className="text-slate-600 dark:text-zinc-300 mb-6 text-sm">
-                        {demands.length === 1 ? t(`${prefix}.descriptionOne`, { name: demands[0].title }) : t(`${prefix}.descriptionMany`, { count: demands.length })}
-                    </p>
-                    <div className="flex items-center justify-center gap-3">
-                        <button onClick={onCancel} className="text-sm px-4 py-2 text-slate-600 dark:text-zinc-300 hover:text-slate-800 dark:hover:text-zinc-100 transition-colors font-medium">{t('bumManager.form.cancel')}</button>
-                        <button onClick={onConfirm} data-confirm-delete className="text-sm px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium shadow-sm">{t('bumManager.menu.delete')}</button>
+                    ) : <span />}
+                    <div className="flex items-center gap-2">
+                        <button onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 text-sm font-medium text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
+                            {t('bumManager.form.cancel')}
+                        </button>
+                        <button onClick={submit} data-submit-demand className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
+                            {t(demand ? 'bumManager.form.save' : 'bumManager.form.create')}
+                        </button>
                     </div>
                 </div>
             </div>

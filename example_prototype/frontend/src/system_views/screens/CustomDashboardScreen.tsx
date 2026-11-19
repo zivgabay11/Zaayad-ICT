@@ -39,7 +39,7 @@ export const CustomDashboardScreen: React.FC<Props> = ({ sessionUnitCode, sessio
                             onClick={() => openDashboard(d.id)}
                             data-dashboard-tab={d.id}
                             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px whitespace-nowrap shrink-0 transition-colors ${activeDashboard?.id === d.id
-                                ? 'border-primary text-primary'
+                                ? 'border-primary text-primary dark:border-[var(--figma-tab-active)] dark:text-[var(--figma-tab-active)]'
                                 : 'border-transparent text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'}`}
                         >
                             <LayoutTemplate className="w-4 h-4 shrink-0" /> {d.name}

@@ -13,7 +13,7 @@ import { Tile } from '../widgets/BumTile';
 import { BumFilterRows } from '../widgets/BumFilterRows';
 import { DmatzBoard } from '../widgets/DmatzBoard';
 import { DmatzFormModal } from '../widgets/DmatzFormModal';
-import { DeleteDemandModal } from '../widgets/DemandModals';
+import { ConfirmDeleteModal } from '../../common/widgets/ConfirmDeleteModal';
 
 // דמ"צים — the second sub-section of Bum Manager: equipment & means requests. A unit raises a
 // דמ"צ to the unit above it (its "superior") and can attach files to it; the superior works
@@ -137,7 +137,7 @@ export const DmatzScreen: React.FC<Props> = ({ sessionUnitCode = 1000 }) => {
                 onSubmit={handleSubmit}
                 onDelete={d => requestDelete([d])}
             />
-            <DeleteDemandModal demands={deleting} onConfirm={confirmDelete} onCancel={() => setDeleting([])} prefix="bumManager.dmatz.delete" />
+            <ConfirmDeleteModal demands={deleting} onConfirm={confirmDelete} onCancel={() => setDeleting([])} prefix="bumManager.dmatz.delete" />
         </div>
     );
 };

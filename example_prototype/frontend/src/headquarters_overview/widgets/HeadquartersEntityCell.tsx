@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Building2, Flag, ChevronDown, Plus, Pencil, Move, Trash2, Check, X, TriangleAlert } from 'lucide-react';
+import { Building2, Flag, ChevronDown, Plus, Pencil, Move, Trash2, Check, X } from 'lucide-react';
 import { HeadquartersEntity, HeadquartersKind } from '../../common/utilities/types';
 import { mockUnits } from '../../common/utilities/mockData';
 import { formatUnitName } from '../../common/utilities/formatting';
@@ -8,6 +8,7 @@ import { getHeadquartersLevel } from '../../common/utilities/headquartersIcon';
 import { useLinkPlanningContext } from '../../common/context/LinkPlanningContext';
 import { useHeadquartersLayerContext } from '../../common/context/HeadquartersLayerContext';
 import { useHeadquartersMapRequestContext } from '../../common/context/HeadquartersMapRequestContext';
+import { ConfirmDeleteModal } from '../../common/widgets/ConfirmDeleteModal';
 
 // One column of a unit row — every transferred headquarters (or every command post) the unit
 // owns. Each entity is its own accordion: the collapsed line shows the name, the drill-down
@@ -34,7 +35,7 @@ const ActionButton: React.FC<{ onClick: () => void; icon: React.ReactNode; label
         onClick={onClick}
         className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border font-medium transition-colors ${danger
             ? 'border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
-            : 'border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800'}`}
+            : 'border-slate-200 dark:border-[var(--figma-ptl-card-border)] text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/10'}`}
     >
         {icon} {label}
     </button>
@@ -60,7 +61,7 @@ export const HeadquartersEntityCell: React.FC<Props> = ({ kind, unitCode, entiti
                 </p>
                 <button
                     onClick={() => requestAdd(kind, unitCode)}
-                    className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-900/20 font-medium transition-colors"
+                    className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md text-sky-700 dark:text-[var(--figma-info-text)] hover:bg-sky-50 dark:hover:bg-white/5 font-medium transition-colors"
                 >
                     <Plus className="w-3.5 h-3.5" />
                     {t(kind === 'headquarters' ? 'headquartersOverview.addHeadquarters' : 'headquartersOverview.addCommandPost')}
@@ -103,19 +104,19 @@ export const HeadquartersEntityCell: React.FC<Props> = ({ kind, unitCode, entiti
                 return (
                     <div
                         key={entity.id}
-                        className="rounded-lg border border-sky-200 dark:border-sky-900/60 bg-sky-50/60 dark:bg-sky-900/10 overflow-hidden"
+                        className="rounded-lg border border-sky-200 dark:border-[var(--figma-ptl-card-border)] bg-sky-50/60 dark:bg-[var(--figma-ptl-card-bg)] overflow-hidden"
                     >
                         <button
                             onClick={() => toggle(entity.id)}
                             aria-expanded={isOpen}
-                            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-start hover:bg-sky-100/70 dark:hover:bg-sky-900/20 transition-colors"
+                            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-start hover:bg-sky-100/70 dark:hover:bg-white/5 transition-colors"
                         >
-                            <Icon className="w-4 h-4 shrink-0 text-sky-600 dark:text-sky-400" />
+                            <Icon className="w-4 h-4 shrink-0 text-sky-600 dark:text-[var(--figma-info-text)]" />
                             <span className="flex-1 min-w-0 truncate text-sm font-medium text-slate-800 dark:text-zinc-100">{entity.name}</span>
                             <ChevronDown className={`w-4 h-4 shrink-0 text-slate-400 dark:text-zinc-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {isOpen && (
-                            <div className="border-t border-sky-200/70 dark:border-sky-900/40 bg-white/70 dark:bg-zinc-900/40">
+                            <div className="border-t border-sky-200/70 dark:border-[var(--figma-ptl-card-border)] bg-white/70 dark:bg-[var(--figma-ptl-panel-bg)]">
                                 <dl className="grid grid-cols-2 gap-x-3 gap-y-2 px-3 py-2.5">
                                     <DetailField
                                         label={t('headquartersOverview.details.name')}
@@ -148,7 +149,7 @@ export const HeadquartersEntityCell: React.FC<Props> = ({ kind, unitCode, entiti
                                         value={<span dir="ltr">{new Date(entity.createdAt).toLocaleString(i18n.language === 'he' ? 'he-IL' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' })}</span>}
                                     />
                                 </dl>
-                                <div className="flex flex-wrap items-center gap-2 px-3 py-2 border-t border-slate-100 dark:border-zinc-800">
+                                <div className="flex flex-wrap items-center gap-2 px-3 py-2 border-t border-slate-100 dark:border-[var(--figma-table-row-border)]">
                                     <ActionButton onClick={() => startRename(entity)} icon={<Pencil className="w-3.5 h-3.5" />} label={t('headquartersOverview.actions.rename')} />
                                     <ActionButton onClick={() => requestMove(entity.id)} icon={<Move className="w-3.5 h-3.5" />} label={t('headquartersOverview.actions.move')} />
                                     <ActionButton onClick={() => setDeleting(entity)} icon={<Trash2 className="w-3.5 h-3.5" />} label={t('headquartersOverview.actions.delete')} danger />
@@ -159,37 +160,12 @@ export const HeadquartersEntityCell: React.FC<Props> = ({ kind, unitCode, entiti
                 );
             })}
 
-            {deleting && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-zinc-800 animate-in zoom-in-95 duration-200">
-                        <div className="p-6">
-                            <div className="flex items-center gap-3 mb-3 text-red-600 dark:text-red-500">
-                                <TriangleAlert className="w-5 h-5 shrink-0" />
-                                <h3 className="text-lg font-medium text-slate-900 dark:text-white">
-                                    {t(deleting.kind === 'headquarters' ? 'headquartersOverview.deleteTitleHeadquarters' : 'headquartersOverview.deleteTitleCommandPost')}
-                                </h3>
-                            </div>
-                            <p className="text-slate-600 dark:text-zinc-300 mb-6 text-sm">
-                                {t('headquartersOverview.deleteDescription', { name: deleting.name })}
-                            </p>
-                            <div className="flex items-center justify-center gap-3">
-                                <button
-                                    onClick={() => setDeleting(null)}
-                                    className="text-sm px-4 py-2 text-slate-600 dark:text-zinc-300 hover:text-slate-800 dark:hover:text-zinc-100 transition-colors font-medium"
-                                >
-                                    {t('headquartersOverview.actions.cancel')}
-                                </button>
-                                <button
-                                    onClick={confirmDelete}
-                                    className="text-sm px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium shadow-sm"
-                                >
-                                    {t('headquartersOverview.actions.delete')}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmDeleteModal
+                demands={deleting ? [{ title: deleting.name }] : []}
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleting(null)}
+                prefix={deleting?.kind === 'headquarters' ? 'headquartersOverview.deleteHeadquarters' : 'headquartersOverview.deleteCommandPost'}
+            />
         </div>
     );
 };

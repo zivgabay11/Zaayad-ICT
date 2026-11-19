@@ -2,9 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download } from 'lucide-react';
 import { FigmaIcon } from '../../common/widgets/FigmaIcon';
+import { FigmaBadgeSelect } from '../../common/widgets/FigmaBadge';
 import { BumDemand, BumDemandStatus, BumDemandType, BumSeverity } from '../../common/utilities/types';
 import {
-    BUM_SCOPES, BUM_SEVERITIES, BUM_SEVERITY_COLOR, BUM_STATUS_ORDER, BUM_STATUS_STRIPE, BumScope,
+    BUM_SCOPES, BUM_SEVERITIES, BUM_SEVERITY_TONE, BUM_STATUS_ORDER, BUM_STATUS_TONE, BumScope,
     applyBumScope, formatBumDateTime, isBumOverdue,
 } from '../utilities/bum';
 
@@ -60,14 +61,14 @@ export const BumTable: React.FC<Props> = ({ demands, categoryLabelOf, now, compa
     const toggleRow = (id: string) => setSelected(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
 
     const SortHeader: React.FC<{ k: SortKey; children: React.ReactNode }> = ({ k, children }) => (
-        <button onClick={() => toggleSort(k)} className="inline-flex items-center gap-1 font-semibold hover:text-slate-900 dark:hover:text-white">
+        <button onClick={() => toggleSort(k)} className="inline-flex items-center gap-1 font-semibold">
             {children}
             {sort.key === k && <FigmaIcon name="tool-arrow-up" size={12} className={sort.dir === 'asc' ? '' : 'rotate-180'} />}
         </button>
     );
 
-    const th = 'px-3 py-2.5 text-start text-[12px] text-slate-500 dark:text-zinc-400 whitespace-nowrap';
-    const td = 'px-3 py-2 text-[13px] text-slate-800 dark:text-zinc-100 align-middle';
+    const th = 'figma-th';
+    const td = 'figma-td';
 
     return (
         <div className="h-full flex flex-col min-h-0">
@@ -93,12 +94,12 @@ export const BumTable: React.FC<Props> = ({ demands, categoryLabelOf, now, compa
                 </div>
             )}
 
-            <div className="bum-scroll flex-1 min-h-0 overflow-auto rounded-lg border border-slate-200 dark:border-white/10">
+            <div className="bum-scroll flex-1 min-h-0 overflow-auto">
                 {rows.length === 0 ? (
                     <div className="h-full min-h-[120px] flex items-center justify-center text-sm text-slate-400 dark:text-zinc-600">{t('bumManager.table.noRows')}</div>
                 ) : (
-                    <table className={`w-full border-collapse ${compact ? '' : 'min-w-[1150px]'}`}>
-                        <thead className="sticky top-0 z-10 bg-slate-100 dark:bg-zinc-800">
+                    <table className={`figma-table ${compact ? '' : 'min-w-[1150px]'}`}>
+                        <thead className="sticky top-0 z-10">
                             <tr>
                                 {!compact && (
                                     <th className={`${th} w-9`}>
@@ -131,8 +132,7 @@ export const BumTable: React.FC<Props> = ({ demands, categoryLabelOf, now, compa
                                     <tr
                                         key={d.id}
                                         onClick={() => onOpen(d)}
-                                        className="cursor-pointer border-t border-slate-100 dark:border-white/[0.07] hover:bg-slate-50 dark:hover:bg-white/[0.04]"
-                                        style={{ boxShadow: `inset 4px 0 0 ${BUM_STATUS_STRIPE[d.status]}` }}
+                                        className="figma-tr cursor-pointer"
                                         data-demand-row={d.id}
                                     >
                                         {!compact && (
@@ -153,19 +153,17 @@ export const BumTable: React.FC<Props> = ({ demands, categoryLabelOf, now, compa
                                             </td>
                                         )}
                                         <td className={td} onClick={e => e.stopPropagation()}>
-                                            <select
-                                                value={d.severity}
-                                                onChange={e => onUpdate(d.id, { severity: Number(e.target.value) as BumSeverity })}
-                                                className={selectClass}
-                                                style={{ color: BUM_SEVERITY_COLOR[d.severity], borderColor: `${BUM_SEVERITY_COLOR[d.severity]}99` }}
-                                                aria-label={t('bumManager.table.cols.severity')}
-                                            >
-                                                {BUM_SEVERITIES.map(s => <option key={s} value={s}>{t('bumManager.severity', { n: s })}</option>)}
-                                            </select>
+                                            <FigmaBadgeSelect
+                                                tone={BUM_SEVERITY_TONE[d.severity]}
+                                                value={String(d.severity)}
+                                                options={BUM_SEVERITIES.map(sv => ({ value: String(sv), label: t('bumManager.severity', { n: sv }) }))}
+                                                onChange={v => onUpdate(d.id, { severity: Number(v) as BumSeverity })}
+                                                ariaLabel={t('bumManager.table.cols.severity')}
+                                            />
                                         </td>
                                         {!compact && (
                                             <td className={td} onClick={e => e.stopPropagation()}>
-                                                <select value={d.type} onChange={e => onUpdate(d.id, { type: e.target.value as BumDemandType })} className={selectClass} aria-label={t('bumManager.table.cols.type')}>
+                                                <select value={d.type} onChange={e => onUpdate(d.id, { type: e.target.value as BumDemandType })} className="bg-transparent text-inherit text-[length:inherit] cursor-pointer outline-none appearance-none rounded-[3px] hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-primary/50" aria-label={t('bumManager.table.cols.type')}>
                                                     <option value="demand">{t('bumManager.type.demand')}</option>
                                                     <option value="instruction">{t('bumManager.type.instruction')}</option>
                                                 </select>
@@ -181,14 +179,13 @@ export const BumTable: React.FC<Props> = ({ demands, categoryLabelOf, now, compa
                                             </td>
                                         )}
                                         <td className={td} onClick={e => e.stopPropagation()}>
-                                            <select
+                                            <FigmaBadgeSelect
+                                                tone={BUM_STATUS_TONE[d.status]}
                                                 value={d.status}
-                                                onChange={e => onUpdate(d.id, { status: e.target.value as BumDemandStatus })}
-                                                className={selectClass}
-                                                aria-label={t('bumManager.table.cols.status')}
-                                            >
-                                                {BUM_STATUS_ORDER.map(s => <option key={s} value={s}>{t(`bumManager.status.${s}`)}</option>)}
-                                            </select>
+                                                options={BUM_STATUS_ORDER.map(st => ({ value: st, label: t(`bumManager.status.${st}`) }))}
+                                                onChange={v => onUpdate(d.id, { status: v as BumDemandStatus })}
+                                                ariaLabel={t('bumManager.table.cols.status')}
+                                            />
                                         </td>
                                         <td className={`${td} whitespace-nowrap ${overdue ? 'text-red-500 dark:text-red-400 font-semibold' : ''}`} dir="ltr">{formatBumDateTime(d.dueAt)}</td>
                                         {!compact && <td className={`${td} max-w-[180px] truncate text-slate-600 dark:text-zinc-300`} title={d.notes}>{d.notes}</td>}

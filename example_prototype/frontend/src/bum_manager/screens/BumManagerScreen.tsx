@@ -26,7 +26,7 @@ export const BumManagerScreen: React.FC<Props> = ({ sessionUnitCode = 1000, sess
 
     return (
         <div className="h-full flex flex-col w-full min-w-0 max-w-full overflow-hidden" data-bum-manager>
-            <div className="shrink-0 flex items-center gap-3 px-6 py-2 border-b border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02]">
+            <div className="shrink-0 flex items-center justify-center gap-3 px-6 py-2 border-b border-slate-200 bg-slate-50/60 dark:border-[var(--figma-segment-bg)] dark:bg-[var(--figma-toolbar-bg)]">
                 <BumSegmented<SectionId>
                     options={SECTIONS.map(key => ({ key, label: t(`bumManager.sections.${key}`) }))}
                     value={section}

@@ -18,7 +18,32 @@
    ------------------------------------------------------------------------------------------ */
 :root {
     --figma-header-bg: #14151a;                        /* header strip */
-    --figma-page-bg: #25272e;                          /* Colors/Neutral/Neutral/2 (page background) */
+    --figma-page-bg: #1c1d22;                          /* page background (sampled from the Figma render) */
+    --figma-sidebar-bg: #202227;                       /* side menu background (sampled from the Figma render) */
+    --figma-sidebar-divider: #3b3c40;
+    --figma-nav-btn-bg: #272a31;                       /* resting icon button */
+    --figma-nav-btn-hover: #31343c;
+    --figma-nav-active-bg: #3351aa;                    /* active icon button */
+    --figma-nav-active-border: #4555aa;
+    --figma-nav-label: #a9aaad;
+    /* Personal Task Log / task manager panel (sampled from the Figma render) */
+    --figma-ptl-outer-bg: #26272d;
+    --figma-ptl-panel-bg: #2e2f34;
+    --figma-ptl-divider: #303137;
+    --figma-ptl-card-bg: #3c3d41;
+    --figma-ptl-card-border: #5a5f66;
+    --figma-ptl-filter-bg: #3c3d42;
+    --figma-ptl-filter-border: #53575d;
+    --figma-ptl-count-bg: #333439;
+    --figma-ptl-count-border: #6a6d73;
+    --figma-ptl-checkbox-bg: #303135;
+    --figma-ptl-add-bg: #34353a;
+    --figma-ptl-muted: #7a7d85;
+    --figma-ptl-check: #4972f6;
+    --figma-toolbar-bg: #202126;                       /* toolbar row behind segmented toggles */
+    --figma-segment-bg: #36383b;                       /* segmented toggle track */
+    --figma-segment-active: #4972f6;                   /* segmented toggle selected item */
+    --figma-tab-active: #8baeb9;                       /* active tab text + underline */
     --figma-neutral-3: #2a2e37;                        /* Colors/Neutral/Neutral/3  (side menu, modal) */
     --figma-neutral-4: #343944;                        /* Colors/Neutral/Neutral/4  (icon button) */
     --figma-neutral-5: #3d424f;                        /* Colors/Neutral/Neutral/5  */
@@ -44,6 +69,83 @@
     --figma-radius-4: 8px;                             /* Radius/4 */
 }
 
+/* ------------------------------------------------------------------------------------------
+   Table + badge tokens — Figma frame "יומן מבצעי" (1375:160921), components Table / Row /
+   Header Cell / Badge. Values are copied 1:1 from the Figma variables.
+   ------------------------------------------------------------------------------------------ */
+:root {
+    /* typography (Typography/1 = badge, Typography/2 = table text) */
+    --figma-fs-1: 12px;
+    --figma-lh-1: 16px;
+    --figma-ls-1: 0.04px;
+    --figma-fs-2: 14px;
+    --figma-lh-2: 20px;
+    --figma-ls-2: 0px;
+    /* table dimensions */
+    --figma-table-row-h: 40px;
+    --figma-table-header-min-h: 36px;
+    --figma-table-cell-padding: 8px;           /* Tokens/space/table-cell-padding-1 */
+    /* light-theme fallbacks (the Figma file is dark-only) */
+    --figma-table-header-bg: #f1f5f9;
+    --figma-table-header-divider: #e2e8f0;
+    --figma-table-row-border: #e2e8f0;
+    --figma-table-row-hover: #eef2f7;
+    --figma-table-row-odd: #ffffff;
+    --figma-table-row-even: #f8fafc;
+    --figma-table-text: #0f172a;
+    --figma-table-text-secondary: #64748b;
+    /* semantic badge colours: bg / border+text / text */
+    --figma-info-bg: rgba(17, 132, 252, 0.2);      --figma-info-border: #a8eeff;    --figma-info-text: #c2f3ff;
+    --figma-success-bg: rgba(34, 255, 153, 0.12);  --figma-success-border: #3dd68c; --figma-success-text: #3dd68c;
+    --figma-warning-bg: rgba(250, 130, 0, 0.13);   --figma-warning-border: #ffca16; --figma-warning-text: #ffca16;
+    --figma-error-bg: rgba(255, 23, 63, 0.18);     --figma-error-border: #ec5d5e;   --figma-error-text: #ec5d5e;
+    --figma-neutral-bg: rgba(255, 255, 255, 0.07); --figma-neutral-border: #94a3b8; --figma-neutral-text: #475569;
+}
+
+.dark {
+    /* Table palette sampled from the Figma reference render (header / zebra rows / divider) */
+    --figma-table-header-bg: #212227;
+    --figma-table-row-odd: #1c1d22;
+    --figma-table-row-even: #212227;
+    --figma-table-row-border: #303338;
+    --figma-table-row-hover: #2a2b31;
+    --figma-table-header-divider: rgba(255, 255, 255, 0.07); /* Colors/Gray Alpha/3 */
+    --figma-table-text: #ffffff;                          /* Colors/Neutral/Neutral/12 */
+    --figma-table-text-secondary: #b5bac6;
+    --figma-neutral-border: #989ca6; --figma-neutral-text: #e6e8ec;
+}
+
+@layer components {
+    .figma-table { width: 100%; border-collapse: collapse; font-size: var(--figma-fs-2); line-height: var(--figma-lh-2); letter-spacing: var(--figma-ls-2); color: var(--figma-table-text); }
+    .figma-table thead { background: var(--figma-table-header-bg); }
+    .figma-th {
+        min-height: var(--figma-table-header-min-h); height: var(--figma-table-header-min-h);
+        padding: var(--figma-table-cell-padding); text-align: start; white-space: nowrap;
+        font-weight: 600; font-size: var(--figma-fs-2); line-height: var(--figma-lh-2);
+        border-inline-end: 1px solid var(--figma-table-header-divider);
+        color: var(--figma-table-text);
+    }
+    .figma-th:last-child { border-inline-end: 0; }
+    .figma-tr { height: calc(var(--figma-table-row-h) - 1px); border-top: 1px solid var(--figma-table-row-border); transition: background-color .12s; }
+    .figma-table tbody .figma-tr:nth-child(odd) { background: var(--figma-table-row-odd); }
+    .figma-table tbody .figma-tr:nth-child(even) { background: var(--figma-table-row-even); }
+    .figma-table tbody .figma-tr:hover { background: var(--figma-table-row-hover); }
+    .figma-td { padding: calc(var(--figma-table-cell-padding) - 0.5px) var(--figma-table-cell-padding); /* row = 40px incl. the 1px top border */ min-width: 60px; vertical-align: middle; font-weight: 400; text-align: start; }
+
+    /* Badge: 12/16 semibold, px 8 / py 4 (24px tall incl. 1px border), radius 3, 16px chevron */
+    .figma-badge {
+        display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+        padding: 3px 8px; border: 1px solid; border-radius: var(--figma-radius-1);
+        font-size: var(--figma-fs-1); line-height: var(--figma-lh-1); letter-spacing: var(--figma-ls-1);
+        font-weight: 600; white-space: nowrap; overflow: hidden;
+    }
+    .figma-badge--info { background: var(--figma-info-bg); border-color: var(--figma-info-border); color: var(--figma-info-text); }
+    .figma-badge--success { background: var(--figma-success-bg); border-color: var(--figma-success-border); color: var(--figma-success-text); }
+    .figma-badge--warning { background: var(--figma-warning-bg); border-color: var(--figma-warning-border); color: var(--figma-warning-text); }
+    .figma-badge--error { background: var(--figma-error-bg); border-color: var(--figma-error-border); color: var(--figma-error-text); font-weight: 700; }
+    .figma-badge--neutral { background: var(--figma-neutral-bg); border-color: var(--figma-neutral-border); color: var(--figma-neutral-text); }
+}
+
 @layer base {
     :root {
         --color-primary: #186eff;
@@ -54,7 +156,7 @@
        one of them to the Figma neutrals without touching any component or layout. */
     .dark {
         --color-primary: #186eff;
-        --color-zinc-950: #25272e;   /* page background (Colors/Neutral/Neutral/2) */
+        --color-zinc-950: #1c1d22;   /* page background (sampled from the Figma render) */
         --color-zinc-900: #2a2e37;   /* surface: side menu, modals, panels (Colors/Neutral/Neutral/3) */
         --color-zinc-800: #343944;
         --color-zinc-700: #3d424f;
@@ -156,6 +258,16 @@
     color: #a1a1aa;
 }
 
+/* Leaflet places tooltips with a translate() only and never sets `left`. In an RTL page the
+   absolutely-positioned tooltip therefore keeps its static (right-aligned) position and every
+   label ends up shifted left of its icon by about its own width. Pinning the origin to the top-left
+   makes the "bottom" direction centre the label under the marker again, in LTR and RTL alike. */
+.leaflet-tooltip {
+    left: 0;
+    right: auto;
+    margin-left: 0 !important;
+}
+
 .commsite-label,
 .commsite-client-label {
     background: rgba(9, 9, 11, .78) !important;
@@ -217,3 +329,35 @@
 .dash-scaled .fixed {
     zoom: var(--dash-inv-zoom, 1);
 }
+
+
+/* ------------------------------------------------------------------------------------------
+   App-wide table skin. Every <table> that is not already a .figma-table (spectrum, tikshov,
+   instructions, drill-down, tasks list …) gets the same Figma header / row / cell look, so
+   no table keeps its old Tailwind styling. Unlayered on purpose: it must win over the
+   Tailwind utility classes those tables still carry.
+   ------------------------------------------------------------------------------------------ */
+table:not(.figma-table) { font-size: var(--figma-fs-2); line-height: var(--figma-lh-2); letter-spacing: var(--figma-ls-2); color: var(--figma-table-text); border-collapse: collapse; }
+table:not(.figma-table) thead { background: var(--figma-table-header-bg); }
+table:not(.figma-table) th {
+    background: var(--figma-table-header-bg);
+    min-height: var(--figma-table-header-min-h);
+    padding: var(--figma-table-cell-padding);
+    text-align: start; text-transform: none; white-space: nowrap;
+    font-size: var(--figma-fs-2); line-height: var(--figma-lh-2); letter-spacing: var(--figma-ls-2); font-weight: 600;
+    color: var(--figma-table-text);
+    border-bottom: 0;
+    border-inline-end: 1px solid var(--figma-table-header-divider);
+}
+table:not(.figma-table) th:last-child { border-inline-end: 0; }
+table:not(.figma-table) td {
+    padding: calc(var(--figma-table-cell-padding) - 0.5px) var(--figma-table-cell-padding);
+    font-size: var(--figma-fs-2); line-height: var(--figma-lh-2); letter-spacing: var(--figma-ls-2);
+    color: var(--figma-table-text);
+    border-bottom: 0;
+}
+table:not(.figma-table) tbody tr { border-top: 1px solid var(--figma-table-row-border); height: calc(var(--figma-table-row-h) - 1px); }
+table:not(.figma-table) tbody tr:nth-child(odd) { background: var(--figma-table-row-odd); }
+table:not(.figma-table) tbody tr:nth-child(even) { background: var(--figma-table-row-even); }
+table:not(.figma-table) tbody tr:hover { background: var(--figma-table-row-hover); }
+table:not(.figma-table) tbody { background: transparent; }

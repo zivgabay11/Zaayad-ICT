@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { FigmaBadge, FigmaBadgeTone } from '../../common/widgets/FigmaBadge';
 import { useTranslation } from 'react-i18next';
 import { Search, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { TrackedDevice, TrackedDeviceType, ConnectionStatus } from '../../common/utilities/types';
@@ -28,17 +29,11 @@ const STATUS_PRIORITY: Record<ConnectionStatus, number> = { inactive: 0, flappin
 const STATUS_COLORS: Record<ConnectionStatus, string> = { active: '#34d399', inactive: '#a1a1aa', flapping: '#f0b429' };
 const ALL_DEVICE_TYPES: TrackedDeviceType[] = ['sheked', 'dual', 'setz', 'maban', 'setz_modem', 'elad_green'];
 
+const STATUS_TONE: Record<ConnectionStatus, FigmaBadgeTone> = { active: 'success', inactive: 'neutral', flapping: 'warning' };
+
 function StatusPill({ status }: { status: ConnectionStatus }) {
     const { t } = useTranslation();
-    return (
-        <span
-            className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ background: `${STATUS_COLORS[status]}1f`, color: STATUS_COLORS[status] }}
-        >
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS_COLORS[status] }} />
-            {t(`tikshovCop.status.${status}`)}
-        </span>
-    );
+    return <FigmaBadge tone={STATUS_TONE[status]}>{t(`tikshovCop.status.${status}`)}</FigmaBadge>;
 }
 
 export const TikshovForceTable: React.FC<TikshovForceTableProps> = ({

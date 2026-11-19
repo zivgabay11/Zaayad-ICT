@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ListChecks, Plus, ListMinus } from 'lucide-react';
 import { usePersonalTaskLogContext } from '../../common/context/PersonalTaskLogContext';
 import { useCombatLogContext } from '../../common/context/CombatLogContext';
-import { CombatLogType, PersonalTask, PersonalTaskStatus } from '../../common/utilities/types';
+import { CombatLogEvent, CombatLogType, PersonalTask, PersonalTaskStatus } from '../../common/utilities/types';
 import { LINKABLE_COMBAT_LOG_TYPES, COMBAT_LOG_TYPE_COLORS } from '../../common/utilities/combatLog';
 import { RowContextMenu, RowContextMenuState } from '../../common/widgets/RowContextMenu';
 import {
@@ -20,6 +20,7 @@ import { TaskViewPanel } from '../widgets/TaskViewPanel';
 import { EventViewPanel } from '../../combat_log/widgets/EventViewPanel';
 import { EventEditModal } from '../../combat_log/widgets/EventEditModal';
 import { ShareEventModal } from '../../combat_log/widgets/ShareEventModal';
+import { ConfirmDeleteModal } from '../../common/widgets/ConfirmDeleteModal';
 
 // Personal Task Log (יומן משימות אישי) — per-unit-and-cell task manager, scoped to the
 // combination currently selected in the User Settings modal (see PersonalTaskLogContext's
@@ -38,7 +39,10 @@ export const PersonalTaskLogScreen: React.FC = () => {
     const [viewingTaskId, setViewingTaskId] = useState<string | null>(null);
     const [viewingEventId, setViewingEventId] = useState<string | null>(null);
     const [shareEventId, setShareEventId] = useState<string | null>(null);
+    const [visibleStatuses, setVisibleStatuses] = useState<Set<PersonalTaskStatus>>(() => new Set<PersonalTaskStatus>(['open', 'inProgress']));
     const [rowMenu, setRowMenu] = useState<RowContextMenuState | null>(null);
+    const [deletingTask, setDeletingTask] = useState<PersonalTask | null>(null);
+    const [unassigningEvent, setUnassigningEvent] = useState<CombatLogEvent | null>(null);
     const editingEvent = combatLogEvents.find(e => e.id === editingEventId) || null;
     const viewingTask = tasks.find(t => t.id === viewingTaskId) || null;
     const viewingEvent = combatLogEvents.find(e => e.id === viewingEventId) || null;
@@ -82,11 +86,8 @@ export const PersonalTaskLogScreen: React.FC = () => {
     };
 
     const handleRemove = (item: TaskLogItem) => {
-        if (item.kind === 'manual') {
-            if (window.confirm(t('personalTaskLog.confirmDelete'))) deleteTask(item.task.id);
-        } else {
-            if (window.confirm(t('personalTaskLog.confirmUnassign'))) toggleAssignedCell(item.event.id, myCell);
-        }
+        if (item.kind === 'manual') setDeletingTask(item.task);
+        else setUnassigningEvent(item.event);
     };
 
     // Right-click a row. Manual task → pick a Combat Log type; it is turned into that event
@@ -145,6 +146,15 @@ export const PersonalTaskLogScreen: React.FC = () => {
         }
     };
 
+    const toggleStatus = (status: PersonalTaskStatus) => setVisibleStatuses(prev => {
+        const next = new Set(prev);
+        if (next.has(status)) next.delete(status); else next.add(status);
+        return next;
+    });
+
+    // The row checkbox: tick = done, untick = back to open (same status write-through as a drop).
+    const handleToggleDone = (item: TaskLogItem) => handleDropItem(item.id, item.status === 'done' ? 'open' : 'done');
+
     return (
         <div className="p-6 h-full flex flex-col w-full min-w-0 max-w-full overflow-hidden">
             <div className="flex flex-row flex-wrap justify-between items-center gap-3 mb-4 flex-shrink-0">
@@ -165,24 +175,36 @@ export const PersonalTaskLogScreen: React.FC = () => {
                 </button>
             </div>
 
-            <div className="flex-1 min-h-0 flex gap-4">
-                {/* First in markup = right side in RTL, per the Figma alternate layout */}
-                <TaskStatsBar stats={stats} onDropItem={handleDropItem} />
+            <div className="flex-1 min-h-0 flex rounded-xl overflow-hidden border border-slate-200 bg-slate-50 dark:border-[var(--figma-ptl-divider)] dark:bg-[var(--figma-ptl-outer-bg)]">
+                {/* First in markup = right side in RTL: the status filter panel */}
+                <aside className="shrink-0 p-2 overflow-y-auto border-e border-slate-200 dark:border-[var(--figma-ptl-divider)]">
+                    <TaskStatsBar stats={stats} visible={visibleStatuses} onToggle={toggleStatus} onDropItem={handleDropItem} />
+                </aside>
 
-                <div className="flex-1 min-w-0 overflow-y-auto space-y-3 pb-2">
-                    {PERSONAL_TASK_STATUS_ORDER.map((status, i) => (
+                <div className="flex-1 min-w-0 overflow-y-auto p-4 space-y-5 bg-white dark:bg-[var(--figma-ptl-panel-bg)]">
+                    {PERSONAL_TASK_STATUS_ORDER.filter(status => visibleStatuses.has(status)).map(status => (
                         <TaskStatusSection
                             key={status}
                             status={status}
                             items={itemsByStatus.get(status) || []}
-                            defaultOpen={i < 2}
                             onView={handleView}
                             onEdit={handleEdit}
                             onRemove={handleRemove}
+                            onToggleDone={handleToggleDone}
                             onContextMenu={openRowMenu}
                             onDropItem={handleDropItem}
                         />
                     ))}
+
+                    <button
+                        type="button"
+                        onClick={openCreate}
+                        data-add-task
+                        className="w-full flex items-center justify-between gap-3 h-[42px] ps-3 pe-2 rounded-[4px] border border-dashed border-slate-300 text-slate-700 dark:border-[var(--figma-ptl-card-border)] dark:bg-[var(--figma-ptl-add-bg)] dark:text-white hover:border-primary transition-colors"
+                    >
+                        <span className="text-xs">{t('personalTaskLog.addNewTask')}</span>
+                        <span className="flex items-center justify-center w-[26px] h-[26px] rounded-[3px] bg-primary text-white shadow-sm"><Plus className="w-4 h-4" /></span>
+                    </button>
                 </div>
             </div>
 
@@ -218,6 +240,19 @@ export const PersonalTaskLogScreen: React.FC = () => {
 
             <ShareEventModal event={shareEvent} onClose={() => setShareEventId(null)} />
             <RowContextMenu menu={rowMenu} onClose={() => setRowMenu(null)} />
+
+            <ConfirmDeleteModal
+                demands={deletingTask ? [{ title: deletingTask.title }] : []}
+                onConfirm={() => { if (deletingTask) deleteTask(deletingTask.id); setDeletingTask(null); }}
+                onCancel={() => setDeletingTask(null)}
+                prefix="personalTaskLog.delete"
+            />
+            <ConfirmDeleteModal
+                demands={unassigningEvent ? [{ title: unassigningEvent.title }] : []}
+                onConfirm={() => { if (unassigningEvent) toggleAssignedCell(unassigningEvent.id, myCell); setUnassigningEvent(null); }}
+                onCancel={() => setUnassigningEvent(null)}
+                prefix="personalTaskLog.unassign"
+            />
         </div>
     );
 };

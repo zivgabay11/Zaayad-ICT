@@ -4,7 +4,7 @@ import { ScrollText, Plus, Download, ListPlus, ListMinus } from 'lucide-react';
 import { useCombatLogContext } from '../../common/context/CombatLogContext';
 import { usePersonalTaskLogContext } from '../../common/context/PersonalTaskLogContext';
 import { CombatLogEvent, CombatLogType } from '../../common/utilities/types';
-import { LINKABLE_COMBAT_LOG_TYPES } from '../../common/utilities/combatLog';
+import { LINKABLE_COMBAT_LOG_TYPES, getEditPermission } from '../../common/utilities/combatLog';
 import { RowContextMenu, RowContextMenuState } from '../../common/widgets/RowContextMenu';
 import { getUnitAndDescendantCodes } from '../../common/utilities/mockData';
 import { SituationPictureDashboard } from '../widgets/SituationPictureDashboard';
@@ -42,7 +42,7 @@ function readFiltersFromUrl(): CombatLogFilters {
 
 export const CombatLogScreen: React.FC = () => {
     const { t } = useTranslation();
-    const { events, homeUnitCode, toggleAssignedCell } = useCombatLogContext();
+    const { events, homeUnitCode, toggleAssignedCell, updateEvent } = useCombatLogContext();
     const { myUnitCode, myCell } = usePersonalTaskLogContext();
     const [tab, setTab] = useState<Tab>('table');
     const [filters, setFilters] = useState<CombatLogFilters>(readFiltersFromUrl);
@@ -91,11 +91,18 @@ export const CombatLogScreen: React.FC = () => {
 
     // Right-click a row → add it to (or take it off) MY Personal Task Log. The event stays the
     // single shared record, so status/notes edited in either diary show up in both.
-    const openRowMenu = (e: React.MouseEvent, event: CombatLogEvent) => {
-        e.preventDefault();
-        const isLinkable = LINKABLE_COMBAT_LOG_TYPES.includes(event.type);
+    const getDiaryState = (event: CombatLogEvent): 'in' | 'out' | 'unsupported' => {
+        if (!LINKABLE_COMBAT_LOG_TYPES.includes(event.type)) return 'unsupported';
         const inMyDiary = !!event.assignedToCells?.includes(myCell)
             && (event.reporterUnitCode === myUnitCode || !!event.assignedUnitCodes?.includes(myUnitCode));
+        return inMyDiary ? 'in' : 'out';
+    };
+
+    const openRowMenu = (e: React.MouseEvent, event: CombatLogEvent) => {
+        e.preventDefault();
+        const state = getDiaryState(event);
+        const isLinkable = state !== 'unsupported';
+        const inMyDiary = state === 'in';
         setRowMenu({
             x: e.clientX,
             y: e.clientY,
@@ -162,6 +169,10 @@ export const CombatLogScreen: React.FC = () => {
                         onView={setViewEventId}
                         onEdit={setEditEventId}
                         onRowContextMenu={openRowMenu}
+                        canEditStatus={(event) => ['owner', 'sharedFull'].includes(getEditPermission(event, homeUnitCode, myCell))}
+                        onStatusChange={(event, status) => updateEvent(event.id, { status })}
+                        getDiaryState={getDiaryState}
+                        onToggleDiary={(event) => toggleAssignedCell(event.id, myCell, myUnitCode)}
                     />
                 )}
                 {tab === 'gantt' && <CombatLogGantt events={filteredEvents} onView={setViewEventId} />}

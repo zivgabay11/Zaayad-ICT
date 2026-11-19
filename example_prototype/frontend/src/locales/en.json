@@ -115,6 +115,8 @@
         "logout": "Log out",
         "keep": "Keep",
         "undo": "Undo",
+        "cancel": "Cancel",
+        "delete": "Delete",
         "time": {
             "start": "Start",
             "end": "End",
@@ -772,11 +774,24 @@
         "screenTitle": "Personal Task Log",
         "screenSubtitle": "Manage personal tasks for the selected role",
         "newTask": "Add Task",
+        "addNewTask": "Add new task",
+        "markDone": "Mark as done",
+        "filterTitle": "Filter by status",
+        "sectionTitles": { "open": "Open tasks", "inProgress": "Tasks in progress", "done": "Completed tasks", "blocked": "Blocked tasks", "cancelled": "Cancelled tasks" },
+        "filterLabels": { "open": "Open", "inProgress": "In progress", "done": "Done", "blocked": "Blocked", "cancelled": "Cancelled" },
         "taskCount": "{{count}} tasks",
         "empty": "No tasks in this status",
         "confirmDelete": "Delete this task?",
         "rowMenu": { "addToCombatLog": "Add to Combat Log as…", "removeFromMyDiary": "Remove from my Personal Task Log" },
         "confirmUnassign": "Remove this task's assignment from your cell?",
+        "delete": {
+            "titleOne": "Delete Task",
+            "descriptionOne": "\"{{name}}\" will be permanently deleted. This cannot be undone."
+        },
+        "unassign": {
+            "titleOne": "Remove Assignment",
+            "descriptionOne": "\"{{name}}\" will be removed from your cell's Personal Task Log. The event itself stays in the Combat Log."
+        },
         "stats": {
             "total": "Total Tasks"
         },
@@ -1331,6 +1346,14 @@
         "deleteTitleHeadquarters": "Delete headquarters",
         "deleteTitleCommandPost": "Delete command post",
         "deleteDescription": "\"{{name}}\" will be permanently deleted from both the map and the layer. This can't be undone.",
+        "deleteHeadquarters": {
+            "titleOne": "Delete headquarters",
+            "descriptionOne": "\"{{name}}\" will be permanently deleted from both the map and the layer. This can't be undone."
+        },
+        "deleteCommandPost": {
+            "titleOne": "Delete command post",
+            "descriptionOne": "\"{{name}}\" will be permanently deleted from both the map and the layer. This can't be undone."
+        },
         "map": {
             "placeHeadquarters": "Click the map to place the headquarters of {{unit}}",
             "placeCommandPost": "Click the map to place the command post of {{unit}}",

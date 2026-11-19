@@ -4,8 +4,9 @@ import { Download, Paperclip } from 'lucide-react';
 import { FigmaIcon } from '../../common/widgets/FigmaIcon';
 import { BumAttachment, BumDmatz, BumDmatzStatus, BumSeverity } from '../../common/utilities/types';
 import { NewBumDmatz } from '../../common/context/BumContext';
-import { BUM_SEVERITIES } from '../utilities/bum';
+import { BUM_SEVERITIES, BUM_SEVERITY_COLOR } from '../utilities/bum';
 import { DMATZ_MAX_STORED_FILE_BYTES, DMATZ_STATUS_ORDER, formatFileSize, getSuperiorUnitCode } from '../utilities/dmatz';
+import { SeverityPills } from '../../common/widgets/SeverityPills';
 
 // Raise / open a דמ"צ. A new one (or one the viewing unit raised) is fully editable and always
 // goes to the unit's superior; one the viewing unit RECEIVED is read-only except for its status
@@ -162,17 +163,19 @@ export const DmatzFormModal: React.FC<Props> = ({ isOpen, viewingUnitCode, dmatz
                         <textarea rows={3} maxLength={1080} disabled={!canEditFields} value={description} onChange={e => setDescription(e.target.value)} placeholder={t('bumManager.dmatz.form.descriptionPlaceholder')} className={inputClass} name="description" />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={labelClass}>{t('bumManager.form.severity')}</label>
-                            <select disabled={!canEditFields} value={severity} onChange={e => setSeverity(Number(e.target.value) as BumSeverity)} className={inputClass} name="severity">
-                                {BUM_SEVERITIES.map(s => <option key={s} value={s}>{s} - {t(`bumManager.severityLevels.${s}`)}</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label className={labelClass}>{t('bumManager.dmatz.form.neededBy')}</label>
-                            <input type="datetime-local" disabled={!canEditFields} value={dueAt} onChange={e => setDueAt(e.target.value)} className={inputClass} name="dueAt" />
-                        </div>
+                    <div>
+                        <label className={labelClass}>{t('bumManager.form.severity')}</label>
+                        <SeverityPills<BumSeverity>
+                            value={severity}
+                            onChange={setSeverity}
+                            disabled={!canEditFields}
+                            name="severity"
+                            options={BUM_SEVERITIES.map(s => ({ key: s, label: t(`bumManager.severityLevels.${s}`), color: BUM_SEVERITY_COLOR[s] }))}
+                        />
+                    </div>
+                    <div>
+                        <label className={labelClass}>{t('bumManager.dmatz.form.neededBy')}</label>
+                        <input type="datetime-local" disabled={!canEditFields} value={dueAt} onChange={e => setDueAt(e.target.value)} className={inputClass} name="dueAt" />
                     </div>
 
                     {/* Attachments */}
@@ -233,18 +236,20 @@ export const DmatzFormModal: React.FC<Props> = ({ isOpen, viewingUnitCode, dmatz
                     </div>
                 </div>
 
-                <div className="px-5 py-4 border-t border-slate-200 dark:border-zinc-800 shrink-0 flex items-center gap-2">
-                    <button onClick={submit} disabled={superior === undefined} data-submit-dmatz className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-sm">
-                        {t(!dmatz ? 'bumManager.dmatz.form.raise' : 'bumManager.form.save')}
-                    </button>
-                    <button onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 text-sm font-medium text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
-                        {t('bumManager.form.cancel')}
-                    </button>
-                    {dmatz && !isReceived && onDelete && (
-                        <button onClick={() => onDelete(dmatz)} className="ms-auto inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <div className="px-5 py-4 border-t border-slate-200 dark:border-zinc-800 shrink-0 flex items-center justify-between gap-2">
+                    {dmatz && !isReceived && onDelete ? (
+                        <button onClick={() => onDelete(dmatz)} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                             <FigmaIcon name="tool-trash-2" /> {t('bumManager.menu.delete')}
                         </button>
-                    )}
+                    ) : <span />}
+                    <div className="flex items-center gap-2">
+                        <button onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 text-sm font-medium text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
+                            {t('bumManager.form.cancel')}
+                        </button>
+                        <button onClick={submit} disabled={superior === undefined} data-submit-dmatz className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-sm">
+                            {t(!dmatz ? 'bumManager.dmatz.form.raise' : 'bumManager.form.save')}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
